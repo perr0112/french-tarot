@@ -3,3 +3,5 @@
  * No I/O, no DOM, no network; randomness only through a seed carried by actions.
  */
 export * from './cards';
+export * from './variant';
+export * from './deal';
