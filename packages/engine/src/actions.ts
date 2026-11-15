@@ -1,0 +1,72 @@
+import { applyBid, legalBids } from './bidding';
+import type { Card } from './cards';
+import { applyChelemDecision } from './chelem';
+import type { BidChoice } from './contracts';
+import type { DealState, Seat } from './deal';
+import { applyPlayCard, playableCards } from './play';
+import { poigneeTemplate, type PoigneeTemplate } from './poignee';
+import { applyEcart, ecartTemplate, type EcartTemplate } from './ecart';
+import { fail, type ActionResult } from './result';
+
+export type Action =
+  | { readonly type: 'bid'; readonly contract: BidChoice }
+  | { readonly type: 'ecart'; readonly cards: readonly Card[] }
+  | { readonly type: 'decideChelem'; readonly announce: boolean }
+  | { readonly type: 'playCard'; readonly card: Card; readonly poignee?: readonly Card[] };
+
+/** What a seat may do now, as templates (AGENTS.md §2, engine design rules). */
+export type LegalAction =
+  | { readonly type: 'bid'; readonly choices: readonly BidChoice[] }
+  | EcartTemplate
+  | { readonly type: 'decideChelem' }
+  | {
+      readonly type: 'playCard';
+      readonly cards: readonly Card[];
+      /** Poignée that may be shown with this card (first card only), or null. */
+      readonly poignee: PoigneeTemplate | null;
+    };
+
+export function applyAction(state: DealState, seat: Seat, action: Action): ActionResult {
+  if (state.turn !== seat) return fail('NOT_YOUR_TURN');
+  switch (action.type) {
+    case 'bid':
+      return state.phase === 'bidding'
+        ? applyBid(state, seat, action.contract)
+        : fail('WRONG_PHASE');
+    case 'ecart':
+      return state.phase === 'ecart' ? applyEcart(state, seat, action.cards) : fail('WRONG_PHASE');
+    case 'decideChelem':
+      return state.phase === 'chelemDecision'
+        ? applyChelemDecision(state, action.announce)
+        : fail('WRONG_PHASE');
+    case 'playCard':
+      return state.phase === 'playing'
+        ? applyPlayCard(state, seat, action.card, action.poignee)
+        : fail('WRONG_PHASE');
+    default:
+      // Reachable only from unvalidated input; the protocol layer should reject it first.
+      return fail('UNKNOWN_ACTION');
+  }
+}
+
+export function getLegalActions(state: DealState, seat: Seat): LegalAction[] {
+  if (state.turn !== seat) return [];
+  switch (state.phase) {
+    case 'bidding':
+      return [{ type: 'bid', choices: legalBids(state) }];
+    case 'ecart':
+      return [ecartTemplate(state, seat)];
+    case 'chelemDecision':
+      return [{ type: 'decideChelem' }];
+    case 'playing':
+      return [
+        {
+          type: 'playCard',
+          cards: playableCards(state, seat),
+          poignee: poigneeTemplate(state, seat),
+        },
+      ];
+    default:
+      return [];
+  }
+}
