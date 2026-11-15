@@ -14,7 +14,8 @@ export interface DealOptions {
 
 export const DEFAULT_DEAL_OPTIONS: DealOptions = { chelemAnnouncements: true };
 
-export type Phase = 'bidding' | 'ecart' | 'chelemDecision' | 'playing' | 'finished' | 'cancelled';
+export type Phase =
+  'bidding' | 'kingCall' | 'ecart' | 'chelemDecision' | 'playing' | 'finished' | 'cancelled';
 
 export type CancelReason =
   { readonly reason: 'petitSec'; readonly seat: Seat } | { readonly reason: 'allPassed' };
@@ -37,6 +38,10 @@ export interface DealState {
   readonly bids: readonly Bid[];
   readonly taker: Seat | null;
   readonly contract: Contract | null;
+  /** The card the taker called (5 players), or null. */
+  readonly calledCard: Card | null;
+  /** The partner (5 players): holder of the called card; null when the taker plays alone. */
+  readonly partner: Seat | null;
   /** Cards the taker discarded (petite, garde); hidden except for trumps. */
   readonly ecart: readonly Card[];
   readonly chelemAnnounced: boolean;
@@ -60,6 +65,11 @@ export interface CreateDealInput {
 
 export function nextSeat(seat: Seat, players: number): Seat {
   return (seat + 1) % players;
+}
+
+/** Whether a seat is on the taker's side: the taker, or the partner in 5 players. */
+export function isTakerSide(state: DealState, seat: Seat): boolean {
+  return seat === state.taker || seat === state.partner;
 }
 
 export function handOf(state: DealState, seat: Seat): readonly Card[] {
@@ -143,6 +153,8 @@ function startDeal(base: DealBase): DealState {
     bids: [],
     taker: null,
     contract: null,
+    calledCard: null,
+    partner: null,
     ecart: [],
     chelemAnnounced: false,
     poignees: [],

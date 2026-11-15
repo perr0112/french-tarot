@@ -1,5 +1,5 @@
 import { EXCUSE, isTrump, rankOf, suitOf, trumpValue, type Card } from './cards';
-import { handOf, handsWithout, nextSeat, type DealState, type Seat } from './deal';
+import { handOf, handsWithout, isTakerSide, nextSeat, type DealState, type Seat } from './deal';
 import { hasPlayedACard, poigneeLevel } from './poignee';
 import { dealFacts, scoreDeal } from './scoring';
 import { fail, type ActionResult } from './result';
@@ -34,7 +34,7 @@ export function playableCards(state: DealState, seat: Seat): Card[] {
   const hand = handOf(state, seat);
   const played = state.currentTrick?.cards ?? [];
   const led = leadingCard(played);
-  if (led === null) return [...hand];
+  if (led === null) return state.tricks.length === 0 ? firstLeads(state, hand) : [...hand];
 
   const excuse = hand.includes(EXCUSE) ? [EXCUSE] : [];
   const ledSuit = suitOf(led);
@@ -48,6 +48,19 @@ export function playableCards(state: DealState, seat: Seat): Card[] {
   const floor = highestTrump(played);
   const higher = trumps.filter((card) => (trumpValue(card) ?? 0) > floor);
   return [...(higher.length > 0 ? higher : trumps), ...excuse];
+}
+
+/**
+ * In 5 players the first trick may not be led in the called suit, except with the called card
+ * itself; a leader with nothing else but the Excuse may lead that suit (AGENTS.md §3.5).
+ */
+function firstLeads(state: DealState, hand: readonly Card[]): Card[] {
+  const called = state.calledCard;
+  if (called === null) return [...hand];
+  const calledSuit = suitOf(called);
+  const allowed = (card: Card) => suitOf(card) !== calledSuit || card === called;
+  const hasOther = hand.some((card) => card !== EXCUSE && suitOf(card) !== calledSuit);
+  return hasOther ? hand.filter(allowed) : [...hand];
 }
 
 /** Highest trump wins, else the highest card of the led suit; the Excuse never wins here. */
@@ -117,6 +130,6 @@ export function applyPlayCard(
 /** In a chelem, the Excuse led on the last trick by the side that won every trick wins it. */
 function excuseWinsLastTrick(state: DealState, last: CurrentTrick): boolean {
   if (last.cards[0]?.card !== EXCUSE) return false;
-  const isTaker = (seat: Seat) => seat === state.taker;
-  return state.tricks.every((t) => isTaker(t.winner) === isTaker(last.leader));
+  const leaderSide = isTakerSide(state, last.leader);
+  return state.tricks.every((t) => isTakerSide(state, t.winner) === leaderSide);
 }

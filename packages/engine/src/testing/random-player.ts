@@ -19,6 +19,8 @@ export function randomAction(template: LegalAction, pick: (n: number) => number)
       const contract = pick(3) === 0 ? template.choices[pick(template.choices.length)] : 'pass';
       return { type: 'bid', contract: contract ?? 'pass' };
     }
+    case 'callKing':
+      return { type: 'callKing', card: template.cards[pick(template.cards.length)] as Card };
     case 'ecart': {
       const plain = template.eligible.filter((c) => !isTrump(c));
       const trumps = template.eligible.filter(isTrump);

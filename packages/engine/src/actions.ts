@@ -1,6 +1,7 @@
 import { applyBid, legalBids } from './bidding';
 import type { Card } from './cards';
 import { applyChelemDecision } from './chelem';
+import { applyKingCall, callableCards } from './king-call';
 import type { BidChoice } from './contracts';
 import type { DealState, Seat } from './deal';
 import { applyPlayCard, playableCards } from './play';
@@ -10,6 +11,7 @@ import { fail, type ActionResult } from './result';
 
 export type Action =
   | { readonly type: 'bid'; readonly contract: BidChoice }
+  | { readonly type: 'callKing'; readonly card: Card }
   | { readonly type: 'ecart'; readonly cards: readonly Card[] }
   | { readonly type: 'decideChelem'; readonly announce: boolean }
   | { readonly type: 'playCard'; readonly card: Card; readonly poignee?: readonly Card[] };
@@ -17,6 +19,7 @@ export type Action =
 /** What a seat may do now, as templates (AGENTS.md §2, engine design rules). */
 export type LegalAction =
   | { readonly type: 'bid'; readonly choices: readonly BidChoice[] }
+  | { readonly type: 'callKing'; readonly cards: readonly Card[] }
   | EcartTemplate
   | { readonly type: 'decideChelem' }
   | {
@@ -32,6 +35,10 @@ export function applyAction(state: DealState, seat: Seat, action: Action): Actio
     case 'bid':
       return state.phase === 'bidding'
         ? applyBid(state, seat, action.contract)
+        : fail('WRONG_PHASE');
+    case 'callKing':
+      return state.phase === 'kingCall'
+        ? applyKingCall(state, seat, action.card)
         : fail('WRONG_PHASE');
     case 'ecart':
       return state.phase === 'ecart' ? applyEcart(state, seat, action.cards) : fail('WRONG_PHASE');
@@ -54,6 +61,8 @@ export function getLegalActions(state: DealState, seat: Seat): LegalAction[] {
   switch (state.phase) {
     case 'bidding':
       return [{ type: 'bid', choices: legalBids(state) }];
+    case 'kingCall':
+      return [{ type: 'callKing', cards: callableCards(state, seat) }];
     case 'ecart':
       return [ecartTemplate(state, seat)];
     case 'chelemDecision':

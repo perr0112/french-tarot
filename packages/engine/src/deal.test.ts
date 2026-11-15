@@ -115,3 +115,21 @@ describe('createDealFromHands', () => {
     ).toThrow('Invalid distribution');
   });
 });
+
+describe.each([
+  { players: 3 as const, cards: 24, chien: 6 },
+  { players: 5 as const, cards: 15, chien: 3 },
+])('createDeal ($players players)', ({ players, cards, chien }) => {
+  it(`deals ${cards} cards to each seat and ${chien} to the chien, using every card once`, () => {
+    const deal = createDeal({ players, dealer: 0, seed: 42 });
+    expect(deal.hands.map((hand) => hand.length)).toEqual(Array(players).fill(cards));
+    expect(deal.chien).toHaveLength(chien);
+    expect([...allDealtCards(deal)].sort()).toEqual([...ALL_CARDS].sort());
+  });
+
+  it('opens the bidding with the seat after the dealer', () => {
+    const deal = createDeal({ players, dealer: players - 1, seed: 7 });
+    if (deal.phase === 'cancelled') return;
+    expect(deal.turn).toBe(0);
+  });
+});
