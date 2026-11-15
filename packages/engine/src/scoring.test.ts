@@ -8,11 +8,22 @@ import {
   type ScoreFacts,
   type Seat,
 } from './index';
-import { card, play, takeWith } from './testing/fixtures';
+import {
+  callKing,
+  card,
+  fiveDeal,
+  FIVE_CHIEN,
+  FIVE_HANDS,
+  play,
+  swapCards,
+  takeWith,
+} from './testing/fixtures';
+import { dealFacts } from './index';
 
 const facts = (overrides: Partial<ScoreFacts>): ScoreFacts => ({
   players: 4,
   taker: 0,
+  partner: null,
   contract: 'petite',
   takerHalfPoints: 0,
   takerOudlers: 0,
@@ -450,5 +461,104 @@ describe('scoring a played deal', () => {
     expect(last?.winner).not.toBe(1);
     // Petit lost on the first trick, Excuse lost on the last: only the 21 remains.
     expect(done.result).toMatchObject({ oudlers: 1, needed: 51, chelem: 0 });
+  });
+});
+
+describe('scoring in 3 and 5 players', () => {
+  it('gives the taker 2S against two defenders in 3 players', () => {
+    const result = scoreDeal(
+      facts({ players: 3, contract: 'garde', takerHalfPoints: 90, takerOudlers: 2 }),
+    );
+    expect(result.perSeat).toEqual([116, -58, -58]);
+  });
+
+  it('gives the half point to the winning side: 40.5 with 2 oudlers fails by 1', () => {
+    const result = scoreDeal(facts({ players: 3, takerHalfPoints: 81, takerOudlers: 2 }));
+    expect(result).toMatchObject({ points: 40.5, made: false, gap: 1, contractScore: -26 });
+  });
+
+  it('gives the half point to the winning side: 41.5 with 2 oudlers makes by 1', () => {
+    const result = scoreDeal(facts({ players: 3, takerHalfPoints: 83, takerOudlers: 2 }));
+    expect(result).toMatchObject({ points: 41.5, made: true, gap: 1, contractScore: 26 });
+  });
+
+  it('shares 2S to the taker, S to the partner and −S to each defender in 5 players', () => {
+    const result = scoreDeal(
+      facts({ players: 5, taker: 1, partner: 3, takerHalfPoints: 90, takerOudlers: 2 }),
+    );
+    expect(result).toMatchObject({ partner: 3, perSeat: [-29, 58, -29, 29, -29] });
+  });
+
+  it('gives a taker playing alone 4S in 5 players', () => {
+    const result = scoreDeal(facts({ players: 5, takerHalfPoints: 90, takerOudlers: 2 }));
+    expect(result.perSeat).toEqual([116, -29, -29, -29, -29]);
+  });
+
+  it("counts the partner's tricks for the taker's side, chelem included", () => {
+    // Garde sans by seat 0 calling the King of hearts (seat 4), who wins every trick.
+    // The defence keeps the Excuse (exchanged for half a point): 91 − 4.5 + 0.5 = 87 points,
+    // with the Petit and the 21 from the chien. (25 + 46) × 4 + 200 = 484.
+    const called = play(takeWith(fiveDeal(), 0, 'gardeSans'), [[0, callKing('H14')]]);
+    const tricks = Array.from({ length: 15 }, (_, i) => ({
+      leader: 0,
+      cards: FIVE_HANDS.map((hand, seat) => ({
+        seat,
+        card: hand[(i + (seat === 3 ? 1 : 0)) % 15] as Card,
+      })),
+      winner: 4,
+    }));
+    const finished: DealState = {
+      ...called,
+      phase: 'finished',
+      turn: null,
+      hands: FIVE_HANDS.map(() => []),
+      tricks,
+    };
+    const fiveFacts = dealFacts(finished);
+    expect(fiveFacts).toMatchObject({
+      partner: 4,
+      takerHalfPoints: 174,
+      takerOudlers: 2,
+      chelem: { announced: false, achievedBy: 'taker' },
+    });
+    expect(scoreDeal(fiveFacts)).toMatchObject({
+      dealScore: 484,
+      perSeat: [968, -484, -484, -484, 484],
+    });
+  });
+
+  it("counts the partner's Excuse and Petit au bout for the taker's side", () => {
+    // Seat 0 holds the Petit, seat 4 (the partner, King of hearts called) the Excuse.
+    // The defence (seat 1) wins every trick but the last, won by the partner with the Petit.
+    const withPetit = swapCards(FIVE_HANDS, FIVE_CHIEN, 'T01', 'S01');
+    const { hands, chien } = swapCards(withPetit.hands, withPetit.chien, 'EXC', 'C11');
+    const dealt = createDealFromHands({ hands, chien, dealer: 0 });
+    const called = play(takeWith(dealt, 0, 'gardeSans'), [[0, callKing('H14')]]);
+    const last: Card[] = ['T01', 'H01', 'D01', 'C01', 'S11'];
+    const rest = hands.map((hand, seat) => hand.filter((c) => c !== last[seat]));
+    const tricks = [
+      ...Array.from({ length: 14 }, (_, i) => ({
+        leader: 1,
+        cards: rest.map((hand, seat) => ({ seat, card: hand[i] as Card })),
+        winner: 1,
+      })),
+      { leader: 4, cards: last.map((c, seat) => ({ seat, card: c })), winner: 4 },
+    ];
+    const fiveFacts = dealFacts({
+      ...called,
+      phase: 'finished',
+      turn: null,
+      hands: hands.map(() => []),
+      tricks,
+    });
+    // Chien C14 + T21 + S01 (19 half-points), last trick 15 (Petit 9, three
+    // small cards, Valet 3), the Excuse kept (9) minus the half point given for it:
+    // 42 half-points, i.e. 21 points with 3 oudlers.
+    expect(fiveFacts).toMatchObject({
+      takerHalfPoints: 42,
+      takerOudlers: 3,
+      petitAuBout: 'taker',
+      chelem: { announced: false, achievedBy: null },
+    });
   });
 });

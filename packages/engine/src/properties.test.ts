@@ -3,27 +3,28 @@ import { describe, expect, it } from 'vitest';
 import { ALL_CARDS, cardHalfPoints, createDeal, dealFacts } from './index';
 import { playRandomly } from './testing/random-player';
 
-const seeds = fc.tuple(
-  fc.integer({ min: 0, max: 2 ** 31 - 1 }),
-  fc.integer({ min: 0, max: 3 }),
-  fc.integer(),
-);
+const seeds = (players: number) =>
+  fc.tuple(
+    fc.integer({ min: 0, max: 2 ** 31 - 1 }),
+    fc.integer({ min: 0, max: players - 1 }),
+    fc.integer(),
+  );
 
-describe('random legal deals (4 players)', () => {
+describe.each([3, 4, 5] as const)('random legal deals (%i players)', (players) => {
   it('always end, finished or cancelled, never refusing a legal action', () => {
     fc.assert(
-      fc.property(seeds, ([seed, dealer, choiceSeed]) => {
-        const end = playRandomly(createDeal({ players: 4, dealer, seed }), choiceSeed);
+      fc.property(seeds(players), ([seed, dealer, choiceSeed]) => {
+        const end = playRandomly(createDeal({ players, dealer, seed }), choiceSeed);
         expect(['finished', 'cancelled']).toContain(end.phase);
       }),
-      { numRuns: 300 },
+      { numRuns: players === 4 ? 300 : 200 },
     );
   });
 
   it('conserve the 78 cards, the 91 points, and score to zero', () => {
     fc.assert(
-      fc.property(seeds, ([seed, dealer, choiceSeed]) => {
-        const end = playRandomly(createDeal({ players: 4, dealer, seed }), choiceSeed);
+      fc.property(seeds(players), ([seed, dealer, choiceSeed]) => {
+        const end = playRandomly(createDeal({ players, dealer, seed }), choiceSeed);
         if (end.phase !== 'finished' || end.result === null) return;
 
         const aside = end.contract === 'petite' || end.contract === 'garde' ? end.ecart : end.chien;
@@ -37,7 +38,7 @@ describe('random legal deals (4 players)', () => {
         expect(facts.takerOudlers).toBeLessThanOrEqual(3);
         expect(end.result.perSeat.reduce((a, b) => a + b, 0)).toBe(0);
       }),
-      { numRuns: 300 },
+      { numRuns: players === 4 ? 300 : 200 },
     );
   });
 });

@@ -140,3 +140,49 @@ export function mixedDealInPlay(dealer: Seat): DealState {
   });
   return takeWith(deal, 3, 'gardeSans');
 }
+
+const suitRanks = (s: string, from: number, to: number) =>
+  suit(s).filter((c) => Number(c.slice(1)) >= from && Number(c.slice(1)) <= to);
+
+/**
+ * A fixed 5-player distribution: seats 0–3 hold ranks 1–10 of one suit (spades, hearts,
+ * diamonds, clubs) plus trumps; seat 4 holds the court cards but the King of clubs, which is
+ * in the chien with the Petit and the 21.
+ */
+export const FIVE_HANDS: Card[][] = [
+  [...suitRanks('S', 1, 10), ...trumps(2, 6)],
+  [...suitRanks('H', 1, 10), ...trumps(7, 11)],
+  [...suitRanks('D', 1, 10), ...trumps(12, 16)],
+  [...suitRanks('C', 1, 10), ...trumps(17, 20), 'EXC'],
+  [
+    ...suitRanks('S', 11, 14),
+    ...suitRanks('H', 11, 14),
+    ...suitRanks('D', 11, 14),
+    'C11',
+    'C12',
+    'C13',
+  ],
+];
+export const FIVE_CHIEN: Card[] = ['C14', 'T01', 'T21'];
+
+export function fiveDeal(dealer: Seat = 0, options?: DealOptions) {
+  return createDealFromHands({
+    hands: FIVE_HANDS,
+    chien: FIVE_CHIEN,
+    dealer,
+    ...(options ? { options } : {}),
+  });
+}
+
+/** Swaps two cards between the hands and chien of a distribution. */
+export function swapCards(
+  hands: readonly (readonly Card[])[],
+  chien: readonly Card[],
+  a: Card,
+  b: Card,
+): { hands: Card[][]; chien: Card[] } {
+  const swap = (c: Card): Card => (c === a ? b : c === b ? a : c);
+  return { hands: hands.map((h) => h.map(swap)), chien: chien.map(swap) };
+}
+
+export const callKing = (c: Card): Action => ({ type: 'callKing', card: c });

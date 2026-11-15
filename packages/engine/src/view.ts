@@ -1,7 +1,15 @@
 import { getLegalActions, type LegalAction } from './actions';
 import { isTrump, type Card } from './cards';
 import { chienIsRevealed, type Contract } from './contracts';
-import { handOf, type Bid, type CancelReason, type DealState, type Phase, type Seat } from './deal';
+import {
+  handOf,
+  playedCards,
+  type Bid,
+  type CancelReason,
+  type DealState,
+  type Phase,
+  type Seat,
+} from './deal';
 import type { CurrentTrick, Trick } from './play';
 import type { Poignee } from './poignee';
 import type { Breakdown } from './scoring';
@@ -23,6 +31,13 @@ export interface PlayerView {
   readonly bids: readonly Bid[];
   readonly taker: Seat | null;
   readonly contract: Contract | null;
+  /** The card the taker called (5 players), or null. */
+  readonly calledCard: Card | null;
+  /**
+   * The partner as far as this seat knows: a seat, 'alone' when the taker has no partner,
+   * or null while unknown to this seat.
+   */
+  readonly knownPartner: Seat | 'alone' | null;
   /** The chien, once revealed in petite or garde; null otherwise. */
   readonly chien: readonly Card[] | null;
   readonly shownEcartTrumps: readonly Card[];
@@ -41,6 +56,20 @@ export interface PlayerView {
 const chienRevealed = (state: DealState) =>
   state.phase !== 'bidding' && state.contract !== null && chienIsRevealed(state.contract);
 
+/** What a seat knows of the partner (AGENTS.md §3.5): the partner stays secret until revealed. */
+function knownPartner(state: DealState, seat: Seat): Seat | 'alone' | null {
+  const called = state.calledCard;
+  if (called === null) return null;
+  const actual = state.partner ?? 'alone';
+  const known =
+    state.phase === 'finished' ||
+    playedCards(state).some((p) => p.card === called) ||
+    handOf(state, seat).includes(called) ||
+    (seat === state.taker && state.ecart.includes(called)) ||
+    (chienRevealed(state) && state.chien.includes(called));
+  return known ? actual : null;
+}
+
 export function getPlayerView(state: DealState, seat: Seat): PlayerView {
   return {
     seat,
@@ -54,6 +83,8 @@ export function getPlayerView(state: DealState, seat: Seat): PlayerView {
     bids: state.bids,
     taker: state.taker,
     contract: state.contract,
+    calledCard: state.calledCard,
+    knownPartner: knownPartner(state, seat),
     chien: chienRevealed(state) ? state.chien : null,
     shownEcartTrumps: state.ecart.filter(isTrump),
     ownEcart: seat === state.taker && state.ecart.length > 0 ? state.ecart : null,

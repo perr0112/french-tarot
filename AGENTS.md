@@ -159,7 +159,9 @@ Primary source and page references: `docs/research/fft-rules.md`.
 - If the taker holds all four Kings, they call a **Dame**; if they also hold all four Dames, a **Cavalier**, etc.
 - The taker may call a King they hold themselves (or that is in the chien) → they play **alone** against four.
 - The partner is revealed only when the called card is played. The UI must not leak it before.
-- The first trick may not be led in the called suit, unless it is the called card itself.
+- The first trick may not be led in the called suit, unless it is the called card itself. The Excuse may always be led; a leader holding only cards of the called suit (besides the Excuse) may lead one of them (case not covered by the FFT text).
+- The king call is its own phase, for every contract, right after the bidding. The engine records the partner (`null` when the taker plays alone) when the King is called.
+- The view exposes the called card to everyone and the partner only to those who know: everyone once the called card is played or a revealed chien holds it, the holder of the card from the start, everyone at the end of the deal.
 
 ### 3.6 Declarations (before or with the first card)
 
@@ -203,7 +205,7 @@ Primary source and page references: `docs/research/fft-rules.md`.
   | 0       | 56            |
 
 - Contract is made if `points >= needed`.
-- In 3 and 5 players the taker's total can end in a half point; the half point goes to the side that wins (e.g. 40.5 with 2 oudlers fails by 1, 41.5 makes by 1). In 4 players totals are always whole.
+- In 3 and 5 players the taker's total can end in a half point; the half point goes to the side that wins (e.g. 40.5 with 2 oudlers fails by 1, 41.5 makes by 1). In 4 players totals are always whole. The breakdown keeps the exact points; only the difference is rounded up (`gap = ceil(|points − needed|)`).
 - **Base score `S`**, every term signed **from the taker's side** (ADR-0004):
 
   `S = c × (25 + |points − needed|) × multiplier + p × 10 × multiplier + c × poignée + chelem`

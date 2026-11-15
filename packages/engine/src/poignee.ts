@@ -1,5 +1,5 @@
 import { EXCUSE, isTrump, type Card } from './cards';
-import { handOf, type DealState, type Seat } from './deal';
+import { handOf, playedCards, type DealState, type Seat } from './deal';
 import { poigneeLevels, type PoigneeLevel } from './variant';
 
 export interface Poignee {
@@ -15,8 +15,7 @@ export interface PoigneeTemplate {
 }
 
 export function hasPlayedACard(state: DealState, seat: Seat): boolean {
-  const played = [...state.tricks.flatMap((t) => t.cards), ...(state.currentTrick?.cards ?? [])];
-  return played.some((p) => p.seat === seat);
+  return playedCards(state).some((p) => p.seat === seat);
 }
 
 /** Poignée levels a seat may still declare with its first card, or null. */

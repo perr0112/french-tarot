@@ -1,6 +1,6 @@
 import { EXCUSE, PETIT, cardHalfPoints, isOudler, type Card } from './cards';
 import { CONTRACT_RULES, type Contract } from './contracts';
-import type { DealState, Seat } from './deal';
+import { isTakerSide, type DealState, type Seat } from './deal';
 import { POIGNEE_BONUS, variantFor, type PlayerCount, type PoigneeLevel } from './variant';
 
 export type Side = 'taker' | 'defence';
@@ -14,6 +14,7 @@ const NEEDED_BY_OUDLERS: Readonly<Record<OudlerCount, number>> = { 0: 56, 1: 51,
 export interface ScoreFacts {
   readonly players: PlayerCount;
   readonly taker: Seat;
+  readonly partner: Seat | null;
   readonly contract: Contract;
   readonly takerHalfPoints: number;
   readonly takerOudlers: OudlerCount;
@@ -25,11 +26,14 @@ export interface ScoreFacts {
 /** Itemised result of a deal; every signed term is from the taker's side (ADR-0004). */
 export interface Breakdown {
   readonly contract: Contract;
+  readonly partner: Seat | null;
   readonly multiplier: number;
+  /** The taker's side's points, which may end in a half point in 3 or 5 players. */
   readonly points: number;
   readonly oudlers: number;
   readonly needed: number;
   readonly made: boolean;
+  /** Distance to the points needed, the half point going to the winning side. */
   readonly gap: number;
   readonly contractScore: number;
   readonly petitAuBout: number;
@@ -46,13 +50,22 @@ function chelemTerm({ announced, achievedBy }: ScoreFacts['chelem']): number {
   return announced ? -200 : 0;
 }
 
+function shareOf({ players, taker, partner }: ScoreFacts, seat: Seat): number {
+  const { alone, withPartner } = variantFor(players).scoreShares;
+  if (partner !== null && withPartner !== null) {
+    if (seat === taker) return withPartner.taker;
+    return seat === partner ? withPartner.partner : withPartner.defender;
+  }
+  return seat === taker ? alone.taker : alone.defender;
+}
+
 export function scoreDeal(facts: ScoreFacts): Breakdown {
   const multiplier = CONTRACT_RULES[facts.contract].multiplier;
   const points = facts.takerHalfPoints / 2;
   const needed = NEEDED_BY_OUDLERS[facts.takerOudlers];
   const made = points >= needed;
   const sign = made ? 1 : -1;
-  const gap = Math.abs(points - needed);
+  const gap = Math.ceil(Math.abs(points - needed));
 
   const contractScore = sign * (25 + gap) * multiplier;
   const petitAuBout =
@@ -61,14 +74,14 @@ export function scoreDeal(facts: ScoreFacts): Breakdown {
   const chelem = chelemTerm(facts.chelem);
   const dealScore = contractScore + petitAuBout + poignee + chelem;
 
-  const shares = variantFor(facts.players).scoreShares;
   const perSeat = Array.from(
     { length: facts.players },
-    (_, seat) => (seat === facts.taker ? shares.taker : shares.defender) * dealScore,
+    (_, seat) => shareOf(facts, seat) * dealScore,
   );
 
   return {
     contract: facts.contract,
+    partner: facts.partner,
     multiplier,
     points,
     oudlers: facts.takerOudlers,
@@ -88,7 +101,7 @@ export function scoreDeal(facts: ScoreFacts): Breakdown {
 export function dealFacts(state: DealState): ScoreFacts {
   const taker = state.taker as Seat;
   const contract = state.contract as Contract;
-  const sideOf = (seat: Seat): Side => (seat === taker ? 'taker' : 'defence');
+  const sideOf = (seat: Seat): Side => (isTakerSide(state, seat) ? 'taker' : 'defence');
 
   const won: Record<Side, Card[]> = { taker: [], defence: [] };
   // The écart counts for the taker; a chien set aside goes to the side the contract names.
@@ -125,6 +138,7 @@ export function dealFacts(state: DealState): ScoreFacts {
   return {
     players: state.players,
     taker,
+    partner: state.partner,
     contract,
     takerHalfPoints,
     takerOudlers: won.taker.filter(isOudler).length as OudlerCount,

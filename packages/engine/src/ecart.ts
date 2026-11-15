@@ -1,6 +1,6 @@
 import { KING, isOudler, isTrump, rankOf, type Card } from './cards';
-import { startChelemDecisionOrPlay } from './chelem';
 import { handOf, handsWithout, type DealState, type Seat } from './deal';
+import { startChelemDecisionOrPlay } from './phases';
 import { fail, type ActionResult } from './result';
 import { variantFor } from './variant';
 
