@@ -38,6 +38,9 @@ export interface DealState {
   readonly bids: readonly Bid[];
   readonly taker: Seat | null;
   readonly contract: Contract | null;
+  /** Cards the taker discarded (petite, garde); hidden except for trumps. */
+  readonly ecart: readonly Card[];
+  readonly chelemAnnounced: boolean;
   readonly cancelled: CancelReason | null;
 }
 
@@ -122,6 +125,8 @@ function startDeal(base: DealBase): DealState {
     bids: [],
     taker: null,
     contract: null,
+    ecart: [],
+    chelemAnnounced: false,
     cancelled: null,
   };
   if (petitSecSeat !== -1) {

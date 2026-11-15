@@ -1,19 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { applyAction, getLegalActions, type Action, type DealState, type Seat } from './index';
-import { SIMPLE_CHIEN, simpleDeal } from './testing/fixtures';
-
-function play(state: DealState, moves: [Seat, Action][]): DealState {
-  return moves.reduce((s, [seat, action]) => {
-    const result = applyAction(s, seat, action);
-    if (!result.ok) throw new Error(`${seat} ${JSON.stringify(action)}: ${result.error.code}`);
-    return result.state;
-  }, state);
-}
-
-const bid = (contract: 'pass' | 'petite' | 'garde' | 'gardeSans' | 'gardeContre'): Action => ({
-  type: 'bid',
-  contract,
-});
+import { applyAction, getLegalActions } from './index';
+import { SIMPLE_CHIEN, bid, play, simpleDeal } from './testing/fixtures';
 
 describe('bidding', () => {
   it('lets the seat after the dealer speak first, with every contract available', () => {
