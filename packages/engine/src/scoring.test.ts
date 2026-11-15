@@ -87,12 +87,21 @@ describe('scoreDeal (hand-computed golden examples)', () => {
         chelem: { announced: true, achievedBy: 'taker' },
       }),
     );
-    expect(result).toMatchObject({ contractScore: 80, petitAuBout: 10, chelem: 400, dealScore: 490 });
+    expect(result).toMatchObject({
+      contractScore: 80,
+      petitAuBout: 10,
+      chelem: 400,
+      dealScore: 490,
+    });
   });
 
   it('adds 200 for an unannounced chelem', () => {
     const result = scoreDeal(
-      facts({ takerHalfPoints: 182, takerOudlers: 3, chelem: { announced: false, achievedBy: 'taker' } }),
+      facts({
+        takerHalfPoints: 182,
+        takerOudlers: 3,
+        chelem: { announced: false, achievedBy: 'taker' },
+      }),
     );
     expect(result).toMatchObject({ chelem: 200, dealScore: 280 });
   });
@@ -123,7 +132,9 @@ function playOut(start: DealState, takerPick: (cards: Card[]) => Card): DealStat
     const seat = state.turn as Seat;
     const legal = getLegalActions(state, seat).find((a) => a.type === 'playCard');
     const cards = legal && legal.type === 'playCard' ? [...legal.cards].sort() : [];
-    state = play(state, [[seat, card(seat === state.taker ? takerPick(cards) : (cards[0] as Card))]]);
+    state = play(state, [
+      [seat, card(seat === state.taker ? takerPick(cards) : (cards[0] as Card))],
+    ]);
   }
   return state;
 }
@@ -138,10 +149,86 @@ describe('scoring a played deal', () => {
   it('scores an announced chelem won with the Excuse on the last trick', () => {
     // Seat 1 holds T05–T21 and the Excuse; garde sans, chelem announced.
     const hands: Card[][] = [
-      ['S01', 'S02', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S09', 'S10', 'S11', 'S12', 'S13', 'S14', 'H01', 'H02', 'H03', 'H04'],
-      ['T05', 'T06', 'T07', 'T08', 'T09', 'T10', 'T11', 'T12', 'T13', 'T14', 'T15', 'T16', 'T17', 'T18', 'T19', 'T20', 'T21', 'EXC'],
-      ['T01', 'T02', 'T03', 'T04', 'H05', 'H06', 'H07', 'H08', 'H09', 'H10', 'H11', 'H12', 'H13', 'H14', 'D01', 'D02', 'D03', 'D04'],
-      ['D05', 'D06', 'D07', 'D08', 'D09', 'D10', 'D11', 'D12', 'D13', 'D14', 'C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'C07', 'C08'],
+      [
+        'S01',
+        'S02',
+        'S03',
+        'S04',
+        'S05',
+        'S06',
+        'S07',
+        'S08',
+        'S09',
+        'S10',
+        'S11',
+        'S12',
+        'S13',
+        'S14',
+        'H01',
+        'H02',
+        'H03',
+        'H04',
+      ],
+      [
+        'T05',
+        'T06',
+        'T07',
+        'T08',
+        'T09',
+        'T10',
+        'T11',
+        'T12',
+        'T13',
+        'T14',
+        'T15',
+        'T16',
+        'T17',
+        'T18',
+        'T19',
+        'T20',
+        'T21',
+        'EXC',
+      ],
+      [
+        'T01',
+        'T02',
+        'T03',
+        'T04',
+        'H05',
+        'H06',
+        'H07',
+        'H08',
+        'H09',
+        'H10',
+        'H11',
+        'H12',
+        'H13',
+        'H14',
+        'D01',
+        'D02',
+        'D03',
+        'D04',
+      ],
+      [
+        'D05',
+        'D06',
+        'D07',
+        'D08',
+        'D09',
+        'D10',
+        'D11',
+        'D12',
+        'D13',
+        'D14',
+        'C01',
+        'C02',
+        'C03',
+        'C04',
+        'C05',
+        'C06',
+        'C07',
+        'C08',
+      ],
     ];
     const chien: Card[] = ['C09', 'C10', 'C11', 'C12', 'C13', 'C14'];
     const deal = play(takeWith(createDealFromHands({ hands, chien, dealer: 0 }), 1, 'gardeSans'), [
@@ -159,13 +246,182 @@ describe('scoring a played deal', () => {
     });
   });
 
+  it('counts the Petit au bout on the second-to-last trick when a chelem ends with the Excuse', () => {
+    // Seat 1 holds the Petit, T06–T21 and the Excuse; it plays the Petit on trick 17.
+    const hands: Card[][] = [
+      [
+        'S01',
+        'S02',
+        'S03',
+        'S04',
+        'S05',
+        'S06',
+        'S07',
+        'S08',
+        'S09',
+        'S10',
+        'S11',
+        'S12',
+        'S13',
+        'S14',
+        'H01',
+        'H02',
+        'H03',
+        'H04',
+      ],
+      [
+        'T01',
+        'T06',
+        'T07',
+        'T08',
+        'T09',
+        'T10',
+        'T11',
+        'T12',
+        'T13',
+        'T14',
+        'T15',
+        'T16',
+        'T17',
+        'T18',
+        'T19',
+        'T20',
+        'T21',
+        'EXC',
+      ],
+      [
+        'T02',
+        'T03',
+        'T04',
+        'T05',
+        'H05',
+        'H06',
+        'H07',
+        'H08',
+        'H09',
+        'H10',
+        'H11',
+        'H12',
+        'H13',
+        'H14',
+        'D01',
+        'D02',
+        'D03',
+        'D04',
+      ],
+      [
+        'D05',
+        'D06',
+        'D07',
+        'D08',
+        'D09',
+        'D10',
+        'D11',
+        'D12',
+        'D13',
+        'D14',
+        'C01',
+        'C02',
+        'C03',
+        'C04',
+        'C05',
+        'C06',
+        'C07',
+        'C08',
+      ],
+    ];
+    const chien: Card[] = ['C09', 'C10', 'C11', 'C12', 'C13', 'C14'];
+    const deal = play(takeWith(createDealFromHands({ hands, chien, dealer: 0 }), 1, 'gardeSans'), [
+      [1, { type: 'decideChelem', announce: true }],
+    ]);
+    const done = playOut(deal, strongestFirst);
+    expect(done.tricks.at(-2)?.cards[0]).toEqual({ seat: 1, card: 'T01' });
+    expect(done.result).toMatchObject({ petitAuBout: 40, chelem: 400, dealScore: 760 });
+  });
+
   it('gives an Excuse played on the last trick to the side that wins it, outside a chelem', () => {
     // As above, but the taker loses the first trick (leading S01), so there is no chelem.
     const hands: Card[][] = [
-      ['S02', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S09', 'S10', 'S11', 'S12', 'S13', 'S14', 'H01', 'H02', 'H03', 'H04', 'H05'],
-      ['S01', 'T06', 'T07', 'T08', 'T09', 'T10', 'T11', 'T12', 'T13', 'T14', 'T15', 'T16', 'T17', 'T18', 'T19', 'T20', 'T21', 'EXC'],
-      ['T01', 'T02', 'T03', 'T04', 'T05', 'H06', 'H07', 'H08', 'H09', 'H10', 'H11', 'H12', 'H13', 'H14', 'D01', 'D02', 'D03', 'D04'],
-      ['D05', 'D06', 'D07', 'D08', 'D09', 'D10', 'D11', 'D12', 'D13', 'D14', 'C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'C07', 'C08'],
+      [
+        'S02',
+        'S03',
+        'S04',
+        'S05',
+        'S06',
+        'S07',
+        'S08',
+        'S09',
+        'S10',
+        'S11',
+        'S12',
+        'S13',
+        'S14',
+        'H01',
+        'H02',
+        'H03',
+        'H04',
+        'H05',
+      ],
+      [
+        'S01',
+        'T06',
+        'T07',
+        'T08',
+        'T09',
+        'T10',
+        'T11',
+        'T12',
+        'T13',
+        'T14',
+        'T15',
+        'T16',
+        'T17',
+        'T18',
+        'T19',
+        'T20',
+        'T21',
+        'EXC',
+      ],
+      [
+        'T01',
+        'T02',
+        'T03',
+        'T04',
+        'T05',
+        'H06',
+        'H07',
+        'H08',
+        'H09',
+        'H10',
+        'H11',
+        'H12',
+        'H13',
+        'H14',
+        'D01',
+        'D02',
+        'D03',
+        'D04',
+      ],
+      [
+        'D05',
+        'D06',
+        'D07',
+        'D08',
+        'D09',
+        'D10',
+        'D11',
+        'D12',
+        'D13',
+        'D14',
+        'C01',
+        'C02',
+        'C03',
+        'C04',
+        'C05',
+        'C06',
+        'C07',
+        'C08',
+      ],
     ];
     const chien: Card[] = ['C09', 'C10', 'C11', 'C12', 'C13', 'C14'];
     const deal = takeWith(

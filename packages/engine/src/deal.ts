@@ -20,8 +20,7 @@ export type BidChoice = 'pass' | Contract;
 export type Phase = 'bidding' | 'ecart' | 'chelemDecision' | 'playing' | 'finished' | 'cancelled';
 
 export type CancelReason =
-  | { readonly reason: 'petitSec'; readonly seat: Seat }
-  | { readonly reason: 'allPassed' };
+  { readonly reason: 'petitSec'; readonly seat: Seat } | { readonly reason: 'allPassed' };
 
 export interface Bid {
   readonly seat: Seat;

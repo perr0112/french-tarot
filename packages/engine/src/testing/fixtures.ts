@@ -4,7 +4,9 @@ import { createDealFromHands, type DealOptions, type DealState, type Seat } from
 
 const suit = (s: string) => ALL_CARDS.filter((c) => c.startsWith(s));
 const trumps = (from: number, to: number) =>
-  ALL_CARDS.filter((c) => c.startsWith('T') && Number(c.slice(1)) >= from && Number(c.slice(1)) <= to);
+  ALL_CARDS.filter(
+    (c) => c.startsWith('T') && Number(c.slice(1)) >= from && Number(c.slice(1)) <= to,
+  );
 
 /**
  * A fixed 4-player distribution: each seat holds one full suit and four trumps;
@@ -36,13 +38,19 @@ export function play(state: DealState, moves: [Seat, Action][]): DealState {
   }, state);
 }
 
-export const bid = (contract: 'pass' | 'petite' | 'garde' | 'gardeSans' | 'gardeContre'): Action => ({
+export const bid = (
+  contract: 'pass' | 'petite' | 'garde' | 'gardeSans' | 'gardeContre',
+): Action => ({
   type: 'bid',
   contract,
 });
 
 /** Seat `taker` wins the bidding with `contract`; everyone else passes. */
-export function takeWith(deal: DealState, taker: Seat, contract: Parameters<typeof bid>[0]): DealState {
+export function takeWith(
+  deal: DealState,
+  taker: Seat,
+  contract: Parameters<typeof bid>[0],
+): DealState {
   const moves: [Seat, Action][] = Array.from({ length: deal.players }, (_, i) => {
     const seat = (deal.dealer + 1 + i) % deal.players;
     return [seat, bid(seat === taker ? contract : 'pass')];
@@ -58,9 +66,66 @@ export const card = (c: Card): Action => ({ type: 'playCard', card: c });
  * seat 2 spades/hearts/diamonds and the Excuse, seat 3 diamonds and clubs (no trump).
  */
 export const MIXED_HANDS: Card[][] = [
-  ['S01', 'S02', 'S03', 'S04', 'S05', 'H01', 'H02', 'H03', 'H04', 'H05', 'T02', 'T03', 'T04', 'T05', 'T10', 'T11', 'T12', 'T13'],
-  ['S06', 'S07', 'S08', 'S09', 'S10', 'H06', 'H07', 'H08', 'H09', 'H10', 'T06', 'T07', 'T08', 'T09', 'T14', 'T15', 'T16', 'T17'],
-  ['S11', 'S12', 'S13', 'S14', 'H11', 'H12', 'H13', 'H14', 'D01', 'D02', 'D03', 'D04', 'D05', 'D06', 'D07', 'D08', 'D09', 'EXC'],
+  [
+    'S01',
+    'S02',
+    'S03',
+    'S04',
+    'S05',
+    'H01',
+    'H02',
+    'H03',
+    'H04',
+    'H05',
+    'T02',
+    'T03',
+    'T04',
+    'T05',
+    'T10',
+    'T11',
+    'T12',
+    'T13',
+  ],
+  [
+    'S06',
+    'S07',
+    'S08',
+    'S09',
+    'S10',
+    'H06',
+    'H07',
+    'H08',
+    'H09',
+    'H10',
+    'T06',
+    'T07',
+    'T08',
+    'T09',
+    'T14',
+    'T15',
+    'T16',
+    'T17',
+  ],
+  [
+    'S11',
+    'S12',
+    'S13',
+    'S14',
+    'H11',
+    'H12',
+    'H13',
+    'H14',
+    'D01',
+    'D02',
+    'D03',
+    'D04',
+    'D05',
+    'D06',
+    'D07',
+    'D08',
+    'D09',
+    'EXC',
+  ],
   ['D11', 'D12', 'D13', 'D14', ...suit('C')],
 ];
 export const MIXED_CHIEN: Card[] = ['T18', 'T19', 'T20', 'T21', 'T01', 'D10'];

@@ -1,5 +1,12 @@
 import { fail, type ActionResult } from './result';
-import { CONTRACTS, nextSeat, type BidChoice, type Contract, type DealState, type Seat } from './deal';
+import {
+  CONTRACTS,
+  nextSeat,
+  type BidChoice,
+  type Contract,
+  type DealState,
+  type Seat,
+} from './deal';
 
 const rank = (contract: Contract): number => CONTRACTS.indexOf(contract);
 

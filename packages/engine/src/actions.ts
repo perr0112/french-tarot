@@ -28,7 +28,9 @@ export function applyAction(state: DealState, seat: Seat, action: Action): Actio
   if (state.turn !== seat) return fail('NOT_YOUR_TURN');
   switch (action.type) {
     case 'bid':
-      return state.phase === 'bidding' ? applyBid(state, seat, action.contract) : fail('WRONG_PHASE');
+      return state.phase === 'bidding'
+        ? applyBid(state, seat, action.contract)
+        : fail('WRONG_PHASE');
     case 'ecart':
       return state.phase === 'ecart' ? applyEcart(state, seat, action.cards) : fail('WRONG_PHASE');
     case 'decideChelem':
@@ -36,7 +38,9 @@ export function applyAction(state: DealState, seat: Seat, action: Action): Actio
         ? applyChelemDecision(state, action.announce)
         : fail('WRONG_PHASE');
     case 'playCard':
-      return state.phase === 'playing' ? applyPlayCard(state, seat, action.card, action.poignee) : fail('WRONG_PHASE');
+      return state.phase === 'playing'
+        ? applyPlayCard(state, seat, action.card, action.poignee)
+        : fail('WRONG_PHASE');
   }
 }
 

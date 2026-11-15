@@ -11,3 +11,4 @@ export * from './play';
 export * from './poignee';
 export * from './scoring';
 export * from './view';
+export * from './session';

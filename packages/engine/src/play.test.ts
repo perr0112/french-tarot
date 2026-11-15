@@ -23,17 +23,29 @@ describe('trick play', () => {
   });
 
   it('forces an over-trump when possible', () => {
-    const state = play(start, [[3, card('C01')], [0, card('T10')]]);
+    const state = play(start, [
+      [3, card('C01')],
+      [0, card('T10')],
+    ]);
     expect(playable(state, 1)).toEqual(['T14', 'T15', 'T16', 'T17']);
   });
 
   it('lets a seat with neither the suit nor a trump play anything', () => {
-    const state = play(start, [[3, card('C01')], [0, card('T10')], [1, card('T14')]]);
+    const state = play(start, [
+      [3, card('C01')],
+      [0, card('T10')],
+      [1, card('T14')],
+    ]);
     expect(playable(state, 2)).toEqual(sorted(MIXED_HANDS[2] ?? []));
   });
 
   it('gives the trick to the highest trump, who leads the next one', () => {
-    const state = play(start, [[3, card('C01')], [0, card('T10')], [1, card('T14')], [2, card('S11')]]);
+    const state = play(start, [
+      [3, card('C01')],
+      [0, card('T10')],
+      [1, card('T14')],
+      [2, card('S11')],
+    ]);
     expect(state.turn).toBe(1);
     expect(state.tricks).toEqual([
       {
@@ -50,10 +62,19 @@ describe('trick play', () => {
   });
 
   describe('after seat 1 wins the first trick', () => {
-    const second = play(start, [[3, card('C01')], [0, card('T10')], [1, card('T14')], [2, card('S11')]]);
+    const second = play(start, [
+      [3, card('C01')],
+      [0, card('T10')],
+      [1, card('T14')],
+      [2, card('S11')],
+    ]);
 
     it('requires a higher trump when trump is led', () => {
-      const state = play(second, [[1, card('T06')], [2, card('D01')], [3, card('C02')]]);
+      const state = play(second, [
+        [1, card('T06')],
+        [2, card('D01')],
+        [3, card('C02')],
+      ]);
       expect(playable(state, 0)).toEqual(['T11', 'T12', 'T13']);
     });
 
@@ -63,12 +84,22 @@ describe('trick play', () => {
     });
 
     it('gives the trick to the highest card of the led suit when nobody trumps', () => {
-      const state = play(second, [[1, card('S06')], [2, card('S14')], [3, card('C02')], [0, card('S01')]]);
+      const state = play(second, [
+        [1, card('S06')],
+        [2, card('S14')],
+        [3, card('C02')],
+        [0, card('S01')],
+      ]);
       expect(state.turn).toBe(2);
     });
 
     it('never gives the trick to the Excuse', () => {
-      const state = play(second, [[1, card('S06')], [2, card('EXC')], [3, card('C02')], [0, card('S01')]]);
+      const state = play(second, [
+        [1, card('S06')],
+        [2, card('EXC')],
+        [3, card('C02')],
+        [0, card('S01')],
+      ]);
       expect(state.turn).toBe(1);
     });
   });
@@ -81,20 +112,39 @@ describe('trick play', () => {
       const afterExcuse = play(start2, [[2, card('EXC')]]);
       expect(playable(afterExcuse, 3)).toEqual(sorted(MIXED_HANDS[3] ?? []));
       const afterClub = play(afterExcuse, [[3, card('C05')]]);
-      expect(playable(afterClub, 0)).toEqual(['T02', 'T03', 'T04', 'T05', 'T10', 'T11', 'T12', 'T13']);
+      expect(playable(afterClub, 0)).toEqual([
+        'T02',
+        'T03',
+        'T04',
+        'T05',
+        'T10',
+        'T11',
+        'T12',
+        'T13',
+      ]);
     });
   });
 
   it('rejects a card the seat does not hold, or may not play', () => {
-    expect(applyAction(start, 3, card('H01'))).toEqual({ ok: false, error: { code: 'CARD_NOT_IN_HAND' } });
+    expect(applyAction(start, 3, card('H01'))).toEqual({
+      ok: false,
+      error: { code: 'CARD_NOT_IN_HAND' },
+    });
     const state = play(start, [[3, card('C01')]]);
-    expect(applyAction(state, 0, card('S01'))).toEqual({ ok: false, error: { code: 'CARD_NOT_PLAYABLE' } });
+    expect(applyAction(state, 0, card('S01'))).toEqual({
+      ok: false,
+      error: { code: 'CARD_NOT_PLAYABLE' },
+    });
   });
 
   it('pisses a lower trump when it cannot over-trump', () => {
     // Simple hands, garde sans by seat 2, seat 1 leads hearts.
     const deal = takeWith(simpleDeal(0, { chelemAnnouncements: false }), 2, 'gardeSans');
-    const state = play(deal, [[1, card('H01')], [2, card('T13')], [3, card('T17')]]);
+    const state = play(deal, [
+      [1, card('H01')],
+      [2, card('T13')],
+      [3, card('T17')],
+    ]);
     expect(playable(state, 0)).toEqual(['T02', 'T03', 'T04', 'T05']);
   });
 

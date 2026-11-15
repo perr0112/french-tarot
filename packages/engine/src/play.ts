@@ -54,7 +54,9 @@ export function playableCards(state: DealState, seat: Seat): Card[] {
 function trickWinner(cards: readonly PlayedCard[]): Seat {
   const led = leadingCard(cards);
   const contenders = cards.filter(({ card }) =>
-    cards.some((p) => isTrump(p.card)) ? isTrump(card) : led !== null && suitOf(card) === suitOf(led),
+    cards.some((p) => isTrump(p.card))
+      ? isTrump(card)
+      : led !== null && suitOf(card) === suitOf(led),
   );
   const strength = ({ card }: PlayedCard) => trumpValue(card) ?? rankOf(card) ?? 0;
   const best = contenders.reduce((a, b) => (strength(b) > strength(a) ? b : a));
@@ -93,7 +95,8 @@ export function applyPlayCard(
   }
 
   const done = hands.every((h) => h.length === 0);
-  const winner = done && excuseWinsLastTrick(state, current) ? current.leader : trickWinner(current.cards);
+  const winner =
+    done && excuseWinsLastTrick(state, current) ? current.leader : trickWinner(current.cards);
   const next: DealState = {
     ...state,
     hands,

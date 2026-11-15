@@ -52,7 +52,12 @@ export function isOudler(card: Card): boolean {
   return card === EXCUSE || card === PETIT || card === TWENTY_ONE;
 }
 
-const HALF_POINTS_BY_RANK: Record<number, number> = { [KING]: 9, [QUEEN]: 7, [KNIGHT]: 5, [JACK]: 3 };
+const HALF_POINTS_BY_RANK: Record<number, number> = {
+  [KING]: 9,
+  [QUEEN]: 7,
+  [KNIGHT]: 5,
+  [JACK]: 3,
+};
 
 export function cardHalfPoints(card: Card): number {
   if (isOudler(card)) return 9;

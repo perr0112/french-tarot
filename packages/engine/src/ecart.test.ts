@@ -3,7 +3,19 @@ import { applyAction, createDealFromHands, getLegalActions, type Card } from './
 import { simpleDeal, takeWith } from './testing/fixtures';
 
 const CLUBS_WITHOUT_KING: Card[] = [
-  'C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'C07', 'C08', 'C09', 'C10', 'C11', 'C12', 'C13',
+  'C01',
+  'C02',
+  'C03',
+  'C04',
+  'C05',
+  'C06',
+  'C07',
+  'C08',
+  'C09',
+  'C10',
+  'C11',
+  'C12',
+  'C13',
 ];
 
 describe('écart', () => {
@@ -40,9 +52,66 @@ describe('écart', () => {
   describe('when trumps are unavoidable', () => {
     // Seat 1 holds the 4 kings, the 3 oudlers and 11 trumps; the chien adds 3 trumps and 3 spades.
     const hands: Card[][] = [
-      ['S04', 'S05', 'S06', 'S07', 'S08', 'S09', 'S10', 'S11', 'S12', 'S13', 'T16', 'T17', 'T18', 'T19', 'T20', 'H01', 'H02', 'H03'],
-      ['S14', 'H14', 'D14', 'C14', 'T01', 'T21', 'EXC', 'T02', 'T03', 'T04', 'T05', 'T06', 'T07', 'T08', 'T09', 'T10', 'T11', 'T12'],
-      ['H04', 'H05', 'H06', 'H07', 'H08', 'H09', 'H10', 'H11', 'H12', 'H13', 'D01', 'D02', 'D03', 'D04', 'D05', 'D06', 'D07', 'D08'],
+      [
+        'S04',
+        'S05',
+        'S06',
+        'S07',
+        'S08',
+        'S09',
+        'S10',
+        'S11',
+        'S12',
+        'S13',
+        'T16',
+        'T17',
+        'T18',
+        'T19',
+        'T20',
+        'H01',
+        'H02',
+        'H03',
+      ],
+      [
+        'S14',
+        'H14',
+        'D14',
+        'C14',
+        'T01',
+        'T21',
+        'EXC',
+        'T02',
+        'T03',
+        'T04',
+        'T05',
+        'T06',
+        'T07',
+        'T08',
+        'T09',
+        'T10',
+        'T11',
+        'T12',
+      ],
+      [
+        'H04',
+        'H05',
+        'H06',
+        'H07',
+        'H08',
+        'H09',
+        'H10',
+        'H11',
+        'H12',
+        'H13',
+        'D01',
+        'D02',
+        'D03',
+        'D04',
+        'D05',
+        'D06',
+        'D07',
+        'D08',
+      ],
       ['D09', 'D10', 'D11', 'D12', 'D13', ...CLUBS_WITHOUT_KING],
     ];
     const chien: Card[] = ['T13', 'T14', 'T15', 'S01', 'S02', 'S03'];
@@ -53,7 +122,25 @@ describe('écart', () => {
         {
           type: 'ecart',
           count: 6,
-          eligible: ['S01', 'S02', 'S03', 'T02', 'T03', 'T04', 'T05', 'T06', 'T07', 'T08', 'T09', 'T10', 'T11', 'T12', 'T13', 'T14', 'T15'],
+          eligible: [
+            'S01',
+            'S02',
+            'S03',
+            'T02',
+            'T03',
+            'T04',
+            'T05',
+            'T06',
+            'T07',
+            'T08',
+            'T09',
+            'T10',
+            'T11',
+            'T12',
+            'T13',
+            'T14',
+            'T15',
+          ],
           trumpsAllowed: true,
         },
       ]);
@@ -84,11 +171,17 @@ describe('chelem decision', () => {
 
   it('lets the taker lead the first trick after announcing', () => {
     const result = applyAction(deal, 2, { type: 'decideChelem', announce: true });
-    expect(result).toMatchObject({ ok: true, state: { phase: 'playing', turn: 2, chelemAnnounced: true } });
+    expect(result).toMatchObject({
+      ok: true,
+      state: { phase: 'playing', turn: 2, chelemAnnounced: true },
+    });
   });
 
   it('otherwise starts play with the seat after the dealer', () => {
     const result = applyAction(deal, 2, { type: 'decideChelem', announce: false });
-    expect(result).toMatchObject({ ok: true, state: { phase: 'playing', turn: 1, chelemAnnounced: false } });
+    expect(result).toMatchObject({
+      ok: true,
+      state: { phase: 'playing', turn: 1, chelemAnnounced: false },
+    });
   });
 });

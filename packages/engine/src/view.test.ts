@@ -1,22 +1,44 @@
 import { describe, expect, it } from 'vitest';
 import { createDealFromHands, getPlayerView, type Card, type DealState } from './index';
-import { SIMPLE_CHIEN, SIMPLE_HANDS, card, mixedDealInPlay, play, simpleDeal, takeWith } from './testing/fixtures';
+import {
+  SIMPLE_CHIEN,
+  SIMPLE_HANDS,
+  card,
+  mixedDealInPlay,
+  play,
+  simpleDeal,
+  takeWith,
+} from './testing/fixtures';
 
 /** Every card id that appears anywhere in a view. */
 const cardsIn = (view: unknown): Set<string> =>
-  new Set(JSON.stringify(view).match(/"(?:[SHDCT]\d\d|EXC)"/g)?.map((s) => s.slice(1, -1)));
+  new Set(
+    JSON.stringify(view)
+      .match(/"(?:[SHDCT]\d\d|EXC)"/g)
+      ?.map((s) => s.slice(1, -1)),
+  );
 
 describe('getPlayerView', () => {
   it('shows a seat its own hand and only the size of the others', () => {
     const view = getPlayerView(simpleDeal(), 1);
-    expect(view).toMatchObject({ seat: 1, phase: 'bidding', turn: 1, handSizes: [18, 18, 18, 18], chien: null });
+    expect(view).toMatchObject({
+      seat: 1,
+      phase: 'bidding',
+      turn: 1,
+      handSizes: [18, 18, 18, 18],
+      chien: null,
+    });
     expect(view.hand).toEqual(SIMPLE_HANDS[1]);
     expect([...cardsIn(view)].sort()).toEqual([...(SIMPLE_HANDS[1] ?? [])].sort());
   });
 
   it('reveals the chien to everyone in petite and garde', () => {
     const deal = takeWith(simpleDeal(), 2, 'garde');
-    expect(getPlayerView(deal, 0)).toMatchObject({ chien: SIMPLE_CHIEN, taker: 2, contract: 'garde' });
+    expect(getPlayerView(deal, 0)).toMatchObject({
+      chien: SIMPLE_CHIEN,
+      taker: 2,
+      contract: 'garde',
+    });
     expect(getPlayerView(deal, 2).hand).toHaveLength(24);
   });
 
@@ -31,10 +53,86 @@ describe('getPlayerView', () => {
   describe('after an écart with trumps', () => {
     // Seat 1 must discard three trumps (it holds the kings, oudlers and many trumps).
     const hands: Card[][] = [
-      ['S04', 'S05', 'S06', 'S07', 'S08', 'S09', 'S10', 'S11', 'S12', 'S13', 'T16', 'T17', 'T18', 'T19', 'T20', 'H01', 'H02', 'H03'],
-      ['S14', 'H14', 'D14', 'C14', 'T01', 'T21', 'EXC', 'T02', 'T03', 'T04', 'T05', 'T06', 'T07', 'T08', 'T09', 'T10', 'T11', 'T12'],
-      ['H04', 'H05', 'H06', 'H07', 'H08', 'H09', 'H10', 'H11', 'H12', 'H13', 'D01', 'D02', 'D03', 'D04', 'D05', 'D06', 'D07', 'D08'],
-      ['D09', 'D10', 'D11', 'D12', 'D13', 'C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'C07', 'C08', 'C09', 'C10', 'C11', 'C12', 'C13'],
+      [
+        'S04',
+        'S05',
+        'S06',
+        'S07',
+        'S08',
+        'S09',
+        'S10',
+        'S11',
+        'S12',
+        'S13',
+        'T16',
+        'T17',
+        'T18',
+        'T19',
+        'T20',
+        'H01',
+        'H02',
+        'H03',
+      ],
+      [
+        'S14',
+        'H14',
+        'D14',
+        'C14',
+        'T01',
+        'T21',
+        'EXC',
+        'T02',
+        'T03',
+        'T04',
+        'T05',
+        'T06',
+        'T07',
+        'T08',
+        'T09',
+        'T10',
+        'T11',
+        'T12',
+      ],
+      [
+        'H04',
+        'H05',
+        'H06',
+        'H07',
+        'H08',
+        'H09',
+        'H10',
+        'H11',
+        'H12',
+        'H13',
+        'D01',
+        'D02',
+        'D03',
+        'D04',
+        'D05',
+        'D06',
+        'D07',
+        'D08',
+      ],
+      [
+        'D09',
+        'D10',
+        'D11',
+        'D12',
+        'D13',
+        'C01',
+        'C02',
+        'C03',
+        'C04',
+        'C05',
+        'C06',
+        'C07',
+        'C08',
+        'C09',
+        'C10',
+        'C11',
+        'C12',
+        'C13',
+      ],
     ];
     const chien: Card[] = ['T13', 'T14', 'T15', 'S01', 'S02', 'S03'];
     const ecart: Card[] = ['S01', 'S02', 'S03', 'T02', 'T03', 'T04'];
@@ -89,7 +187,9 @@ describe('getPlayerView', () => {
 
     it('leaks no card of another hand', () => {
       const view = getPlayerView(state, 0);
-      const public_ = new Set([...(view.lastTrick?.cards ?? []), ...(view.currentTrick?.cards ?? [])].map((p) => p.card));
+      const public_ = new Set(
+        [...(view.lastTrick?.cards ?? []), ...(view.currentTrick?.cards ?? [])].map((p) => p.card),
+      );
       const others = [1, 2, 3].flatMap((seat) => state.hands[seat] ?? []);
       expect(others.filter((c) => cardsIn(view).has(c) && !public_.has(c))).toEqual([]);
       expect(view.hand).toEqual(state.hands[0]);

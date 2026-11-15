@@ -34,7 +34,11 @@ export function poigneeTemplate(state: DealState, seat: Seat): PoigneeTemplate |
 }
 
 /** Validates shown cards (AGENTS.md §3.6); returns the level, or null if invalid. */
-export function poigneeLevel(state: DealState, seat: Seat, cards: readonly Card[]): PoigneeLevel | null {
+export function poigneeLevel(
+  state: DealState,
+  seat: Seat,
+  cards: readonly Card[],
+): PoigneeLevel | null {
   const hand = state.hands[seat] ?? [];
   const sizes = variantFor(state.players).poigneeSizes;
   const level = (Object.keys(sizes) as PoigneeLevel[]).find((l) => sizes[l] === cards.length);
