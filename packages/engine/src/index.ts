@@ -5,3 +5,5 @@
 export * from './cards';
 export * from './variant';
 export * from './deal';
+export * from './actions';
+export * from './result';

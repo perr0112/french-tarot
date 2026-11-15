@@ -10,19 +10,38 @@ export interface DealOptions {
 
 export const DEFAULT_DEAL_OPTIONS: DealOptions = { chelemAnnouncements: true };
 
-export type CancelReason = { readonly reason: 'petitSec'; readonly seat: Seat };
+export const CONTRACTS = ['petite', 'garde', 'gardeSans', 'gardeContre'] as const;
+export type Contract = (typeof CONTRACTS)[number];
+export type BidChoice = 'pass' | Contract;
 
-interface DealBase {
+export type Phase = 'bidding' | 'ecart' | 'chelemDecision' | 'playing' | 'finished' | 'cancelled';
+
+export type CancelReason =
+  | { readonly reason: 'petitSec'; readonly seat: Seat }
+  | { readonly reason: 'allPassed' };
+
+export interface Bid {
+  readonly seat: Seat;
+  readonly contract: BidChoice;
+}
+
+/** The whole state of one deal: plain, immutable, JSON-serialisable data (ADR-0002). */
+export interface DealState {
   readonly players: PlayerCount;
   readonly options: DealOptions;
   readonly dealer: Seat;
+  readonly phase: Phase;
+  /** Seat expected to act, or null when nobody is (finished, cancelled). */
+  readonly turn: Seat | null;
   readonly hands: readonly (readonly Card[])[];
   readonly chien: readonly Card[];
+  readonly bids: readonly Bid[];
+  readonly taker: Seat | null;
+  readonly contract: Contract | null;
+  readonly cancelled: CancelReason | null;
 }
 
-export type DealState =
-  | (DealBase & { readonly phase: 'bidding'; readonly turn: Seat })
-  | (DealBase & { readonly phase: 'cancelled'; readonly cancelled: CancelReason });
+type DealBase = Pick<DealState, 'players' | 'options' | 'dealer' | 'hands' | 'chien'>;
 
 export interface CreateDealInput {
   readonly players: PlayerCount;
@@ -96,10 +115,24 @@ export function createDealFromHands({
 
 function startDeal(base: DealBase): DealState {
   const petitSecSeat = base.hands.findIndex(isPetitSec);
+  const initial: DealState = {
+    ...base,
+    phase: 'bidding',
+    turn: nextSeat(base.dealer, base.players),
+    bids: [],
+    taker: null,
+    contract: null,
+    cancelled: null,
+  };
   if (petitSecSeat !== -1) {
-    return { ...base, phase: 'cancelled', cancelled: { reason: 'petitSec', seat: petitSecSeat } };
+    return {
+      ...initial,
+      phase: 'cancelled',
+      turn: null,
+      cancelled: { reason: 'petitSec', seat: petitSecSeat },
+    };
   }
-  return { ...base, phase: 'bidding', turn: nextSeat(base.dealer, base.players) };
+  return initial;
 }
 
 function isPetitSec(hand: readonly Card[]): boolean {
