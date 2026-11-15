@@ -1,4 +1,5 @@
 import { ALL_CARDS, EXCUSE, PETIT, isTrump, type Card } from './cards';
+import type { CurrentTrick, Trick } from './play';
 import { createRng, shuffle } from './rng';
 import { variantFor, type PlayerCount } from './variant';
 
@@ -41,6 +42,9 @@ export interface DealState {
   /** Cards the taker discarded (petite, garde); hidden except for trumps. */
   readonly ecart: readonly Card[];
   readonly chelemAnnounced: boolean;
+  /** Completed tricks, in order. */
+  readonly tricks: readonly Trick[];
+  readonly currentTrick: CurrentTrick | null;
   readonly cancelled: CancelReason | null;
 }
 
@@ -127,6 +131,8 @@ function startDeal(base: DealBase): DealState {
     contract: null,
     ecart: [],
     chelemAnnounced: false,
+    tricks: [],
+    currentTrick: null,
     cancelled: null,
   };
   if (petitSecSeat !== -1) {

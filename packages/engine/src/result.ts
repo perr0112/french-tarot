@@ -7,7 +7,8 @@ export type ErrorCode =
   | 'CARD_NOT_IN_HAND'
   | 'ECART_WRONG_COUNT'
   | 'ECART_FORBIDDEN_CARD'
-  | 'ECART_TRUMP_AVOIDABLE';
+  | 'ECART_TRUMP_AVOIDABLE'
+  | 'CARD_NOT_PLAYABLE';
 
 export interface EngineError {
   readonly code: ErrorCode;

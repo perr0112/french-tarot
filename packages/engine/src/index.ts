@@ -7,3 +7,4 @@ export * from './variant';
 export * from './deal';
 export * from './actions';
 export * from './result';
+export * from './play';
