@@ -37,23 +37,23 @@ The values below are the reference; code must match them.
 
 > **Table colour — validated:** a desaturated deep green felt (see §7).
 
-| Token | Value | Use |
-|---|---|---|
-| `table` | `#1F3A30` | Table surface (felt) |
-| `table-edge` | `#18302A` | Subtle vignette / seat areas |
-| `surface` | `#FAFAF7` | Panels, score sheet, menus |
-| `surface-muted` | `#F1F0EB` | Secondary surfaces |
-| `ink` | `#1C1C1A` | Primary text on light surfaces |
-| `ink-muted` | `#6B6A65` | Secondary text |
-| `ink-on-table` | `#F4F2EA` | Text placed on the table |
-| `ink-on-table-muted` | `#B9C2BC` | Secondary text on the table |
-| `accent` | `#E2B04A` | Your turn, focus, selected — the only accent |
-| `suit-red` | `#C23B32` | ♥ ♦ |
-| `suit-black` | `#1C1C1A` | ♠ ♣ |
-| `card-face` | `#FFFDF8` | Card background |
-| `card-back` | `#2C4A6B` | Card back pattern base |
-| `positive` | `#3F8F5A` | Positive score, contract made |
-| `negative` | `#B5473D` | Negative score, contract failed |
+| Token                | Value     | Use                                          |
+| -------------------- | --------- | -------------------------------------------- |
+| `table`              | `#1F3A30` | Table surface (felt)                         |
+| `table-edge`         | `#18302A` | Subtle vignette / seat areas                 |
+| `surface`            | `#FAFAF7` | Panels, score sheet, menus                   |
+| `surface-muted`      | `#F1F0EB` | Secondary surfaces                           |
+| `ink`                | `#1C1C1A` | Primary text on light surfaces               |
+| `ink-muted`          | `#6B6A65` | Secondary text                               |
+| `ink-on-table`       | `#F4F2EA` | Text placed on the table                     |
+| `ink-on-table-muted` | `#B9C2BC` | Secondary text on the table                  |
+| `accent`             | `#E2B04A` | Your turn, focus, selected — the only accent |
+| `suit-red`           | `#C23B32` | ♥ ♦                                          |
+| `suit-black`         | `#1C1C1A` | ♠ ♣                                          |
+| `card-face`          | `#FFFDF8` | Card background                              |
+| `card-back`          | `#2C4A6B` | Card back pattern base                       |
+| `positive`           | `#3F8F5A` | Positive score, contract made                |
+| `negative`           | `#B5473D` | Negative score, contract failed              |
 
 Contrast: all text ≥ 4.5:1 against its background (≥ 3:1 for text ≥ 24 px).
 
@@ -62,13 +62,13 @@ Contrast: all text ≥ 4.5:1 against its background (≥ 3:1 for text ≥ 24 px)
 - UI font: **Inter** (variable), fallback `system-ui, sans-serif`. Numerals: `font-variant-numeric: tabular-nums` in scores.
 - Weights: **400** (regular) and **600** (emphasis). Nothing else.
 
-| Token | Size / line-height | Use |
-|---|---|---|
-| `text-xs` | 12 / 16 | Captions, labels on seats |
-| `text-sm` | 14 / 20 | Secondary UI |
-| `text-md` | 16 / 24 | Body, buttons |
-| `text-lg` | 20 / 28 | Section titles, contract banner |
-| `text-xl` | 28 / 34 | Screen titles, final ranking |
+| Token     | Size / line-height | Use                             |
+| --------- | ------------------ | ------------------------------- |
+| `text-xs` | 12 / 16            | Captions, labels on seats       |
+| `text-sm` | 14 / 20            | Secondary UI                    |
+| `text-md` | 16 / 24            | Body, buttons                   |
+| `text-lg` | 20 / 28            | Section titles, contract banner |
+| `text-xl` | 28 / 34            | Screen titles, final ranking    |
 
 ### 3.3 Space, radius, elevation
 
@@ -78,15 +78,15 @@ Contrast: all text ≥ 4.5:1 against its background (≥ 3:1 for text ≥ 24 px)
 
 ### 3.4 Motion
 
-| Token | Value | Use |
-|---|---|---|
-| `duration-instant` | 100 ms | Press feedback, hover |
-| `duration-fast` | 180 ms | Card lift, small state changes |
-| `duration-base` | 260 ms | Card played to centre, panel open |
-| `duration-slow` | 400 ms | Trick collected (not on input path) |
-| `ease-out` | `cubic-bezier(0.22, 1, 0.36, 1)` | Things entering / arriving |
-| `ease-in-out` | `cubic-bezier(0.65, 0, 0.35, 1)` | Things moving between two places |
-| `spring-card` | stiffness 400, damping 32 | Interruptible card motion |
+| Token              | Value                            | Use                                 |
+| ------------------ | -------------------------------- | ----------------------------------- |
+| `duration-instant` | 100 ms                           | Press feedback, hover               |
+| `duration-fast`    | 180 ms                           | Card lift, small state changes      |
+| `duration-base`    | 260 ms                           | Card played to centre, panel open   |
+| `duration-slow`    | 400 ms                           | Trick collected (not on input path) |
+| `ease-out`         | `cubic-bezier(0.22, 1, 0.36, 1)` | Things entering / arriving          |
+| `ease-in-out`      | `cubic-bezier(0.65, 0, 0.35, 1)` | Things moving between two places    |
+| `spring-card`      | stiffness 400, damping 32        | Interruptible card motion           |
 
 - Respect `prefers-reduced-motion`: replace movement with opacity fades ≤ 150 ms.
 - Bot move pacing (fast / normal / slow, AGENTS.md §5) is a game delay, not an animation duration.
