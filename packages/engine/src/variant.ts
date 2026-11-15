@@ -3,8 +3,6 @@ export interface VariantConfig {
   readonly players: number;
   readonly cardsPerPlayer: number;
   readonly chienSize: number;
-  /** Whether the taker calls a King to choose a partner (5 players). */
-  readonly kingCall: boolean;
   /** Cards dealt to a player in one go. */
   readonly dealBatch: number;
   /** Exact number of trumps to show for each poignée level. */
@@ -37,7 +35,6 @@ export type PlayerCount = 3 | 4 | 5;
 const VARIANTS: Record<PlayerCount, VariantConfig> = {
   3: {
     players: 3,
-    kingCall: false,
     cardsPerPlayer: 24,
     chienSize: 6,
     dealBatch: 4,
@@ -46,7 +43,6 @@ const VARIANTS: Record<PlayerCount, VariantConfig> = {
   },
   4: {
     players: 4,
-    kingCall: false,
     cardsPerPlayer: 18,
     chienSize: 6,
     dealBatch: 3,
@@ -55,7 +51,6 @@ const VARIANTS: Record<PlayerCount, VariantConfig> = {
   },
   5: {
     players: 5,
-    kingCall: true,
     cardsPerPlayer: 15,
     chienSize: 3,
     dealBatch: 3,
@@ -69,6 +64,11 @@ const VARIANTS: Record<PlayerCount, VariantConfig> = {
 
 export function isPlayerCount(players: number): players is PlayerCount {
   return Object.hasOwn(VARIANTS, players);
+}
+
+/** Whether the taker calls a King to choose a partner: only variants with a partner share. */
+export function hasKingCall(players: PlayerCount): boolean {
+  return VARIANTS[players].scoreShares.withPartner !== null;
 }
 
 export function variantFor(players: PlayerCount): VariantConfig {

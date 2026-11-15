@@ -8,7 +8,16 @@ import {
   type ScoreFacts,
   type Seat,
 } from './index';
-import { callKing, card, fiveDeal, FIVE_HANDS, play, takeWith } from './testing/fixtures';
+import {
+  callKing,
+  card,
+  fiveDeal,
+  FIVE_CHIEN,
+  FIVE_HANDS,
+  play,
+  swapCards,
+  takeWith,
+} from './testing/fixtures';
 import { dealFacts } from './index';
 
 const facts = (overrides: Partial<ScoreFacts>): ScoreFacts => ({
@@ -505,16 +514,51 @@ describe('scoring in 3 and 5 players', () => {
       hands: FIVE_HANDS.map(() => []),
       tricks,
     };
-    const facts5 = dealFacts(finished);
-    expect(facts5).toMatchObject({
+    const fiveFacts = dealFacts(finished);
+    expect(fiveFacts).toMatchObject({
       partner: 4,
       takerHalfPoints: 174,
       takerOudlers: 2,
       chelem: { announced: false, achievedBy: 'taker' },
     });
-    expect(scoreDeal(facts5)).toMatchObject({
+    expect(scoreDeal(fiveFacts)).toMatchObject({
       dealScore: 484,
       perSeat: [968, -484, -484, -484, 484],
+    });
+  });
+
+  it("counts the partner's Excuse and Petit au bout for the taker's side", () => {
+    // Seat 0 holds the Petit, seat 4 (the partner, King of hearts called) the Excuse.
+    // The defence (seat 1) wins every trick but the last, won by the partner with the Petit.
+    const withPetit = swapCards(FIVE_HANDS, FIVE_CHIEN, 'T01', 'S01');
+    const { hands, chien } = swapCards(withPetit.hands, withPetit.chien, 'EXC', 'C11');
+    const dealt = createDealFromHands({ hands, chien, dealer: 0 });
+    const called = play(takeWith(dealt, 0, 'gardeSans'), [[0, callKing('H14')]]);
+    const last: Card[] = ['T01', 'H01', 'D01', 'C01', 'S11'];
+    const rest = hands.map((hand, seat) => hand.filter((c) => c !== last[seat]));
+    const tricks = [
+      ...Array.from({ length: 14 }, (_, i) => ({
+        leader: 1,
+        cards: rest.map((hand, seat) => ({ seat, card: hand[i] as Card })),
+        winner: 1,
+      })),
+      { leader: 4, cards: last.map((c, seat) => ({ seat, card: c })), winner: 4 },
+    ];
+    const fiveFacts = dealFacts({
+      ...called,
+      phase: 'finished',
+      turn: null,
+      hands: hands.map(() => []),
+      tricks,
+    });
+    // Chien C14 + T21 + S01 (19 half-points), last trick 15 (Petit 9, three
+    // small cards, Valet 3), the Excuse kept (9) minus the half point given for it:
+    // 42 half-points, i.e. 21 points with 3 oudlers.
+    expect(fiveFacts).toMatchObject({
+      takerHalfPoints: 42,
+      takerOudlers: 3,
+      petitAuBout: 'taker',
+      chelem: { announced: false, achievedBy: null },
     });
   });
 });

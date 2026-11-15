@@ -1,7 +1,6 @@
 import { KING, isOudler, isTrump, rankOf, type Card } from './cards';
-import { startChelemDecisionOrPlay } from './chelem';
-import { CONTRACT_RULES, type Contract } from './contracts';
 import { handOf, handsWithout, type DealState, type Seat } from './deal';
+import { startChelemDecisionOrPlay } from './phases';
 import { fail, type ActionResult } from './result';
 import { variantFor } from './variant';
 
@@ -18,21 +17,6 @@ const neverDiscardable = (card: Card) => isOudler(card) || rankOf(card) === KING
 
 function plainEligible(hand: readonly Card[]): Card[] {
   return hand.filter((card) => !neverDiscardable(card) && !isTrump(card));
-}
-
-/**
- * Once the contract (and in 5 players the called King) is settled: in petite or garde the taker
- * takes the chien and makes the écart, otherwise the chien stays aside.
- */
-export function startEcartOrChelem(state: DealState): DealState {
-  const taker = state.taker as Seat;
-  if (CONTRACT_RULES[state.contract as Contract].chien !== 'takerHand') {
-    return startChelemDecisionOrPlay(state);
-  }
-  const hands = state.hands.map((hand, seat) =>
-    seat === taker ? [...hand, ...state.chien] : hand,
-  );
-  return { ...state, hands, phase: 'ecart', turn: taker };
 }
 
 export function ecartTemplate(state: DealState, seat: Seat): EcartTemplate {

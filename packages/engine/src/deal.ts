@@ -1,6 +1,6 @@
 import { ALL_CARDS, EXCUSE, PETIT, isTrump, type Card } from './cards';
 import type { BidChoice, Contract } from './contracts';
-import type { CurrentTrick, Trick } from './play';
+import type { CurrentTrick, PlayedCard, Trick } from './play';
 import type { Poignee } from './poignee';
 import type { Breakdown } from './scoring';
 import { createRng, shuffle } from './rng';
@@ -70,6 +70,11 @@ export function nextSeat(seat: Seat, players: number): Seat {
 /** Whether a seat is on the taker's side: the taker, or the partner in 5 players. */
 export function isTakerSide(state: DealState, seat: Seat): boolean {
   return seat === state.taker || seat === state.partner;
+}
+
+/** Every card played so far, in order, with the seat that played it. */
+export function playedCards(state: DealState): readonly PlayedCard[] {
+  return [...state.tricks.flatMap((t) => t.cards), ...(state.currentTrick?.cards ?? [])];
 }
 
 export function handOf(state: DealState, seat: Seat): readonly Card[] {

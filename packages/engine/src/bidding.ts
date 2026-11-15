@@ -1,8 +1,8 @@
 import { fail, type ActionResult } from './result';
 import { CONTRACTS, type BidChoice, type Contract } from './contracts';
 import { nextSeat, type DealState, type Seat } from './deal';
-import { startEcartOrChelem } from './ecart';
-import { variantFor } from './variant';
+import { startEcartOrChelem } from './phases';
+import { hasKingCall } from './variant';
 
 const rank = (contract: Contract): number => CONTRACTS.indexOf(contract);
 
@@ -45,7 +45,7 @@ export function applyBid(state: DealState, seat: Seat, contract: BidChoice): Act
 /** Moves from bidding to the king call (5 players), else on to the écart or the chelem decision. */
 function startContract(state: DealState, taker: Seat, contract: Contract): DealState {
   const withContract: DealState = { ...state, taker, contract };
-  if (variantFor(state.players).kingCall) {
+  if (hasKingCall(state.players)) {
     return { ...withContract, phase: 'kingCall', turn: taker };
   }
   return startEcartOrChelem(withContract);

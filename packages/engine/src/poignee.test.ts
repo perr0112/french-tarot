@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  ALL_CARDS,
   applyAction,
   createDealFromHands,
   getLegalActions,
@@ -171,5 +172,69 @@ describe('poignée', () => {
         poignee: TRUMPS_2_TO_13.slice(0, 10),
       }),
     ).toEqual({ ok: false, error: { code: 'POIGNEE_NOT_FIRST_CARD' } });
+  });
+});
+
+describe('poignée thresholds in 3 and 5 players', () => {
+  const trumps = ALL_CARDS.filter((c) => c.startsWith('T'));
+  const others = ALL_CARDS.filter((c) => !c.startsWith('T') && c !== 'EXC');
+
+  it('offers 13, 15 and 18 trumps in 3 players', () => {
+    // Seat 1 (first to speak and lead with dealer 0) holds every trump, the Excuse and two spades.
+    const hands = [
+      others.slice(0, 24),
+      [...trumps, 'EXC' as const, ...others.slice(24, 26)],
+      others.slice(26, 50),
+    ];
+    const deal = takeWith(
+      createDealFromHands({
+        hands,
+        chien: others.slice(50),
+        dealer: 0,
+        options: { chelemAnnouncements: false },
+      }),
+      1,
+      'gardeSans',
+    );
+    expect(getLegalActions(deal, 1)[0]).toMatchObject({
+      poignee: {
+        levels: [
+          { level: 'simple', size: 13 },
+          { level: 'double', size: 15 },
+          { level: 'triple', size: 18 },
+        ],
+      },
+    });
+  });
+
+  it('offers 8, 10 and 13 trumps in 5 players', () => {
+    // Seat 1 holds 13 trumps and two spades; the other trumps and the Excuse are spread out.
+    const hands = [
+      [...others.slice(0, 13), 'T14' as const, 'T15' as const],
+      [...trumps.slice(0, 13), ...others.slice(13, 15)],
+      [...others.slice(15, 28), 'T16' as const, 'T17' as const],
+      [...others.slice(28, 41), 'T18' as const, 'T19' as const],
+      [...others.slice(41, 54), 'T20' as const, 'EXC' as const],
+    ];
+    const deal = takeWith(
+      createDealFromHands({
+        hands,
+        chien: [...others.slice(54), 'T21'],
+        dealer: 0,
+        options: { chelemAnnouncements: false },
+      }),
+      2,
+      'gardeSans',
+    );
+    const called = play(deal, [[2, { type: 'callKing', card: 'S14' }]]);
+    expect(getLegalActions(called, 1)[0]).toMatchObject({
+      poignee: {
+        levels: [
+          { level: 'simple', size: 8 },
+          { level: 'double', size: 10 },
+          { level: 'triple', size: 13 },
+        ],
+      },
+    });
   });
 });

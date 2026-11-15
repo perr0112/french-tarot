@@ -128,4 +128,13 @@ describe('session', () => {
       error: { code: 'SESSION_OVER' },
     });
   });
+
+  it('rotates the dealer and keeps zero-sum totals in 5 players', () => {
+    let session = createSession({ players: 5, deals: 2, dealer: 4 });
+    session = finishDeal(apply(session, { type: 'deal', seed: 3 }), 3);
+    expect(session.dealer).toBe(0);
+    expect(session.history[0]?.dealer).toBe(4);
+    expect(session.totals).toHaveLength(5);
+    expect(session.totals.reduce((a, b) => a + b, 0)).toBe(0);
+  });
 });

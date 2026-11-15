@@ -1,7 +1,15 @@
 import { getLegalActions, type LegalAction } from './actions';
 import { isTrump, type Card } from './cards';
 import { chienIsRevealed, type Contract } from './contracts';
-import { handOf, type Bid, type CancelReason, type DealState, type Phase, type Seat } from './deal';
+import {
+  handOf,
+  playedCards,
+  type Bid,
+  type CancelReason,
+  type DealState,
+  type Phase,
+  type Seat,
+} from './deal';
 import type { CurrentTrick, Trick } from './play';
 import type { Poignee } from './poignee';
 import type { Breakdown } from './scoring';
@@ -53,11 +61,11 @@ function knownPartner(state: DealState, seat: Seat): Seat | 'alone' | null {
   const called = state.calledCard;
   if (called === null) return null;
   const actual = state.partner ?? 'alone';
-  const played = [...state.tricks.flatMap((t) => t.cards), ...(state.currentTrick?.cards ?? [])];
   const known =
     state.phase === 'finished' ||
-    played.some((p) => p.card === called) ||
+    playedCards(state).some((p) => p.card === called) ||
     handOf(state, seat).includes(called) ||
+    (seat === state.taker && state.ecart.includes(called)) ||
     (chienRevealed(state) && state.chien.includes(called));
   return known ? actual : null;
 }

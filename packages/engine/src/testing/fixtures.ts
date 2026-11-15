@@ -141,7 +141,7 @@ export function mixedDealInPlay(dealer: Seat): DealState {
   return takeWith(deal, 3, 'gardeSans');
 }
 
-const range = (s: string, from: number, to: number) =>
+const suitRanks = (s: string, from: number, to: number) =>
   suit(s).filter((c) => Number(c.slice(1)) >= from && Number(c.slice(1)) <= to);
 
 /**
@@ -150,11 +150,18 @@ const range = (s: string, from: number, to: number) =>
  * in the chien with the Petit and the 21.
  */
 export const FIVE_HANDS: Card[][] = [
-  [...range('S', 1, 10), ...trumps(2, 6)],
-  [...range('H', 1, 10), ...trumps(7, 11)],
-  [...range('D', 1, 10), ...trumps(12, 16)],
-  [...range('C', 1, 10), ...trumps(17, 20), 'EXC'],
-  [...range('S', 11, 14), ...range('H', 11, 14), ...range('D', 11, 14), 'C11', 'C12', 'C13'],
+  [...suitRanks('S', 1, 10), ...trumps(2, 6)],
+  [...suitRanks('H', 1, 10), ...trumps(7, 11)],
+  [...suitRanks('D', 1, 10), ...trumps(12, 16)],
+  [...suitRanks('C', 1, 10), ...trumps(17, 20), 'EXC'],
+  [
+    ...suitRanks('S', 11, 14),
+    ...suitRanks('H', 11, 14),
+    ...suitRanks('D', 11, 14),
+    'C11',
+    'C12',
+    'C13',
+  ],
 ];
 export const FIVE_CHIEN: Card[] = ['C14', 'T01', 'T21'];
 

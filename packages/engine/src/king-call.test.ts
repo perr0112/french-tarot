@@ -18,6 +18,7 @@ import {
   swapCards,
   takeWith,
 } from './testing/fixtures';
+import { playRandomly } from './testing/random-player';
 
 describe('king call (5 players)', () => {
   it('has the taker call a King right after the bidding', () => {
@@ -49,7 +50,7 @@ describe('king call (5 players)', () => {
     ]);
     expect(applyAction(deal, 4, callKing('S14'))).toEqual({
       ok: false,
-      error: { code: 'CALLED_CARD_INVALID' },
+      error: { code: 'KING_CALL_INVALID' },
     });
     expect(play(deal, [[4, callKing('C13')]])).toMatchObject({ partner: null });
   });
@@ -66,24 +67,34 @@ describe('king call (5 players)', () => {
   });
 });
 
-const decideNo = { type: 'decideChelem', announce: false } as const;
+const noChelem = { type: 'decideChelem', announce: false } as const;
 
 describe('first lead (5 players)', () => {
   it('may not be in the called suit, unless it is the called King', () => {
     // Dealer 4: seat 0 (spades and trumps) leads; the King of spades is called.
     const deal = play(takeWith(fiveDeal(4), 1, 'gardeSans'), [
       [1, callKing('S14')],
-      [1, decideNo],
+      [1, noChelem],
     ]);
     expect(getLegalActions(deal, 0)).toEqual([
       { type: 'playCard', cards: ['T02', 'T03', 'T04', 'T05', 'T06'], poignee: null },
     ]);
   });
 
+  it('binds only the leader: after an Excuse lead, the next card may be in the called suit', () => {
+    // Dealer 2: seat 3 leads the Excuse; seat 4 then sets the suit, diamonds included.
+    const deal = play(takeWith(fiveDeal(2), 1, 'gardeSans'), [
+      [1, callKing('D14')],
+      [1, noChelem],
+      [3, card('EXC')],
+    ]);
+    expect(getLegalActions(deal, 4)[0]).toMatchObject({ cards: FIVE_HANDS[4] });
+  });
+
   it('is free again from the second trick', () => {
     const deal = play(takeWith(fiveDeal(4), 1, 'gardeSans'), [
       [1, callKing('S14')],
-      [1, decideNo],
+      [1, noChelem],
       [0, card('T02')],
       [1, card('T07')],
       [2, card('T12')],
@@ -107,7 +118,7 @@ describe('first lead (5 players)', () => {
       takeWith(createDealFromHands({ hands, chien: rest.slice(60), dealer: 4 }), 1, 'gardeSans'),
       [
         [1, callKing('S14')],
-        [1, decideNo],
+        [1, noChelem],
       ],
     );
     expect(getLegalActions(deal, 0)[0]).toMatchObject({ cards: hands[0] });
@@ -117,7 +128,7 @@ describe('first lead (5 players)', () => {
 describe('partner in the player view (5 players)', () => {
   const called = play(takeWith(fiveDeal(4), 0, 'gardeSans'), [
     [0, callKing('H14')],
-    [0, decideNo],
+    [0, noChelem],
   ]);
 
   it('shows the called card to everyone, and the partner only to its holder', () => {
@@ -144,6 +155,15 @@ describe('partner in the player view (5 players)', () => {
     expect(getPlayerView(own, 0).knownPartner).toBeNull();
   });
 
+  it('keeps telling the taker they play alone after discarding the called card', () => {
+    const { hands, chien } = swapCards(FIVE_HANDS, FIVE_CHIEN, 'C13', 'C14');
+    const deal = play(takeWith(createDealFromHands({ hands, chien, dealer: 0 }), 4, 'petite'), [
+      [4, callKing('S13')],
+      [4, { type: 'ecart', cards: ['S11', 'S12', 'S13'] }],
+    ]);
+    expect(getPlayerView(deal, 4).knownPartner).toBe('alone');
+  });
+
   it('tells everyone the taker plays alone when the revealed chien holds the called King', () => {
     const inChien = play(takeWith(fiveDeal(), 0, 'petite'), [[0, callKing('C14')]]);
     expect(getPlayerView(inChien, 2).knownPartner).toBe('alone');
@@ -152,8 +172,8 @@ describe('partner in the player view (5 players)', () => {
   it('hides a called King left in a hidden chien until the deal ends', () => {
     const hidden = play(takeWith(fiveDeal(), 0, 'gardeSans'), [[0, callKing('C14')]]);
     expect(getPlayerView(hidden, 0).knownPartner).toBeNull();
-    expect(getPlayerView({ ...hidden, phase: 'finished', turn: null }, 2).knownPartner).toBe(
-      'alone',
-    );
+    const finished = playRandomly(hidden, 1);
+    expect(finished.phase).toBe('finished');
+    expect(getPlayerView(finished, 2).knownPartner).toBe('alone');
   });
 });

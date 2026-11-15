@@ -17,7 +17,7 @@ describe.each([3, 4, 5] as const)('random legal deals (%i players)', (players) =
         const end = playRandomly(createDeal({ players, dealer, seed }), choiceSeed);
         expect(['finished', 'cancelled']).toContain(end.phase);
       }),
-      { numRuns: 200 },
+      { numRuns: players === 4 ? 300 : 200 },
     );
   });
 
@@ -38,7 +38,7 @@ describe.each([3, 4, 5] as const)('random legal deals (%i players)', (players) =
         expect(facts.takerOudlers).toBeLessThanOrEqual(3);
         expect(end.result.perSeat.reduce((a, b) => a + b, 0)).toBe(0);
       }),
-      { numRuns: 200 },
+      { numRuns: players === 4 ? 300 : 200 },
     );
   });
 });

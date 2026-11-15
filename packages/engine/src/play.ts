@@ -33,8 +33,9 @@ function highestTrump(cards: readonly PlayedCard[]): number {
 export function playableCards(state: DealState, seat: Seat): Card[] {
   const hand = handOf(state, seat);
   const played = state.currentTrick?.cards ?? [];
+  if (played.length === 0) return state.tricks.length === 0 ? firstLeads(state, hand) : [...hand];
   const led = leadingCard(played);
-  if (led === null) return state.tricks.length === 0 ? firstLeads(state, hand) : [...hand];
+  if (led === null) return [...hand];
 
   const excuse = hand.includes(EXCUSE) ? [EXCUSE] : [];
   const ledSuit = suitOf(led);
