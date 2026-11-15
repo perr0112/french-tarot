@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { SIMPLE_CHIEN, SIMPLE_HANDS } from './testing/fixtures';
 import { ALL_CARDS, createDeal, createDealFromHands, type Card } from './index';
 
 const allDealtCards = (deal: { hands: readonly (readonly Card[])[]; chien: readonly Card[] }) => [
@@ -99,5 +100,18 @@ describe('petit sec', () => {
     const chien: Card[] = ['T16', 'T17', 'T18', 'T19', 'T20', 'T21'];
     const deal = createDealFromHands({ hands, chien, dealer: 0 });
     expect(deal.phase).toBe('bidding');
+  });
+});
+
+describe('createDealFromHands', () => {
+  it('throws on a distribution that is not a full, valid deal', () => {
+    const [first, ...others] = SIMPLE_HANDS;
+    const duplicated = [[...(first ?? []).slice(1), 'H01' as Card], ...others];
+    expect(() =>
+      createDealFromHands({ hands: duplicated, chien: SIMPLE_CHIEN, dealer: 0 }),
+    ).toThrow('Invalid distribution');
+    expect(() =>
+      createDealFromHands({ hands: SIMPLE_HANDS, chien: SIMPLE_CHIEN.slice(1), dealer: 0 }),
+    ).toThrow('Invalid distribution');
   });
 });

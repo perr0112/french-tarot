@@ -76,6 +76,18 @@ describe('session', () => {
     });
   });
 
+  it('passes on the engine error of an illegal action, leaving the session unchanged', () => {
+    const session = apply(fresh, { type: 'deal', seed: 99 });
+    const outOfTurn = (session.deal?.turn ?? 0) === 2 ? 3 : 2;
+    expect(
+      applySessionAction(session, {
+        type: 'play',
+        seat: outOfTurn,
+        action: { type: 'bid', contract: 'pass' },
+      }),
+    ).toEqual({ ok: false, error: { code: 'NOT_YOUR_TURN' } });
+  });
+
   it('records a deal where everyone passes without counting it, and moves the dealer on', () => {
     const dealt = apply(fresh, { type: 'deal', seed: 99 });
     if (dealt.deal?.phase !== 'bidding') return;

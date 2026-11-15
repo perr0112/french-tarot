@@ -43,6 +43,7 @@ describe('bidding', () => {
       [0, bid('pass')],
     ]);
     expect(deal).toMatchObject({ phase: 'cancelled', cancelled: { reason: 'allPassed' } });
+    expect(getLegalActions(deal, 1)).toEqual([]);
   });
 
   it('gives the highest bidder the contract and the chien in petite or garde', () => {
