@@ -8,3 +8,4 @@ export * from './deal';
 export * from './actions';
 export * from './result';
 export * from './play';
+export * from './poignee';

@@ -8,7 +8,9 @@ export type ErrorCode =
   | 'ECART_WRONG_COUNT'
   | 'ECART_FORBIDDEN_CARD'
   | 'ECART_TRUMP_AVOIDABLE'
-  | 'CARD_NOT_PLAYABLE';
+  | 'CARD_NOT_PLAYABLE'
+  | 'POIGNEE_NOT_FIRST_CARD'
+  | 'POIGNEE_INVALID';
 
 export interface EngineError {
   readonly code: ErrorCode;

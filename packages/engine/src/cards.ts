@@ -11,9 +11,9 @@ export type SuitCard = `${Suit}${SuitRank}`;
 export type TrumpCard = `T${TrumpRank}`;
 export type Card = SuitCard | TrumpCard | 'EXC';
 
-export const EXCUSE = 'EXC' satisfies Card;
-export const PETIT = 'T01' satisfies Card;
-export const TWENTY_ONE = 'T21' satisfies Card;
+export const EXCUSE = 'EXC' as const satisfies Card;
+export const PETIT = 'T01' as const satisfies Card;
+export const TWENTY_ONE = 'T21' as const satisfies Card;
 
 export const JACK = 11;
 export const KNIGHT = 12;

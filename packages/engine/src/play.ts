@@ -1,5 +1,6 @@
 import { EXCUSE, isTrump, rankOf, suitOf, trumpValue, type Card } from './cards';
 import type { DealState, Seat } from './deal';
+import { hasPlayedACard, poigneeLevel } from './poignee';
 import { fail, type ActionResult } from './result';
 
 export interface PlayedCard {
@@ -34,7 +35,7 @@ export function playableCards(state: DealState, seat: Seat): Card[] {
   const led = leadingCard(played);
   if (led === null) return [...hand];
 
-  const excuse: Card[] = hand.includes(EXCUSE) ? [EXCUSE] : [];
+  const excuse = hand.includes(EXCUSE) ? [EXCUSE] : [];
   const ledSuit = suitOf(led);
   if (ledSuit !== null) {
     const follow = hand.filter((card) => suitOf(card) === ledSuit);
@@ -59,10 +60,23 @@ function trickWinner(cards: readonly PlayedCard[]): Seat {
   return best.seat;
 }
 
-export function applyPlayCard(state: DealState, seat: Seat, card: Card): ActionResult {
+export function applyPlayCard(
+  state: DealState,
+  seat: Seat,
+  card: Card,
+  poignee?: readonly Card[],
+): ActionResult {
   const hand = state.hands[seat] ?? [];
   if (!hand.includes(card)) return fail('CARD_NOT_IN_HAND');
   if (!playableCards(state, seat).includes(card)) return fail('CARD_NOT_PLAYABLE');
+
+  let poignees = state.poignees;
+  if (poignee !== undefined) {
+    if (hasPlayedACard(state, seat)) return fail('POIGNEE_NOT_FIRST_CARD');
+    const level = poigneeLevel(state, seat, poignee);
+    if (level === null) return fail('POIGNEE_INVALID');
+    poignees = [...poignees, { seat, level, cards: [...poignee] }];
+  }
 
   const hands = state.hands.map((h, s) => (s === seat ? h.filter((c) => c !== card) : h));
   const current: CurrentTrick = {
@@ -73,7 +87,7 @@ export function applyPlayCard(state: DealState, seat: Seat, card: Card): ActionR
   if (current.cards.length < state.players) {
     return {
       ok: true,
-      state: { ...state, hands, currentTrick: current, turn: (seat + 1) % state.players },
+      state: { ...state, hands, poignees, currentTrick: current, turn: (seat + 1) % state.players },
     };
   }
 
@@ -85,6 +99,7 @@ export function applyPlayCard(state: DealState, seat: Seat, card: Card): ActionR
     state: {
       ...state,
       hands,
+      poignees,
       tricks,
       currentTrick: null,
       phase: done ? 'finished' : 'playing',
