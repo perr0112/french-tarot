@@ -1,6 +1,6 @@
 import { EXCUSE, isTrump, type Card } from './cards';
-import type { DealState, Seat } from './deal';
-import { variantFor, type PoigneeLevel } from './variant';
+import { handOf, type DealState, type Seat } from './deal';
+import { poigneeLevels, type PoigneeLevel } from './variant';
 
 export interface Poignee {
   readonly seat: Seat;
@@ -22,13 +22,10 @@ export function hasPlayedACard(state: DealState, seat: Seat): boolean {
 /** Poignée levels a seat may still declare with its first card, or null. */
 export function poigneeTemplate(state: DealState, seat: Seat): PoigneeTemplate | null {
   if (hasPlayedACard(state, seat)) return null;
-  const hand = state.hands[seat] ?? [];
+  const hand = handOf(state, seat);
   const trumps = hand.filter(isTrump);
   const excuse = hand.includes(EXCUSE) ? 1 : 0;
-  const sizes = variantFor(state.players).poigneeSizes;
-  const levels = (Object.keys(sizes) as PoigneeLevel[])
-    .map((level) => ({ level, size: sizes[level] }))
-    .filter(({ size }) => size <= trumps.length + excuse);
+  const levels = poigneeLevels(state.players).filter(({ size }) => size <= trumps.length + excuse);
   if (levels.length === 0) return null;
   return { eligible: [...trumps, ...(excuse ? [EXCUSE] : [])].sort(), levels };
 }
@@ -39,9 +36,8 @@ export function poigneeLevel(
   seat: Seat,
   cards: readonly Card[],
 ): PoigneeLevel | null {
-  const hand = state.hands[seat] ?? [];
-  const sizes = variantFor(state.players).poigneeSizes;
-  const level = (Object.keys(sizes) as PoigneeLevel[]).find((l) => sizes[l] === cards.length);
+  const hand = handOf(state, seat);
+  const level = poigneeLevels(state.players).find(({ size }) => size === cards.length)?.level;
   if (level === undefined) return null;
   if (new Set(cards).size !== cards.length) return null;
   if (cards.some((c) => !hand.includes(c) || (!isTrump(c) && c !== EXCUSE))) return null;

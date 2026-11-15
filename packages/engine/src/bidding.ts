@@ -1,12 +1,7 @@
 import { fail, type ActionResult } from './result';
-import {
-  CONTRACTS,
-  nextSeat,
-  type BidChoice,
-  type Contract,
-  type DealState,
-  type Seat,
-} from './deal';
+import { startChelemDecisionOrPlay } from './chelem';
+import { CONTRACTS, CONTRACT_RULES, type BidChoice, type Contract } from './contracts';
+import { nextSeat, type DealState, type Seat } from './deal';
 
 const rank = (contract: Contract): number => CONTRACTS.indexOf(contract);
 
@@ -49,18 +44,11 @@ export function applyBid(state: DealState, seat: Seat, contract: BidChoice): Act
 /** Moves from bidding to the écart (petite, garde), or to the chelem decision / play. */
 function startContract(state: DealState, taker: Seat, contract: Contract): DealState {
   const withContract: DealState = { ...state, taker, contract };
-  if (contract === 'petite' || contract === 'garde') {
+  if (CONTRACT_RULES[contract].chien === 'takerHand') {
     const hands = state.hands.map((hand, seat) =>
       seat === taker ? [...hand, ...state.chien] : hand,
     );
     return { ...withContract, hands, phase: 'ecart', turn: taker };
   }
   return startChelemDecisionOrPlay(withContract);
-}
-
-export function startChelemDecisionOrPlay(state: DealState): DealState {
-  if (state.options.chelemAnnouncements) {
-    return { ...state, phase: 'chelemDecision', turn: state.taker };
-  }
-  return { ...state, phase: 'playing', turn: nextSeat(state.dealer, state.players) };
 }

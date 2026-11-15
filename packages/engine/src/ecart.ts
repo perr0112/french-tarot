@@ -1,6 +1,6 @@
 import { KING, isOudler, isTrump, rankOf, type Card } from './cards';
-import { startChelemDecisionOrPlay } from './bidding';
-import { nextSeat, type DealState, type Seat } from './deal';
+import { startChelemDecisionOrPlay } from './chelem';
+import { handOf, handsWithout, type DealState, type Seat } from './deal';
 import { fail, type ActionResult } from './result';
 import { variantFor } from './variant';
 
@@ -20,7 +20,7 @@ function plainEligible(hand: readonly Card[]): Card[] {
 }
 
 export function ecartTemplate(state: DealState, seat: Seat): EcartTemplate {
-  const hand = state.hands[seat] ?? [];
+  const hand = handOf(state, seat);
   const count = variantFor(state.players).chienSize;
   const plain = plainEligible(hand);
   const trumpsAllowed = plain.length < count;
@@ -29,7 +29,7 @@ export function ecartTemplate(state: DealState, seat: Seat): EcartTemplate {
 }
 
 export function applyEcart(state: DealState, seat: Seat, cards: readonly Card[]): ActionResult {
-  const hand = state.hands[seat] ?? [];
+  const hand = handOf(state, seat);
   const { count } = ecartTemplate(state, seat);
   if (cards.length !== count || new Set(cards).size !== count) return fail('ECART_WRONG_COUNT');
   if (cards.some((card) => !hand.includes(card))) return fail('CARD_NOT_IN_HAND');
@@ -42,11 +42,6 @@ export function applyEcart(state: DealState, seat: Seat, cards: readonly Card[])
     return fail('ECART_TRUMP_AVOIDABLE');
   }
 
-  const hands = state.hands.map((h, s) => (s === seat ? h.filter((c) => !cards.includes(c)) : h));
+  const hands = handsWithout(state, seat, cards);
   return { ok: true, state: startChelemDecisionOrPlay({ ...state, hands, ecart: [...cards] }) };
-}
-
-export function applyChelemDecision(state: DealState, announce: boolean): ActionResult {
-  const turn = announce ? state.taker : nextSeat(state.dealer, state.players);
-  return { ok: true, state: { ...state, phase: 'playing', turn, chelemAnnounced: announce } };
 }

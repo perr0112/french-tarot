@@ -1,9 +1,11 @@
 import { applyBid, legalBids } from './bidding';
 import type { Card } from './cards';
-import type { BidChoice, DealState, Seat } from './deal';
+import { applyChelemDecision } from './chelem';
+import type { BidChoice } from './contracts';
+import type { DealState, Seat } from './deal';
 import { applyPlayCard, playableCards } from './play';
 import { poigneeTemplate, type PoigneeTemplate } from './poignee';
-import { applyChelemDecision, applyEcart, ecartTemplate, type EcartTemplate } from './ecart';
+import { applyEcart, ecartTemplate, type EcartTemplate } from './ecart';
 import { fail, type ActionResult } from './result';
 
 export type Action =
@@ -41,6 +43,9 @@ export function applyAction(state: DealState, seat: Seat, action: Action): Actio
       return state.phase === 'playing'
         ? applyPlayCard(state, seat, action.card, action.poignee)
         : fail('WRONG_PHASE');
+    default:
+      // Reachable only from unvalidated input; the protocol layer should reject it first.
+      return fail('UNKNOWN_ACTION');
   }
 }
 

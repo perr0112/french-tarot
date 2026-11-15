@@ -8,7 +8,7 @@ import {
   type DealState,
   type Seat,
 } from './deal';
-import type { EngineError } from './result';
+import { failure, type EngineError } from './result';
 import type { Breakdown } from './scoring';
 import type { PlayerCount } from './variant';
 
@@ -69,7 +69,7 @@ export function createSession({
   };
 }
 
-const failWith = (code: SessionErrorCode): SessionResult => ({ ok: false, error: { code } });
+const failWith = (code: SessionErrorCode): SessionResult => failure(code);
 
 export function applySessionAction(session: SessionState, action: SessionAction): SessionResult {
   if (session.phase === 'finished') return failWith('SESSION_OVER');

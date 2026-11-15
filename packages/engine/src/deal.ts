@@ -1,9 +1,10 @@
 import { ALL_CARDS, EXCUSE, PETIT, isTrump, type Card } from './cards';
+import type { BidChoice, Contract } from './contracts';
 import type { CurrentTrick, Trick } from './play';
 import type { Poignee } from './poignee';
 import type { Breakdown } from './scoring';
 import { createRng, shuffle } from './rng';
-import { variantFor, type PlayerCount } from './variant';
+import { isPlayerCount, variantFor, type PlayerCount } from './variant';
 
 export type Seat = number;
 
@@ -12,10 +13,6 @@ export interface DealOptions {
 }
 
 export const DEFAULT_DEAL_OPTIONS: DealOptions = { chelemAnnouncements: true };
-
-export const CONTRACTS = ['petite', 'garde', 'gardeSans', 'gardeContre'] as const;
-export type Contract = (typeof CONTRACTS)[number];
-export type BidChoice = 'pass' | Contract;
 
 export type Phase = 'bidding' | 'ecart' | 'chelemDecision' | 'playing' | 'finished' | 'cancelled';
 
@@ -65,6 +62,19 @@ export function nextSeat(seat: Seat, players: number): Seat {
   return (seat + 1) % players;
 }
 
+export function handOf(state: DealState, seat: Seat): readonly Card[] {
+  return state.hands[seat] ?? [];
+}
+
+/** All hands, with `cards` removed from `seat`'s hand. */
+export function handsWithout(
+  state: DealState,
+  seat: Seat,
+  cards: readonly Card[],
+): DealState['hands'] {
+  return state.hands.map((hand, s) => (s === seat ? hand.filter((c) => !cards.includes(c)) : hand));
+}
+
 /**
  * Shuffles with the seed, then deals literally (AGENTS.md §3.2): packets of `dealBatch` cards
  * to each seat in turn from the dealer's next seat, and chien cards one at a time between
@@ -109,9 +119,9 @@ export function createDealFromHands({
   dealer,
   options,
 }: CreateDealFromHandsInput): DealState {
-  const players = hands.length as PlayerCount;
+  const players = hands.length;
+  if (!isPlayerCount(players)) throw new Error(`Unsupported player count: ${players}`);
   const variant = variantFor(players);
-  if (!variant) throw new Error(`Unsupported player count: ${hands.length}`);
   const all = [...hands.flat(), ...chien];
   if (
     hands.some((hand) => hand.length !== variant.cardsPerPlayer) ||

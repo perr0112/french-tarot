@@ -1,9 +1,11 @@
 import { getLegalActions, type LegalAction } from './actions';
 import { isTrump, type Card } from './cards';
-import type { Bid, CancelReason, Contract, DealState, Phase, Seat } from './deal';
+import { chienIsRevealed, type Contract } from './contracts';
+import { handOf, type Bid, type CancelReason, type DealState, type Phase, type Seat } from './deal';
 import type { CurrentTrick, Trick } from './play';
 import type { Poignee } from './poignee';
 import type { Breakdown } from './scoring';
+import type { PlayerCount } from './variant';
 
 /**
  * What one seat may know about a deal (AGENTS.md §2): its own hand and what the rules reveal.
@@ -11,7 +13,7 @@ import type { Breakdown } from './scoring';
  */
 export interface PlayerView {
   readonly seat: Seat;
-  readonly players: number;
+  readonly players: PlayerCount;
   readonly dealer: Seat;
   readonly phase: Phase;
   readonly turn: Seat | null;
@@ -30,13 +32,14 @@ export interface PlayerView {
   readonly poignees: readonly Poignee[];
   readonly currentTrick: CurrentTrick | null;
   readonly lastTrick: Trick | null;
+  /** Tricks won by each seat. */
   readonly tricksWon: readonly number[];
   readonly result: Breakdown | null;
   readonly cancelled: CancelReason | null;
 }
 
 const chienRevealed = (state: DealState) =>
-  state.phase !== 'bidding' && (state.contract === 'petite' || state.contract === 'garde');
+  state.phase !== 'bidding' && state.contract !== null && chienIsRevealed(state.contract);
 
 export function getPlayerView(state: DealState, seat: Seat): PlayerView {
   return {
@@ -45,7 +48,7 @@ export function getPlayerView(state: DealState, seat: Seat): PlayerView {
     dealer: state.dealer,
     phase: state.phase,
     turn: state.turn,
-    hand: state.hands[seat] ?? [],
+    hand: handOf(state, seat),
     handSizes: state.hands.map((hand) => hand.length),
     legalActions: getLegalActions(state, seat),
     bids: state.bids,

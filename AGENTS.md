@@ -57,8 +57,9 @@ french-tarot/
 
 See `CONTEXT.md` for the domain language and `docs/adr/` for the reasoning behind these rules.
 
-- Pure, deterministic functions: `applyAction(state, action)` returns `{ ok: true, state }` or
+- Pure, deterministic functions: `applyAction(state, seat, action)` returns `{ ok: true, state }` or
   `{ ok: false, error }` with a closed set of typed error codes — illegal actions never throw.
+  (`createDealFromHands`, used to build test situations, does throw on an invalid distribution.)
 - State is plain, immutable, JSON-serialisable data (no classes, `Map`s or `Set`s), so it can be
   persisted and replayed as is.
 - Cards are typed string ids: `S01`–`S14`, `H…`, `D…`, `C…` (11 Valet, 12 Cavalier, 13 Dame, 14 Roi),
@@ -76,8 +77,10 @@ See `CONTEXT.md` for the domain language and `docs/adr/` for the reasoning behin
   constraints `{ count, eligible, trumpsAllowed }` — écart combinations are never enumerated.
 - `getPlayerView(state, seat)` produces the redacted view: own hand, card counts, bids, contract and
   taker, chien when revealed, shown écart trumps, shown poignées, current trick, **last completed
-  trick only**, tricks won per side. Never: other hands, the écart, a hidden chien, cards inside won tricks.
-- Variant differences (3/4/5 players) live in a **variant config object**, not in scattered `if`s.
+  trick only**, tricks won per seat, the seat's legal actions, and for the taker their own écart.
+  Never: other hands, others' écart, a hidden chien, cards inside older tricks.
+- Variant differences (3/4/5 players) live in a **variant config object**, not in scattered `if`s;
+  contract differences (multiplier, where the chien goes) live in one **contract rules table**.
 
 ### Testing
 
@@ -131,6 +134,7 @@ Primary source and page references: `docs/research/fft-rules.md`.
 ### 3.3 Bidding
 
 - Starting with the player after the dealer, each player speaks **once**: pass, or bid higher than the current bid.
+  A garde contre ends the bidding at once, since nobody can bid higher.
 - Contracts (ascending), with multiplier:
 
   | Contract                | Multiplier | Chien                                                   |

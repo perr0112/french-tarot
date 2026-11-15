@@ -11,6 +11,14 @@ describe('bidding', () => {
     expect(getLegalActions(deal, 2)).toEqual([]);
   });
 
+  it('rejects an unknown action type instead of crashing', () => {
+    const bogus = { type: 'shuffle' } as unknown as Parameters<typeof applyAction>[2];
+    expect(applyAction(simpleDeal(0), 1, bogus)).toEqual({
+      ok: false,
+      error: { code: 'UNKNOWN_ACTION' },
+    });
+  });
+
   it('rejects a seat speaking out of turn', () => {
     const result = applyAction(simpleDeal(0), 2, bid('petite'));
     expect(result).toEqual({ ok: false, error: { code: 'NOT_YOUR_TURN' } });

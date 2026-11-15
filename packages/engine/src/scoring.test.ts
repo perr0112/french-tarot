@@ -23,6 +23,21 @@ const facts = (overrides: Partial<ScoreFacts>): ScoreFacts => ({
 });
 
 describe('scoreDeal (hand-computed golden examples)', () => {
+  it('matches the FFT rulebook chelem example: (46 + 25) × 2 + 20 + 20 + 400 = 582', () => {
+    // Garde, 87 points with 2 oudlers, simple poignée, petit au bout, announced chelem made.
+    const result = scoreDeal(
+      facts({
+        contract: 'garde',
+        takerHalfPoints: 174,
+        takerOudlers: 2,
+        petitAuBout: 'taker',
+        poignees: [{ seat: 0, level: 'simple' }],
+        chelem: { announced: true, achievedBy: 'taker' },
+      }),
+    );
+    expect(result).toMatchObject({ gap: 46, dealScore: 582, perSeat: [1746, -582, -582, -582] });
+  });
+
   it('scores a made garde: (25 + 4) × 2 = 58', () => {
     const result = scoreDeal(facts({ contract: 'garde', takerHalfPoints: 90, takerOudlers: 2 }));
     expect(result).toMatchObject({

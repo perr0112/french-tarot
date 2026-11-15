@@ -1,5 +1,5 @@
 import { EXCUSE, isTrump, rankOf, suitOf, trumpValue, type Card } from './cards';
-import type { DealState, Seat } from './deal';
+import { handOf, handsWithout, nextSeat, type DealState, type Seat } from './deal';
 import { hasPlayedACard, poigneeLevel } from './poignee';
 import { dealFacts, scoreDeal } from './scoring';
 import { fail, type ActionResult } from './result';
@@ -31,7 +31,7 @@ function highestTrump(cards: readonly PlayedCard[]): number {
 
 /** Cards a seat may play now (AGENTS.md §3.7). */
 export function playableCards(state: DealState, seat: Seat): Card[] {
-  const hand = state.hands[seat] ?? [];
+  const hand = handOf(state, seat);
   const played = state.currentTrick?.cards ?? [];
   const led = leadingCard(played);
   if (led === null) return [...hand];
@@ -69,8 +69,7 @@ export function applyPlayCard(
   card: Card,
   poignee?: readonly Card[],
 ): ActionResult {
-  const hand = state.hands[seat] ?? [];
-  if (!hand.includes(card)) return fail('CARD_NOT_IN_HAND');
+  if (!handOf(state, seat).includes(card)) return fail('CARD_NOT_IN_HAND');
   if (!playableCards(state, seat).includes(card)) return fail('CARD_NOT_PLAYABLE');
 
   let poignees = state.poignees;
@@ -81,7 +80,7 @@ export function applyPlayCard(
     poignees = [...poignees, { seat, level, cards: [...poignee] }];
   }
 
-  const hands = state.hands.map((h, s) => (s === seat ? h.filter((c) => c !== card) : h));
+  const hands = handsWithout(state, seat, [card]);
   const current: CurrentTrick = {
     leader: state.currentTrick?.leader ?? seat,
     cards: [...(state.currentTrick?.cards ?? []), { seat, card }],
@@ -90,7 +89,13 @@ export function applyPlayCard(
   if (current.cards.length < state.players) {
     return {
       ok: true,
-      state: { ...state, hands, poignees, currentTrick: current, turn: (seat + 1) % state.players },
+      state: {
+        ...state,
+        hands,
+        poignees,
+        currentTrick: current,
+        turn: nextSeat(seat, state.players),
+      },
     };
   }
 
