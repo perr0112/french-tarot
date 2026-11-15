@@ -1,0 +1,3 @@
+# Deals are reproducible from a seed carried by the deal action
+
+Randomness enters the engine only as an integer **seed** carried by the deal action; the server generates it with `crypto`, and the engine shuffles with its own small seeded PRNG (no dependency). We rejected injecting an `rng()` function because a function cannot be persisted: with the seed in the action log, any deal can be replayed exactly from its state and actions, which serves tests, debugging reported games and future replays. Dealing then follows the physical rule literally (3 at a time, chien cards one at a time, never first or last); with a uniform shuffle this changes nothing statistically, but it documents the rule and gives the UI a real dealing order to animate.
