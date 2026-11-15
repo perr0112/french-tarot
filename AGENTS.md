@@ -17,8 +17,9 @@ A desktop-first web app to play **French Tarot** following the **official FFT ru
 - Card art: **original SVG cards** drawn for this project (no third-party card art).
 
 ### Non-goals (for now)
+
 - User accounts, authentication, rankings, long-term history, replays.
-- Mobile-first / PWA (the app must remain *usable* on mobile, but desktop is the target).
+- Mobile-first / PWA (the app must remain _usable_ on mobile, but desktop is the target).
 - Internationalisation (keep strings centralised so i18n can be added later, but ship French only).
 - House rules beyond the room options listed in §5.
 
@@ -42,7 +43,7 @@ french-tarot/
 - **Frontend**: React + TypeScript + Vite, static build deployed on **Vercel**.
 - **Realtime / game server**: **PartyKit** (Cloudflare Durable Objects). **One room = one table.**
   Vercel serverless functions must NOT be used for game state (no persistent WebSockets there).
-- **The server is authoritative.** Clients send *intents* (bid, discard, play card, declare…);
+- **The server is authoritative.** Clients send _intents_ (bid, discard, play card, declare…);
   the room validates them with the engine, applies them, and broadcasts **per-player redacted views**.
 - **Hidden information never leaves the server**: a client only ever receives its own hand, public
   table state, and what the rules reveal (chien in petite/garde, shown poignée, called king when played,
@@ -53,6 +54,7 @@ french-tarot/
   and players can reconnect.
 
 ### Engine design rules
+
 - Pure, deterministic functions: `applyAction(state, action) -> state | error`.
 - Explicit **state machine** of phases: `lobby → dealing → bidding → (kingCall) → chien/écart → declarations → playing → scoring → nextDeal | sessionEnd`.
 - Randomness (shuffle/cut) comes from an **injected seeded RNG** so deals are reproducible in tests.
@@ -62,7 +64,8 @@ french-tarot/
 - Variant differences (3/4/5 players) live in a **variant config object**, not in scattered `if`s.
 
 ### Testing
-- **Vitest** for unit tests. The engine must have very high coverage — it *is* the product.
+
+- **Vitest** for unit tests. The engine must have very high coverage — it _is_ the product.
 - **Property-based tests** (fast-check): random legal games always terminate, cards are conserved
   (78 total, 91 points total), scores of a deal always sum to zero.
 - Golden tests for scoring with hand-computed examples (including poignées, petit au bout, chelem).
@@ -76,66 +79,73 @@ french-tarot/
 When in doubt, the **FFT official rulebook** wins over this summary. Flag any discrepancy you find.
 
 ### 3.1 Cards
+
 - 78 cards: 4 suits (♠ ♥ ♦ ♣) × 14 cards (1–10, Valet, Cavalier, Dame, Roi), 21 trumps (atouts 1–21), and the **Excuse**.
 - **Oudlers (bouts)**: the 1 of trump (**Petit**), the 21 of trump, and the **Excuse**.
 - Card values:
-  | Card | Points |
-  |---|---|
-  | Oudler (Petit, 21, Excuse) | 4.5 |
-  | Roi | 4.5 |
-  | Dame | 3.5 |
-  | Cavalier | 2.5 |
-  | Valet | 1.5 |
-  | Any other card | 0.5 |
-  Total = **91** points.
+  | Card                       | Points |
+  | -------------------------- | ------ |
+  | Oudler (Petit, 21, Excuse) | 4.5    |
+  | Roi                        | 4.5    |
+  | Dame                       | 3.5    |
+  | Cavalier                   | 2.5    |
+  | Valet                      | 1.5    |
+  | Any other card             | 0.5    |
+  | Total = **91** points.     |
 - Counting is usually done by pairs; the engine should just use half-points (store as integers ×2 internally to avoid float issues).
 
 ### 3.2 Seating, dealing
+
 - Play, dealing and bidding go **counter-clockwise**. The dealer rotates counter-clockwise each deal.
 - Cards are dealt **3 at a time**; chien cards are put aside **one at a time**, never the first or last card of the deck.
 - Variant table:
   | Players | Cards each | Chien |
-  |---|---|---|
-  | 3 | 24 | 6 |
-  | 4 | 18 | 6 |
-  | 5 | 15 | 3 |
+  | ------- | ---------- | ----- |
+  | 3       | 24         | 6     |
+  | 4       | 18         | 6     |
+  | 5       | 15         | 3     |
 - **Petit sec**: a player whose only trump is the Petit (and who does not hold the Excuse) must announce it; the deal is cancelled and redealt (by the next dealer). Configurable, see §5.
 
 ### 3.3 Bidding
+
 - Starting with the player after the dealer, each player speaks **once**: pass, or bid higher than the current bid.
 - Contracts (ascending), with multiplier:
-  | Contract | Multiplier | Chien |
-  |---|---|---|
-  | Petite | ×1 | revealed, taken by the taker, who then discards (écart) |
-  | Garde | ×2 | revealed, taken by the taker, who then discards (écart) |
-  | Garde sans (le chien) | ×4 | not revealed, counts for the **taker** at the end |
-  | Garde contre (le chien) | ×6 | not revealed, counts for the **defence** at the end |
+  | Contract                | Multiplier | Chien                                                   |
+  | ----------------------- | ---------- | ------------------------------------------------------- |
+  | Petite                  | ×1         | revealed, taken by the taker, who then discards (écart) |
+  | Garde                   | ×2         | revealed, taken by the taker, who then discards (écart) |
+  | Garde sans (le chien)   | ×4         | not revealed, counts for the **taker** at the end       |
+  | Garde contre (le chien) | ×6         | not revealed, counts for the **defence** at the end     |
 - If everyone passes, the deal is cancelled and the next dealer redeals.
 
 ### 3.4 Écart (Petite / Garde)
+
 - The chien is shown to all, the taker adds it to their hand and discards the same number of cards face down.
 - The écart may **never contain Kings or oudlers**.
 - Trumps may be discarded **only if unavoidable**, and any discarded trump must be **shown** to everyone.
 - The écart counts for the taker.
 
 ### 3.5 5-player specifics — calling a King
+
 - Before the chien is revealed, the taker **calls a King** (any suit). The holder of that King is the taker's secret partner.
 - If the taker holds all four Kings, they call a **Dame**; if they also hold all four Dames, a **Cavalier**, etc.
 - The taker may call a King they hold themselves (or that is in the chien) → they play **alone** against four.
 - The partner is revealed only when the called card is played. The UI must not leak it before.
 
 ### 3.6 Declarations (before playing the first card)
+
 - **Poignée** (showing trumps), declared when playing one's first card. The Excuse may stand in for a trump, but showing it means the player holds no further trump.
-  | Players | Simple | Double | Triple |
-  |---|---|---|---|
-  | 3 | 13 | 15 | 18 |
-  | 4 | 10 | 13 | 15 |
-  | 5 | 8 | 10 | 13 |
-  | Bonus | 20 | 30 | 40 |
-  The bonus is **not multiplied** and goes to the side that **wins the contract**, whoever declared it.
+  | Players                                                                                               | Simple | Double | Triple |
+  | ----------------------------------------------------------------------------------------------------- | ------ | ------ | ------ |
+  | 3                                                                                                     | 13     | 15     | 18     |
+  | 4                                                                                                     | 10     | 13     | 15     |
+  | 5                                                                                                     | 8      | 10     | 13     |
+  | Bonus                                                                                                 | 20     | 30     | 40     |
+  | The bonus is **not multiplied** and goes to the side that **wins the contract**, whoever declared it. |
 - **Chelem** (slam) announcement: made before the first card; the announcer leads the first trick.
 
 ### 3.7 Trick play
+
 - The player after the dealer leads the first trick (except when a chelem was announced). The winner of a trick leads the next.
 - **Must follow suit** if possible.
 - If unable to follow suit: **must trump**; if trumps were already played in the trick, **must over-trump** if possible (otherwise must still trump lower — "pisser").
@@ -145,30 +155,31 @@ When in doubt, the **FFT official rulebook** wins over this summary. Flag any di
   - If the Excuse is played on the **last trick**, it goes to the side that wins that trick (except in a chelem, see below).
 
 ### 3.8 Scoring a deal
+
 - Points needed by the taker depend on the number of oudlers in the taker's tricks (+ écart/chien when applicable):
   | Oudlers | Points needed |
-  |---|---|
-  | 3 | 36 |
-  | 2 | 41 |
-  | 1 | 51 |
-  | 0 | 56 |
+  | ------- | ------------- |
+  | 3       | 36            |
+  | 2       | 41            |
+  | 1       | 51            |
+  | 0       | 56            |
 - Contract is made if `points >= needed`.
 - **Base score** = `(25 + |points − needed| + petitAuBout) × multiplier + poignée + chelem`, signed positive if made, negative if failed.
 - **Petit au bout**: the Petit won in the last trick → `10 × multiplier` for the side that won that trick, **regardless of contract outcome** (it is added with the sign of the side that achieved it).
 - **Chelem** (all tricks won by one side):
-  | Case | Bonus |
-  |---|---|
-  | Announced and made | +400 |
-  | Not announced but made | +200 |
-  | Announced and failed | −200 |
-  Excuse in a chelem: if the chelem side holds the Excuse, it is played on the last trick and wins it; the Petit then counts "au bout" if played on the second-to-last trick.
+  | Case                                                                                                                                                                        | Bonus |
+  | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+  | Announced and made                                                                                                                                                          | +400  |
+  | Not announced but made                                                                                                                                                      | +200  |
+  | Announced and failed                                                                                                                                                        | −200  |
+  | Excuse in a chelem: if the chelem side holds the Excuse, it is played on the last trick and wins it; the Petit then counts "au bout" if played on the second-to-last trick. |
 - **Distribution (zero-sum)**, where `S` is the base score:
-  | Players | Taker | Partner | Each defender |
-  |---|---|---|---|
-  | 3 | ±2S | — | ∓S |
-  | 4 | ±3S | — | ∓S |
-  | 5 (with partner) | ±2S | ±S | ∓S |
-  | 5 (taker alone) | ±4S | — | ∓S |
+  | Players          | Taker | Partner | Each defender |
+  | ---------------- | ----- | ------- | ------------- |
+  | 3                | ±2S   | —       | ∓S            |
+  | 4                | ±3S   | —       | ∓S            |
+  | 5 (with partner) | ±2S   | ±S      | ∓S            |
+  | 5 (taker alone)  | ±4S   | —       | ∓S            |
 - The score sheet must be able to display the **full breakdown** of each deal (points, needed, difference, multiplier, petit au bout, poignée, chelem, per-player result).
 
 ---
@@ -177,11 +188,11 @@ When in doubt, the **FFT official rulebook** wins over this summary. Flag any di
 
 Three levels, all strictly using the redacted player view and `getLegalActions`:
 
-| Level | Bidding | Écart | Card play |
-|---|---|---|---|
-| **Facile** | Simple threshold on hand strength | Random legal | Random legal card |
-| **Moyen** | Heuristic hand evaluation (oudlers, trumps, kings, long suits) | Heuristic (cut suits, keep kings) | Heuristics: protect the Petit, play the Excuse wisely, give points to partner, avoid giving points to opponents |
-| **Difficile** | Same as Moyen, tuned | Same as Moyen, tuned | Card tracking + Monte-Carlo determinisation (sample hidden hands consistent with known info, simulate, choose best) within a time budget |
+| Level         | Bidding                                                        | Écart                             | Card play                                                                                                                                |
+| ------------- | -------------------------------------------------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **Facile**    | Simple threshold on hand strength                              | Random legal                      | Random legal card                                                                                                                        |
+| **Moyen**     | Heuristic hand evaluation (oudlers, trumps, kings, long suits) | Heuristic (cut suits, keep kings) | Heuristics: protect the Petit, play the Excuse wisely, give points to partner, avoid giving points to opponents                          |
+| **Difficile** | Same as Moyen, tuned                                           | Same as Moyen, tuned              | Card tracking + Monte-Carlo determinisation (sample hidden hands consistent with known info, simulate, choose best) within a time budget |
 
 - Bots also handle: king call (5p), poignée declaration, chelem (only when near-certain).
 - A bot decision must complete within a bounded time (target < 1 s on the room server); add a small artificial delay so humans can follow the play.
@@ -229,25 +240,25 @@ Three levels, all strictly using the redacted player view and `getLegalActions`:
 
 Code identifiers are in English. Use these mappings consistently:
 
-| Code | French |
-|---|---|
-| `trump` | atout |
-| `excuse` | Excuse |
-| `oudler` | bout / oudler |
-| `petit` | Petit (1 d'atout) |
-| `dog` / `chien` | chien (prefer `chien` in code — it's well understood) |
-| `discard` / `ecart` | écart (prefer `ecart`) |
-| `taker` | preneur |
-| `partner` | partenaire (5p, appelé) |
-| `defence` / `defenders` | défense |
-| `bid` / `contract` | enchère / contrat |
-| `petite`, `garde`, `gardeSans`, `gardeContre` | Petite, Garde, Garde sans, Garde contre |
-| `handful` / `poignee` | poignée (prefer `poignee`) |
-| `slam` / `chelem` | chelem (prefer `chelem`) |
-| `petitAuBout` | petit au bout |
-| `deal` | donne |
-| `trick` | pli |
-| `king`, `queen`, `knight`, `jack` | Roi, Dame, Cavalier, Valet |
+| Code                                          | French                                                |
+| --------------------------------------------- | ----------------------------------------------------- |
+| `trump`                                       | atout                                                 |
+| `excuse`                                      | Excuse                                                |
+| `oudler`                                      | bout / oudler                                         |
+| `petit`                                       | Petit (1 d'atout)                                     |
+| `dog` / `chien`                               | chien (prefer `chien` in code — it's well understood) |
+| `discard` / `ecart`                           | écart (prefer `ecart`)                                |
+| `taker`                                       | preneur                                               |
+| `partner`                                     | partenaire (5p, appelé)                               |
+| `defence` / `defenders`                       | défense                                               |
+| `bid` / `contract`                            | enchère / contrat                                     |
+| `petite`, `garde`, `gardeSans`, `gardeContre` | Petite, Garde, Garde sans, Garde contre               |
+| `handful` / `poignee`                         | poignée (prefer `poignee`)                            |
+| `slam` / `chelem`                             | chelem (prefer `chelem`)                              |
+| `petitAuBout`                                 | petit au bout                                         |
+| `deal`                                        | donne                                                 |
+| `trick`                                       | pli                                                   |
+| `king`, `queen`, `knight`, `jack`             | Roi, Dame, Cavalier, Valet                            |
 
 ---
 
