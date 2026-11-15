@@ -1,6 +1,7 @@
 import { ALL_CARDS, EXCUSE, PETIT, isTrump, type Card } from './cards';
 import type { CurrentTrick, Trick } from './play';
 import type { Poignee } from './poignee';
+import type { Breakdown } from './scoring';
 import { createRng, shuffle } from './rng';
 import { variantFor, type PlayerCount } from './variant';
 
@@ -47,6 +48,8 @@ export interface DealState {
   /** Completed tricks, in order. */
   readonly tricks: readonly Trick[];
   readonly currentTrick: CurrentTrick | null;
+  /** Score breakdown, once the deal is finished. */
+  readonly result: Breakdown | null;
   readonly cancelled: CancelReason | null;
 }
 
@@ -136,6 +139,7 @@ function startDeal(base: DealBase): DealState {
     poignees: [],
     tricks: [],
     currentTrick: null,
+    result: null,
     cancelled: null,
   };
   if (petitSecSeat !== -1) {

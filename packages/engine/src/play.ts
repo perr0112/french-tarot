@@ -1,6 +1,7 @@
 import { EXCUSE, isTrump, rankOf, suitOf, trumpValue, type Card } from './cards';
 import type { DealState, Seat } from './deal';
 import { hasPlayedACard, poigneeLevel } from './poignee';
+import { dealFacts, scoreDeal } from './scoring';
 import { fail, type ActionResult } from './result';
 
 export interface PlayedCard {
@@ -91,19 +92,23 @@ export function applyPlayCard(
     };
   }
 
-  const winner = trickWinner(current.cards);
-  const tricks = [...state.tricks, { ...current, winner }];
   const done = hands.every((h) => h.length === 0);
-  return {
-    ok: true,
-    state: {
-      ...state,
-      hands,
-      poignees,
-      tricks,
-      currentTrick: null,
-      phase: done ? 'finished' : 'playing',
-      turn: done ? null : winner,
-    },
+  const winner = done && excuseWinsLastTrick(state, current) ? current.leader : trickWinner(current.cards);
+  const next: DealState = {
+    ...state,
+    hands,
+    poignees,
+    tricks: [...state.tricks, { ...current, winner }],
+    currentTrick: null,
+    phase: done ? 'finished' : 'playing',
+    turn: done ? null : winner,
   };
+  return { ok: true, state: done ? { ...next, result: scoreDeal(dealFacts(next)) } : next };
+}
+
+/** In a chelem, the Excuse led on the last trick by the side that won every trick wins it. */
+function excuseWinsLastTrick(state: DealState, last: CurrentTrick): boolean {
+  if (last.cards[0]?.card !== EXCUSE) return false;
+  const isTaker = (seat: Seat) => seat === state.taker;
+  return state.tricks.every((t) => isTaker(t.winner) === isTaker(last.leader));
 }

@@ -1,0 +1,183 @@
+import { describe, expect, it } from 'vitest';
+import {
+  createDealFromHands,
+  getLegalActions,
+  scoreDeal,
+  type Card,
+  type DealState,
+  type ScoreFacts,
+  type Seat,
+} from './index';
+import { card, play, takeWith } from './testing/fixtures';
+
+const facts = (overrides: Partial<ScoreFacts>): ScoreFacts => ({
+  players: 4,
+  taker: 0,
+  contract: 'petite',
+  takerHalfPoints: 0,
+  takerOudlers: 0,
+  petitAuBout: null,
+  poignees: [],
+  chelem: { announced: false, achievedBy: null },
+  ...overrides,
+});
+
+describe('scoreDeal (hand-computed golden examples)', () => {
+  it('scores a made garde: (25 + 4) × 2 = 58', () => {
+    const result = scoreDeal(facts({ contract: 'garde', takerHalfPoints: 90, takerOudlers: 2 }));
+    expect(result).toMatchObject({
+      points: 45,
+      needed: 41,
+      made: true,
+      gap: 4,
+      multiplier: 2,
+      contractScore: 58,
+      dealScore: 58,
+      perSeat: [174, -58, -58, -58],
+    });
+  });
+
+  it('matches the FFT rulebook example of a failed petite: −(25 + 7) + 10 − 20 = −42', () => {
+    // Failed by 7, petit au bout for the taker, simple poignée shown by a defender.
+    const result = scoreDeal(
+      facts({
+        takerHalfPoints: 88,
+        takerOudlers: 1,
+        petitAuBout: 'taker',
+        poignees: [{ seat: 2, level: 'simple' }],
+      }),
+    );
+    expect(result).toMatchObject({
+      points: 44,
+      needed: 51,
+      made: false,
+      contractScore: -32,
+      petitAuBout: 10,
+      poignee: -20,
+      dealScore: -42,
+      perSeat: [-126, 42, 42, 42],
+    });
+  });
+
+  it('signs a petit au bout for the defence against the taker, even when the contract is made', () => {
+    const result = scoreDeal(
+      facts({ contract: 'gardeSans', takerHalfPoints: 112, petitAuBout: 'defence' }),
+    );
+    expect(result).toMatchObject({ contractScore: 100, petitAuBout: -40, dealScore: 60 });
+  });
+
+  it('gives the poignée bonus to the side that wins the contract, unmultiplied', () => {
+    const result = scoreDeal(
+      facts({
+        contract: 'garde',
+        takerHalfPoints: 82,
+        takerOudlers: 2,
+        poignees: [{ seat: 1, level: 'double' }],
+      }),
+    );
+    expect(result).toMatchObject({ contractScore: 50, poignee: 30, dealScore: 80 });
+  });
+
+  it('adds 400 for an announced and made chelem', () => {
+    const result = scoreDeal(
+      facts({
+        takerHalfPoints: 182,
+        takerOudlers: 3,
+        petitAuBout: 'taker',
+        chelem: { announced: true, achievedBy: 'taker' },
+      }),
+    );
+    expect(result).toMatchObject({ contractScore: 80, petitAuBout: 10, chelem: 400, dealScore: 490 });
+  });
+
+  it('adds 200 for an unannounced chelem', () => {
+    const result = scoreDeal(
+      facts({ takerHalfPoints: 182, takerOudlers: 3, chelem: { announced: false, achievedBy: 'taker' } }),
+    );
+    expect(result).toMatchObject({ chelem: 200, dealScore: 280 });
+  });
+
+  it('takes 200 for an announced chelem that fails, even if the contract is made', () => {
+    const result = scoreDeal(
+      facts({
+        contract: 'garde',
+        takerHalfPoints: 120,
+        takerOudlers: 2,
+        chelem: { announced: true, achievedBy: null },
+      }),
+    );
+    expect(result).toMatchObject({ contractScore: 88, chelem: -200, dealScore: -112 });
+  });
+
+  it('gives each defender 200 more when the defence wins every trick', () => {
+    const result = scoreDeal(facts({ chelem: { announced: false, achievedBy: 'defence' } }));
+    expect(result).toMatchObject({ contractScore: -81, chelem: -200, dealScore: -281 });
+    expect(result.perSeat).toEqual([-843, 281, 281, 281]);
+  });
+});
+
+/** Plays the deal out: the taker follows `takerPick`, defenders play their first legal card. */
+function playOut(start: DealState, takerPick: (cards: Card[]) => Card): DealState {
+  let state = start;
+  while (state.phase === 'playing') {
+    const seat = state.turn as Seat;
+    const legal = getLegalActions(state, seat).find((a) => a.type === 'playCard');
+    const cards = legal && legal.type === 'playCard' ? [...legal.cards].sort() : [];
+    state = play(state, [[seat, card(seat === state.taker ? takerPick(cards) : (cards[0] as Card))]]);
+  }
+  return state;
+}
+
+/** Highest trump first, other cards next, the Excuse last. */
+const strongestFirst = (cards: Card[]): Card =>
+  cards.filter((c) => c.startsWith('T')).at(-1) ??
+  cards.find((c) => c !== 'EXC') ??
+  ('EXC' as Card);
+
+describe('scoring a played deal', () => {
+  it('scores an announced chelem won with the Excuse on the last trick', () => {
+    // Seat 1 holds T05–T21 and the Excuse; garde sans, chelem announced.
+    const hands: Card[][] = [
+      ['S01', 'S02', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S09', 'S10', 'S11', 'S12', 'S13', 'S14', 'H01', 'H02', 'H03', 'H04'],
+      ['T05', 'T06', 'T07', 'T08', 'T09', 'T10', 'T11', 'T12', 'T13', 'T14', 'T15', 'T16', 'T17', 'T18', 'T19', 'T20', 'T21', 'EXC'],
+      ['T01', 'T02', 'T03', 'T04', 'H05', 'H06', 'H07', 'H08', 'H09', 'H10', 'H11', 'H12', 'H13', 'H14', 'D01', 'D02', 'D03', 'D04'],
+      ['D05', 'D06', 'D07', 'D08', 'D09', 'D10', 'D11', 'D12', 'D13', 'D14', 'C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'C07', 'C08'],
+    ];
+    const chien: Card[] = ['C09', 'C10', 'C11', 'C12', 'C13', 'C14'];
+    const deal = play(takeWith(createDealFromHands({ hands, chien, dealer: 0 }), 1, 'gardeSans'), [
+      [1, { type: 'decideChelem', announce: true }],
+    ]);
+    const done = playOut(deal, strongestFirst);
+    expect(done.tricks.at(-1)).toMatchObject({ leader: 1, winner: 1 });
+    expect(done.result).toMatchObject({
+      points: 91,
+      oudlers: 3,
+      chelem: 400,
+      petitAuBout: 0,
+      dealScore: 720,
+      perSeat: [-720, 2160, -720, -720],
+    });
+  });
+
+  it('gives an Excuse played on the last trick to the side that wins it, outside a chelem', () => {
+    // As above, but the taker loses the first trick (leading S01), so there is no chelem.
+    const hands: Card[][] = [
+      ['S02', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S09', 'S10', 'S11', 'S12', 'S13', 'S14', 'H01', 'H02', 'H03', 'H04', 'H05'],
+      ['S01', 'T06', 'T07', 'T08', 'T09', 'T10', 'T11', 'T12', 'T13', 'T14', 'T15', 'T16', 'T17', 'T18', 'T19', 'T20', 'T21', 'EXC'],
+      ['T01', 'T02', 'T03', 'T04', 'T05', 'H06', 'H07', 'H08', 'H09', 'H10', 'H11', 'H12', 'H13', 'H14', 'D01', 'D02', 'D03', 'D04'],
+      ['D05', 'D06', 'D07', 'D08', 'D09', 'D10', 'D11', 'D12', 'D13', 'D14', 'C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'C07', 'C08'],
+    ];
+    const chien: Card[] = ['C09', 'C10', 'C11', 'C12', 'C13', 'C14'];
+    const deal = takeWith(
+      createDealFromHands({ hands, chien, dealer: 0, options: { chelemAnnouncements: false } }),
+      1,
+      'gardeSans',
+    );
+    const done = playOut(deal, (cards) => (cards.includes('S01') ? 'S01' : strongestFirst(cards)));
+    const last = done.tricks.at(-1);
+    expect(last?.cards[0]).toEqual({ seat: 1, card: 'EXC' });
+    expect(last?.winner).not.toBe(1);
+    // Petit lost on the first trick, Excuse lost on the last: only the 21 remains.
+    expect(done.result).toMatchObject({ oudlers: 1, needed: 51, chelem: 0 });
+  });
+});
