@@ -15,9 +15,9 @@ export default tseslint.config(
     },
   },
   {
-    files: ['packages/engine/**/*.ts'],
+    files: ['packages/engine/**/*.ts', 'packages/bots/**/*.ts'],
     rules: {
-      // The engine is pure: randomness must be injected, never read from the platform.
+      // The engine and the bots are pure: randomness must be injected, never read from the platform.
       'no-restricted-properties': [
         'error',
         { object: 'Math', property: 'random', message: 'Use the injected RNG.' },

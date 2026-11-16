@@ -75,6 +75,10 @@ importers:
       '@tarot/engine':
         specifier: workspace:*
         version: link:../engine
+    devDependencies:
+      fast-check:
+        specifier: ^4.10.2
+        version: 4.10.2
 
   packages/engine:
     devDependencies:

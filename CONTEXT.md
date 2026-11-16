@@ -145,3 +145,28 @@ The itemised result of a deal (points, needed, gap, multiplier, each bonus, each
 
 **Score sheet** (feuille de marque):
 The table of every deal's breakdown and the running totals of a session.
+
+## Bots
+
+**Bot**:
+A program that plays a seat, deciding only from what a human at that seat could see.
+_Avoid_: AI, robot (in code)
+
+**Bot level** (niveau):
+How strong a bot plays: Facile (`easy`), Moyen (`medium`), later Difficile.
+_Avoid_: Difficulty, skill
+
+**Bot memory**:
+What a bot remembers of the current deal from its own turns: the cards played and the colours each seat showed it lacks. It starts afresh with each deal.
+_Avoid_: History, knowledge
+
+**Colour**:
+A suit or the trumps, as far as following is concerned: what a seat must play into, or may lack.
+_Avoid_: Suit (when trumps are included)
+
+**Void** (coupe):
+A seat known to hold no card of a colour because it did not follow.
+_Avoid_: Short, cut (for the inference)
+
+**Master card** (carte maîtresse):
+A card that no unplayed card of its suit (or trump) can beat.

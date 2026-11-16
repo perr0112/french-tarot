@@ -7,6 +7,9 @@
   "dependencies": {
     "@tarot/engine": "workspace:*"
   },
+  "devDependencies": {
+    "fast-check": "^4.10.2"
+  },
   "scripts": {
     "typecheck": "tsc --noEmit"
   }

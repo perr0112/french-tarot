@@ -1,5 +1,5 @@
 import { defineProject } from 'vitest/config';
 
 export default defineProject({
-  test: { name: 'bots', environment: 'node', passWithNoTests: true },
+  test: { name: 'bots', environment: 'node' },
 });

@@ -65,7 +65,7 @@ function firstLeads(state: DealState, hand: readonly Card[]): Card[] {
 }
 
 /** Highest trump wins, else the highest card of the led suit; the Excuse never wins here. */
-function trickWinner(cards: readonly PlayedCard[]): Seat {
+export function trickWinner(cards: readonly PlayedCard[]): Seat {
   const led = leadingCard(cards);
   const contenders = cards.filter(({ card }) =>
     cards.some((p) => isTrump(p.card))
