@@ -1,4 +1,5 @@
 import {
+  ALL_CARDS,
   createRng,
   isTrump,
   type Action,
@@ -11,9 +12,8 @@ import { createBot, emptyMemory } from './index';
 import { arrange, playOut, takeWith, turnView } from './testing/arrange';
 
 const medium = createBot('medium');
-const decideFull = (state: DealState) =>
-  medium.decide(turnView(state), emptyMemory(), createRng(1));
-const decide = (state: DealState): Action => decideFull(state).action;
+const decide = (state: DealState): Action =>
+  medium.decide(turnView(state), emptyMemory(), createRng(1)).action;
 
 const play = (card: Card): Action => ({ type: 'playCard', card });
 
@@ -46,6 +46,16 @@ describe('Moyen card play', () => {
       ],
     );
     expect(decide(state)).toEqual(play('S13'));
+  });
+
+  it('does not load a King its partner leads while the taker may still trump', () => {
+    // Seat 1 holds every trump above the King's rank, yet the taker can trump with any other.
+    const hand: Card[] = [
+      ...(['T15', 'T16', 'T17', 'T18', 'T19', 'T20', 'T21', 'S13', 'S03'] as const),
+      ...(['H02', 'H03', 'H04', 'H05', 'H06', 'H07', 'H08', 'H09', 'H10'] as const),
+    ];
+    const state = playOut(inPlay(3, { 0: ['S14'], 1: hand }), [[0, play('S14')]]);
+    expect(decide(state)).toEqual(play('S03'));
   });
 
   it('gives its cheapest card when the opponent wins and it cannot', () => {
@@ -104,18 +114,42 @@ describe('Moyen card play', () => {
 });
 
 describe('Moyen memory', () => {
-  it('remembers played cards and who failed to follow', () => {
-    const state = playOut(
-      inPlay(0, { 0: ['S02', ...TRUMPS_LOW], 1: ['T05', 'H02', 'H03'], 2: ['S05'] }, { 1: ['S'] }),
-      [
-        [0, play('S02')],
-        [1, play('T05')],
-      ],
-    );
-    const { memory } = decideFull(state);
-    expect(memory.played).toEqual(['S02', 'T05']);
-    expect(memory.voids[1]).toEqual(['S']);
-    expect(memory.voids[0]).toEqual([]);
+  it('leads, in defence, the suit the taker showed it lacks', () => {
+    const defender: Card[] = [
+      ...(['H14', 'H05', 'H06', 'H07', 'H08', 'S02'] as const),
+      ...([
+        'C02',
+        'C03',
+        'C04',
+        'C05',
+        'C06',
+        'C07',
+        'C08',
+        'C09',
+        'C10',
+        'C11',
+        'C12',
+        'C13',
+      ] as const),
+    ];
+    const taker: Card[] = [
+      ...(['S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S09', 'S10', 'S11', 'S12', 'S13'] as const),
+      ...(['D02', 'D03', 'D04', 'D05', 'D06', 'D07', 'D08'] as const),
+    ];
+    const state = playOut(inPlay(3, { 0: ['H02'], 1: defender, 2: ['H03'], 3: taker }), [
+      [0, play('H02')],
+      [1, play('H14')],
+      [2, play('H03')],
+      [3, play('D02')],
+    ]);
+    expect(decide(state)).toEqual(play('H05'));
+  });
+
+  it('forgets a previous deal, even when its first decision comes during play', () => {
+    const state = playOut(inPlay(0, { 0: ['S02', ...TRUMPS_LOW] }), [[0, play('S02')]]);
+    const previous = medium.decide(turnView(state), emptyMemory(), createRng(1)).memory;
+    const stale = { ...previous, played: [...ALL_CARDS.slice(20, 60)] };
+    expect(medium.decide(turnView(state), stale, createRng(1)).memory).toEqual(previous);
   });
 
   it('starts afresh with a new deal', () => {

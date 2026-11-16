@@ -8,17 +8,19 @@ import {
   SUITS,
   TWENTY_ONE,
   isTrump,
+  rankOf,
   suitOf,
   trumpValue,
   variantFor,
   type Card,
   type Contract,
   type PlayerCount,
+  type Suit,
 } from '@tarot/engine';
 
 /** Points of a suit's court cards: King and Queen together are worth more than apart. */
-function honourPoints(hand: readonly Card[], suit: string): number {
-  const has = (rank: number) => hand.includes(`${suit}${rank}` as Card);
+function courtCardPoints(hand: readonly Card[], suit: Suit): number {
+  const has = (rank: number) => hand.some((c) => suitOf(c) === suit && rankOf(c) === rank);
   const king = has(KING);
   const queen = has(QUEEN);
   return (king && queen ? 10 : king ? 6 : queen ? 3 : 0) + (has(KNIGHT) ? 2 : 0);
@@ -44,7 +46,7 @@ export function handValue(hand: readonly Card[]): number {
   if (hand.includes(PETIT)) value += trumps.length - 1 >= 4 ? 8 : 3;
   for (const suit of SUITS) {
     const length = hand.filter((c) => suitOf(c) === suit).length;
-    value += honourPoints(hand, suit) + lengthPoints(length);
+    value += courtCardPoints(hand, suit) + lengthPoints(length);
   }
   return value;
 }

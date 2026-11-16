@@ -1,7 +1,7 @@
 import type { Action, LegalAction, PlayerView, Rng } from '@tarot/engine';
 import type { BotMemory } from './memory';
 
-/** Difficulty of a bot; Facile and Moyen in the UI. Difficile comes with milestone 6. */
+/** How strongly a bot plays; Facile and Moyen in the UI. Difficile comes with milestone 6. */
 export type BotLevel = 'easy' | 'medium';
 
 export interface BotDecision {
@@ -30,13 +30,4 @@ export function pickOne<T>(items: readonly T[], rng: Rng): T {
   const item = items[Math.floor(rng() * items.length)];
   if (item === undefined) throw new Error('Cannot pick from an empty list');
   return item;
-}
-
-export function shuffled<T>(items: readonly T[], rng: Rng): T[] {
-  const result = [...items];
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1));
-    [result[i], result[j]] = [result[j] as T, result[i] as T];
-  }
-  return result;
 }

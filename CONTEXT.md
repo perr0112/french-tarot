@@ -160,8 +160,12 @@ _Avoid_: Difficulty, skill
 What a bot remembers of the current deal from its own turns: the cards played and the colours each seat showed it lacks. It starts afresh with each deal.
 _Avoid_: History, knowledge
 
+**Colour**:
+A suit or the trumps, as far as following is concerned: what a seat must play into, or may lack.
+_Avoid_: Suit (when trumps are included)
+
 **Void** (coupe):
-A seat known to hold no card of a suit, or no trump, because it did not follow.
+A seat known to hold no card of a colour because it did not follow.
 _Avoid_: Short, cut (for the inference)
 
 **Master card** (carte maîtresse):

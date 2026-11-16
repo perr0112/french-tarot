@@ -13,4 +13,4 @@ export * from './poignee';
 export * from './scoring';
 export * from './view';
 export * from './session';
-export { createRng, type Rng } from './rng';
+export { createRng, shuffle, type Rng } from './rng';

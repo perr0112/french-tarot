@@ -6,10 +6,14 @@ import {
   type DealOptions,
   type DealState,
   type PlayerCount,
+  type Rng,
   type Seat,
 } from '@tarot/engine';
 import type { Bot } from './bot';
 import { emptyMemory } from './memory';
+
+/** Far above the longest deal (5 bids, a call, an écart, a decision, 78 cards). */
+const MAX_STEPS = 1000;
 
 export interface SimulateDealInput {
   readonly players: PlayerCount;
@@ -34,7 +38,7 @@ export function simulateDeal({
   let state = createDeal({ players, dealer, seed, ...(options ? { options } : {}) });
   const memories = bots.map(emptyMemory);
   const rngs = bots.map((_, seat) => createRng((seed * 31 + seat + 1) >>> 0));
-  for (let step = 0; step < 1000; step++) {
+  for (let step = 0; step < MAX_STEPS; step++) {
     if (state.turn === null) return state;
     const seat = state.turn;
     const bot = bots[seat];
@@ -42,7 +46,7 @@ export function simulateDeal({
     const { action, memory } = bot.decide(
       getPlayerView(state, seat),
       memories[seat] ?? emptyMemory(),
-      rngs[seat] as () => number,
+      rngs[seat] as Rng,
     );
     memories[seat] = memory;
     const result = applyAction(state, seat, action);

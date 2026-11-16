@@ -37,9 +37,19 @@ function provenVoids(before: readonly PlayedCard[], card: Card): Colour[] {
   return colour === 'T' ? [ledColour] : [...new Set([ledColour, 'T' as const])];
 }
 
-/** Adds what the view shows to the memory; a deal not yet in play starts a fresh memory. */
-export function remember(memory: BotMemory, view: PlayerView): BotMemory {
+/** Cards played so far in the deal the view shows. */
+const playedSoFar = (view: PlayerView) =>
+  view.tricksWon.reduce((sum, n) => sum + n, 0) * view.players +
+  (view.currentTrick?.cards.length ?? 0);
+
+/**
+ * Adds what the view shows to the memory. A deal not yet in play starts a fresh memory, and so
+ * does a memory holding more cards than this deal has seen: it belongs to a previous deal (a seat
+ * may first act during play, after a Garde contre ended the bidding before its turn).
+ */
+export function remember(previous: BotMemory, view: PlayerView): BotMemory {
   if (view.phase !== 'playing') return emptyMemory();
+  const memory = previous.played.length > playedSoFar(view) ? emptyMemory() : previous;
   const played = [...memory.played];
   const voids = Array.from({ length: view.players }, (_, s) => [...(memory.voids[s] ?? [])]);
   for (const trick of [view.lastTrick?.cards ?? [], view.currentTrick?.cards ?? []]) {

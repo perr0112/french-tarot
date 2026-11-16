@@ -25,9 +25,10 @@ interface Situation {
   readonly unseen: readonly Card[];
 }
 
-const strength = (card: Card) => trumpValue(card) ?? rankOf(card) ?? 0;
+/** Order of a card within its colour: trump number or suit rank. */
+const cardOrder = (card: Card) => trumpValue(card) ?? rankOf(card) ?? 0;
 const byValueThenStrength = (a: Card, b: Card) =>
-  cardHalfPoints(a) - cardHalfPoints(b) || strength(a) - strength(b);
+  cardHalfPoints(a) - cardHalfPoints(b) || cardOrder(a) - cardOrder(b);
 const cheapest = (cards: readonly Card[]) => [...cards].sort(byValueThenStrength)[0];
 const dearest = (cards: readonly Card[]) => [...cards].sort(byValueThenStrength).at(-1);
 
@@ -71,11 +72,14 @@ const lacks = (memory: BotMemory, seat: Seat, colour: Colour) =>
 
 /** Whether `seat` might beat `best` in a trick led in `led` colour, from what is unseen. */
 function mightBeat(s: Situation, seat: Seat, best: Card, led: Colour): boolean {
-  const higherTrumps = s.unseen.some((c) => isTrump(c) && strength(c) > strength(best));
+  // Any trump beats a suit card; over a trump, only a higher one.
+  const higherTrumps = s.unseen.some(
+    (c) => isTrump(c) && (!isTrump(best) || cardOrder(c) > cardOrder(best)),
+  );
   const canTrump = !lacks(s.memory, seat, 'T') && higherTrumps;
   if (isTrump(best)) return canTrump;
   const higherInSuit = s.unseen.some(
-    (c) => suitOf(c) === suitOf(best) && strength(c) > strength(best),
+    (c) => suitOf(c) === suitOf(best) && cardOrder(c) > cardOrder(best),
   );
   return (higherInSuit && !lacks(s.memory, seat, led)) || canTrump;
 }
@@ -104,7 +108,7 @@ function giveAway(s: Situation): Card {
 function loadTrick(s: Situation): Card {
   const pool = s.legal.filter((c) => c !== EXCUSE && c !== TWENTY_ONE);
   const best = [...pool].sort(
-    (a, b) => cardHalfPoints(b) - cardHalfPoints(a) || strength(a) - strength(b),
+    (a, b) => cardHalfPoints(b) - cardHalfPoints(a) || cardOrder(a) - cardOrder(b),
   )[0];
   return best ?? giveAway(s);
 }
@@ -126,8 +130,9 @@ function follow(s: Situation, trick: readonly PlayedCard[]): Card {
   return take ?? giveAway(s);
 }
 
-/** Lowest card, by strength, of the given suit cards. */
-const lowest = (cards: readonly Card[]) => [...cards].sort((a, b) => strength(a) - strength(b))[0];
+/** Lowest card, by cardOrder, of the given suit cards. */
+const lowest = (cards: readonly Card[]) =>
+  [...cards].sort((a, b) => cardOrder(a) - cardOrder(b))[0];
 
 function lead(s: Situation): Card {
   const { view, memory, legal, unseen } = s;
@@ -141,14 +146,14 @@ function lead(s: Situation): Card {
     // Draw the defence's trumps while holding more than its share.
     const trumps = legal.filter(isTrump);
     if (unseenTrumps.length > 0 && trumps.length > unseenTrumps.length / opponents) {
-      const top = Math.max(...unseenTrumps.map(strength));
-      const master = trumps.find((c) => strength(c) > top);
+      const top = Math.max(...unseenTrumps.map(cardOrder));
+      const master = trumps.find((c) => cardOrder(c) > top);
       const card = master ?? lowest(plainTrumps);
       if (card !== undefined) return card;
     }
     const masters = suitCards.filter(
       (c) =>
-        !unseen.some((u) => suitOf(u) === suitOf(c) && strength(u) > strength(c)) &&
+        !unseen.some((u) => suitOf(u) === suitOf(c) && cardOrder(u) > cardOrder(c)) &&
         !Array.from({ length: view.players }, (_, seat) => seat).some(
           (seat) => !isAlly(view, seat) && lacks(memory, seat, suitOf(c) as Colour),
         ),
@@ -156,15 +161,16 @@ function lead(s: Situation): Card {
     const master = dearest(masters);
     if (master !== undefined) return master;
     const longest = [...suitCards].sort(
-      (a, b) => lengthOf(b) - lengthOf(a) || strength(a) - strength(b),
+      (a, b) => lengthOf(b) - lengthOf(a) || cardOrder(a) - cardOrder(b),
     )[0];
     if (longest !== undefined) return longest;
   } else {
     // Make the taker spend trumps in a suit it lacks, else open a short suit.
-    const taker = view.taker ?? -1;
-    const takerVoid = suitCards.filter((c) => lacks(memory, taker, suitOf(c) as Colour));
+    const taker = view.taker;
+    const takerVoid =
+      taker === null ? [] : suitCards.filter((c) => lacks(memory, taker, suitOf(c) as Colour));
     const shortest = [...suitCards].sort(
-      (a, b) => lengthOf(a) - lengthOf(b) || strength(a) - strength(b),
+      (a, b) => lengthOf(a) - lengthOf(b) || cardOrder(a) - cardOrder(b),
     )[0];
     const card = lowest(takerVoid) ?? shortest;
     if (card !== undefined) return card;
