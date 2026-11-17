@@ -8,6 +8,14 @@ An online table for French Tarot played by the official FFT rules, in 3, 4 or 5 
 One online table, reached by a link or short code, with its seats and options.
 _Avoid_: Game, lobby, table (for the online object)
 
+**Participant**:
+A person who joined a room with a nickname, seated or waiting for a seat; a private token lets them come back.
+_Avoid_: User, player (for someone not seated), client
+
+**Host** (hôte):
+The participant who sets the room up and starts sessions: the first one still connected, in join order.
+_Avoid_: Owner, admin
+
 **Seat**:
 A numbered place at the table, held by a human or a bot.
 _Avoid_: Player slot, position

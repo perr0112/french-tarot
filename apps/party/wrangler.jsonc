@@ -1,0 +1,10 @@
+{
+  // Room server: one Durable Object per table (AGENTS.md §2). Rooms live at /parties/room/<CODE>.
+  "name": "french-tarot-party",
+  "main": "src/server.ts",
+  "compatibility_date": "2026-11-01",
+  "durable_objects": {
+    "bindings": [{ "name": "Room", "class_name": "Room" }],
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }],
+}
