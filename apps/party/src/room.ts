@@ -4,9 +4,11 @@ import {
   applySessionAction,
   createRng,
   createSession,
+  getLegalActions,
   getPlayerView,
   type Action,
   type DealState,
+  type LegalAction,
   type Seat,
   type SessionState,
 } from '@tarot/engine';
@@ -147,7 +149,7 @@ export function applyRoomCommand(room: RoomState, command: RoomCommand, env: Roo
 function handle(room: RoomState, command: RoomCommand, env: RoomEnv): Outcome {
   switch (command.type) {
     case 'disconnect':
-      return { room: disconnect(room, command.connection, env.now), replies: [] };
+      return { room: disconnect(room, command.connection, env.now, env), replies: [] };
     case 'wake':
       return wake(room, env);
     case 'message':
@@ -162,7 +164,7 @@ function handleMessage(
   env: RoomEnv,
 ): Outcome {
   if (message.type === 'join') return join(room, connection, message, env);
-  const me = room.participants.find((p) => p.connection === connection);
+  const me = byConnection(room, connection);
   if (!me) return refuse(room, connection, 'NOT_JOINED');
   const done = (next: RoomState | ServerErrorCode): Outcome =>
     typeof next === 'string' ? refuse(room, connection, next) : { room: next, replies: [] };
@@ -191,7 +193,7 @@ function handleMessage(
     case 'action':
       if (me.seat === null) return done('NOT_SEATED');
       if (room.phase !== 'playing') return done('WRONG_ROOM_PHASE');
-      return done(play(room, me.seat, message.action, env.now));
+      return done(humanPlay(room, me.seat, message.action, env.now));
     case 'continue':
       if (me.seat === null) return done('NOT_SEATED');
       return done(continueToNextDeal(room, me.seat, env));
@@ -211,6 +213,13 @@ function asHostIn(room: RoomState, me: Participant, phase: RoomPhase): ServerErr
 }
 
 const humanAt = (room: RoomState, seat: Seat) => room.participants.find((p) => p.seat === seat);
+const byConnection = (room: RoomState, connection: string) =>
+  room.participants.find((p) => p.connection === connection);
+const seatsOf = (room: RoomState): Seat[] =>
+  Array.from({ length: room.options.players }, (_, seat) => seat);
+/** When a bot takes the seat of a disconnected participant, or null while connected. */
+const replacedFrom = (p: Participant) =>
+  p.disconnectedAt === null ? null : p.disconnectedAt + REPLACE_AFTER_MS;
 
 const replace = (room: RoomState, from: Participant, to: Participant): RoomState => ({
   ...room,
@@ -223,9 +232,7 @@ function join(
   message: Extract<ClientMessage, { type: 'join' }>,
   env: RoomEnv,
 ): Outcome {
-  if (room.participants.some((p) => p.connection === connection)) {
-    return refuse(room, connection, 'ALREADY_JOINED');
-  }
+  if (byConnection(room, connection)) return refuse(room, connection, 'ALREADY_JOINED');
   const known = room.participants.find((p) => p.token === message.token);
   if (known) {
     const replies: RoomEffect[] = [];
@@ -236,17 +243,15 @@ function join(
       });
     }
     replies.push(reply(connection, { type: 'welcome', token: known.token }));
-    let next = replace(room, known, { ...known, connection, disconnectedAt: null });
-    // The bot that stood in for this player hands the seat back.
-    if (known.seat !== null && known.connection === null) next = resetMemory(next, known.seat);
-    return { room: next, replies };
+    const back = replace(room, known, { ...known, connection, disconnectedAt: null });
+    return { room: room.phase === 'lobby' ? fillSeats(back) : back, replies };
   }
 
   if (room.phase !== 'lobby') {
     return {
       room,
       replies: [
-        reply(connection, { type: 'error', code: 'GAME_IN_PROGRESS' }),
+        reply(connection, { type: 'error', code: 'SESSION_IN_PROGRESS' }),
         { type: 'close', connection },
       ],
     };
@@ -268,27 +273,28 @@ function join(
   };
 }
 
-function disconnect(room: RoomState, connection: string, now: number): RoomState {
-  const leaving = room.participants.find((p) => p.connection === connection);
+function disconnect(room: RoomState, connection: string, now: number, env: RoomEnv): RoomState {
+  const leaving = byConnection(room, connection);
   if (!leaving) return room;
-  // In the lobby, someone without a seat simply leaves; anyone else keeps their place.
-  if (room.phase === 'lobby' && leaving.seat === null) {
-    return { ...room, participants: room.participants.filter((p) => p !== leaving) };
+  if (room.phase === 'lobby') {
+    // Nothing to protect before the start: the seat goes to whoever waits; the token stays valid.
+    const gone = { ...leaving, seat: null, connection: null, disconnectedAt: now };
+    return fillSeats(replace(room, leaving, gone));
   }
-  return replace(room, leaving, { ...leaving, connection: null, disconnectedAt: now });
+  const next = replace(room, leaving, { ...leaving, connection: null, disconnectedAt: now });
+  // The deal may only have been waiting for this player to continue.
+  return room.session?.phase === 'waitingForDeal' ? dealIfAllContinued(next, env) : next;
 }
 
 const isFree = (room: RoomState, seat: Seat) =>
   room.bots[seat] === null && humanAt(room, seat) === undefined;
 
-/** Gives free seats to participants without one, in join order. */
+/** Gives free seats to connected participants without one, in join order. */
 function fillSeats(room: RoomState): RoomState {
   let next = room;
   for (const participant of room.participants) {
-    if (participant.seat !== null) continue;
-    const seat = Array.from({ length: next.options.players }, (_, s) => s).find((s) =>
-      isFree(next, s),
-    );
+    if (participant.seat !== null || participant.connection === null) continue;
+    const seat = seatsOf(next).find((s) => isFree(next, s));
     if (seat === undefined) break;
     const current = next.participants.find((p) => p.token === participant.token) as Participant;
     next = replace(next, current, { ...current, seat });
@@ -322,9 +328,10 @@ function setBot(
 // ---------------------------------------------------------------- session and deals
 
 function start(room: RoomState, env: RoomEnv): RoomState | ServerErrorCode {
-  const seats = Array.from({ length: room.options.players }, (_, s) => s);
-  if (seats.some((seat) => isFree(room, seat))) return 'SEATS_NOT_FILLED';
-  return beginSession(room, env.seed % room.options.players, env);
+  if (seatsOf(room).some((seat) => isFree(room, seat))) return 'SEATS_NOT_FILLED';
+  // A first dealer drawn independently of the deal's own shuffle.
+  const dealer = Math.floor(createRng(env.seed ^ 0x9e3779b9)() * room.options.players);
+  return beginSession(room, dealer, env);
 }
 
 function beginSession(room: RoomState, dealer: Seat, env: RoomEnv): RoomState {
@@ -347,10 +354,6 @@ function dealNext(room: RoomState, env: RoomEnv): RoomState {
   };
 }
 
-function resetMemory(room: RoomState, seat: Seat): RoomState {
-  return { ...room, memories: room.memories.map((m, s) => (s === seat ? emptyMemory() : m)) };
-}
-
 /** Plays one engine action for `seat`, by a human or a bot. */
 function play(
   room: RoomState,
@@ -360,6 +363,8 @@ function play(
 ): RoomState | ServerErrorCode {
   const deal = room.session?.deal;
   if (!room.session || !deal) return 'NO_DEAL_IN_PROGRESS';
+  // Applied to the deal too, because the session drops a deal once it is over and the room
+  // keeps showing it (last trick, breakdown).
   const dealResult = applyAction(deal, seat, action);
   if (!dealResult.ok) return dealResult.error.code;
   const sessionResult = applySessionAction(room.session, { type: 'play', seat, action });
@@ -375,6 +380,16 @@ function play(
   };
 }
 
+/**
+ * A human move. It also clears the seat's bot memory, so a bot standing in later in the deal
+ * starts afresh instead of trusting what it saw before the player came back.
+ */
+function humanPlay(room: RoomState, seat: Seat, action: Action, now: number) {
+  const next = play(room, seat, action, now);
+  if (typeof next === 'string') return next;
+  return { ...next, memories: next.memories.map((m, s) => (s === seat ? emptyMemory() : m)) };
+}
+
 /** Seats whose connected players must ask for the next deal before it is dealt. */
 const connectedSeats = (room: RoomState) =>
   room.participants.flatMap((p) => (p.seat !== null && p.connection !== null ? [p.seat] : []));
@@ -388,8 +403,12 @@ function continueToNextDeal(
     return 'WRONG_ROOM_PHASE';
   }
   const continued = room.continued.includes(seat) ? room.continued : [...room.continued, seat];
-  const next = { ...room, continued };
-  return connectedSeats(next).every((s) => continued.includes(s)) ? dealNext(next, env) : next;
+  return dealIfAllContinued({ ...room, continued }, env);
+}
+
+function dealIfAllContinued(room: RoomState, env: RoomEnv): RoomState {
+  const waitingFor = connectedSeats(room).filter((s) => !room.continued.includes(s));
+  return waitingFor.length === 0 && !isPaused(room) ? dealNext(room, env) : room;
 }
 
 // ---------------------------------------------------------------- bots and timing
@@ -404,8 +423,8 @@ function controllerOf(room: RoomState, seat: Seat, now: number): Controller {
   const level = room.bots[seat];
   if (level) return { kind: 'bot', level, since: -Infinity };
   const human = humanAt(room, seat);
-  if (!human || human.disconnectedAt === null) return { kind: 'human' };
-  const from = human.disconnectedAt + REPLACE_AFTER_MS;
+  const from = human ? replacedFrom(human) : null;
+  if (from === null) return { kind: 'human' };
   return now >= from
     ? { kind: 'bot', level: REPLACEMENT_LEVEL, since: from }
     : { kind: 'absent', from };
@@ -414,25 +433,34 @@ function controllerOf(room: RoomState, seat: Seat, now: number): Controller {
 /** With nobody connected the room pauses: bots do not play to an empty table. */
 const isPaused = (room: RoomState) => room.participants.every((p) => p.connection === null);
 
-/** When the bot whose turn it is will play, or null if it is not a bot's turn. */
-function botDueAt(room: RoomState, now: number): number | null {
-  const turn = room.session?.deal?.turn;
-  if (room.phase !== 'playing' || isPaused(room) || turn === undefined || turn === null)
+interface BotTurn {
+  readonly deal: DealState;
+  readonly seat: Seat;
+  readonly level: SeatBotLevel;
+  readonly dueAt: number;
+}
+
+/** The bot whose turn it is and when it will play, or null if it is not a bot's turn. */
+function botTurn(room: RoomState, now: number): BotTurn | null {
+  const deal = room.session?.deal;
+  const seat = deal?.turn;
+  if (room.phase !== 'playing' || isPaused(room) || !deal || seat === undefined || seat === null) {
     return null;
-  const controller = controllerOf(room, turn, now);
+  }
+  const controller = controllerOf(room, seat, now);
   if (controller.kind !== 'bot') return null;
-  return Math.max(room.turnSince, controller.since) + BOT_DELAY_MS[room.options.botSpeed];
+  const dueAt = Math.max(room.turnSince, controller.since) + BOT_DELAY_MS[room.options.botSpeed];
+  return { deal, seat, level: controller.level, dueAt };
 }
 
 function nextWake(room: RoomState, now: number): number | null {
   const times: number[] = [];
-  const due = botDueAt(room, now);
-  if (due !== null) times.push(due);
+  const turn = botTurn(room, now);
+  if (turn !== null) times.push(turn.dueAt);
   if (room.phase === 'playing' && !isPaused(room)) {
     for (const p of room.participants) {
-      if (p.seat === null || p.disconnectedAt === null) continue;
-      const from = p.disconnectedAt + REPLACE_AFTER_MS;
-      if (from > now) times.push(from);
+      const from = replacedFrom(p);
+      if (p.seat !== null && from !== null && from > now) times.push(from);
     }
   }
   if (isPaused(room)) times.push(room.lastActivity + EXPIRE_AFTER_MS);
@@ -443,27 +471,43 @@ function wake(room: RoomState, env: RoomEnv): Outcome {
   if (isPaused(room) && env.now >= room.lastActivity + EXPIRE_AFTER_MS) {
     return { room: 'destroy', replies: [] };
   }
-  const due = botDueAt(room, env.now);
-  const deal = room.session?.deal;
-  const seat = deal?.turn;
-  if (due === null || due > env.now || !deal || seat === undefined || seat === null) {
-    return { room, replies: [] };
-  }
-  const controller = controllerOf(room, seat, env.now);
-  const level = controller.kind === 'bot' ? controller.level : REPLACEMENT_LEVEL;
-  const decision = createBot(level).decide(
-    getPlayerView(deal, seat),
-    room.memories[seat] ?? emptyMemory(),
-    createRng(env.seed),
-  );
-  const next = play(room, seat, decision.action, env.now);
+  const turn = botTurn(room, env.now);
+  if (turn === null || turn.dueAt > env.now) return { room, replies: [] };
+  const { deal, seat, level } = turn;
+  const memory = room.memories[seat] ?? emptyMemory();
+  const decision = createBot(level).decide(getPlayerView(deal, seat), memory, createRng(env.seed));
+  let next = play(room, seat, decision.action, env.now);
   if (typeof next === 'string') {
-    throw new Error(`Bot at seat ${seat} chose a refused action (${next})`);
+    // Should never happen; a refused bot action must not freeze the table.
+    const [template] = getLegalActions(deal, seat);
+    next = template ? play(room, seat, simpleAction(template), env.now) : next;
+    if (typeof next === 'string') return { room, replies: [] };
   }
+  const played = next;
   return {
-    room: { ...next, memories: next.memories.map((m, s) => (s === seat ? decision.memory : m)) },
+    room: {
+      ...played,
+      memories: played.memories.map((m, s) => (s === seat ? decision.memory : m)),
+    },
     replies: [],
   };
+}
+
+/** A legal action anyone may take from a template: pass, the first card, no announcement. */
+function simpleAction(template: LegalAction): Action {
+  switch (template.type) {
+    case 'bid':
+      return { type: 'bid', contract: template.choices.includes('pass') ? 'pass' : 'petite' };
+    case 'callKing':
+      return { type: 'callKing', card: template.cards[0] ?? 'S14' };
+    case 'ecart':
+      // Eligible cards are sorted: suit cards come before any trump.
+      return { type: 'ecart', cards: template.eligible.slice(0, template.count) };
+    case 'decideChelem':
+      return { type: 'decideChelem', announce: false };
+    case 'playCard':
+      return { type: 'playCard', card: template.cards[0] ?? 'EXC' };
+  }
 }
 
 // ---------------------------------------------------------------- views
@@ -491,8 +535,10 @@ export function roomViewFor(room: RoomState, token: string, now: number): RoomVi
     phase: room.phase,
     options: room.options,
     you: { nickname: me.nickname, seat: me.seat, isHost: isHost(room, me) },
-    seats: Array.from({ length: room.options.players }, (_, seat) => occupantOf(room, seat, now)),
-    waiting: room.participants.filter((p) => p.seat === null).map((p) => p.nickname),
+    seats: seatsOf(room).map((seat) => occupantOf(room, seat, now)),
+    waiting: room.participants
+      .filter((p) => p.seat === null && p.connection !== null)
+      .map((p) => p.nickname),
     session: session && {
       deals: session.deals,
       played: session.played,

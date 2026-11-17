@@ -6,7 +6,8 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['packages/*/src/**/*.ts', 'apps/party/src/**/*.ts'],
-      exclude: ['**/*.test.ts', '**/testing/**', '**/index.ts'],
+      // The Durable Object adapter is a thin shell over the tested room core (milestone 4).
+      exclude: ['**/*.test.ts', '**/testing/**', '**/index.ts', 'apps/party/src/server.ts'],
       reporter: ['text', 'html'],
       // The engine is the product (AGENTS.md §2): keep its coverage very high.
       thresholds: {

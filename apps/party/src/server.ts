@@ -68,8 +68,10 @@ export class Room extends Server<Env> {
           return;
       }
     }
-    this.state = room;
-    await this.ctx.storage.put(STORAGE_KEY, room);
+    if (room !== this.state) {
+      this.state = room;
+      await this.ctx.storage.put(STORAGE_KEY, room);
+    }
     if (wakeAt === null) await this.ctx.storage.deleteAlarm();
     else await this.ctx.storage.setAlarm(wakeAt);
   }

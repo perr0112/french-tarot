@@ -46,10 +46,12 @@ describe('joining a room', () => {
 });
 
 describe('reconnection', () => {
-  it('gives the seat back to a returning token', () => {
+  it('gives the seat back to a returning token during a session', () => {
     const h = new RoomHarness();
     const token = h.join('c1', 'Alice') ?? '';
     h.join('c2', 'Bob');
+    [2, 3].forEach((seat) => h.send('c1', { type: 'setBot', seat, level: 'medium' }));
+    h.send('c1', { type: 'start' });
     h.disconnect('c1');
     expect(h.view('c2').seats[0]).toMatchObject({ connected: false });
     h.join('c3', 'ignored', token);
@@ -123,13 +125,25 @@ describe('lobby settings', () => {
     expect(h.view('c2').you.seat).toBe(1);
   });
 
+  it('frees the seat of someone who leaves the lobby, who may come back to a free seat', () => {
+    const h = new RoomHarness();
+    const tokens = ['Alice', 'Bob', 'Carol', 'Dan'].map((name, i) => h.join(`c${i}`, name));
+    h.send('c0', { type: 'configure', options: { players: 3 } });
+    h.disconnect('c1');
+    expect(h.view('c3').you.seat).toBe(1);
+    expect(h.view('c0').waiting).toEqual([]);
+    h.join('c9', 'Bob', tokens[1] ?? undefined);
+    expect(h.view('c9').you.seat).toBeNull();
+    expect(h.view('c0').waiting).toEqual(['Bob']);
+  });
+
   it('refuses newcomers once the session has started', () => {
     const h = new RoomHarness();
     h.join('c1', 'Alice');
     [1, 2, 3].forEach((seat) => h.send('c1', { type: 'setBot', seat, level: 'medium' }));
     h.send('c1', { type: 'start' });
     expect(h.join('c2', 'Bob')).toBeNull();
-    expect(h.lastError('c2')).toBe('GAME_IN_PROGRESS');
+    expect(h.lastError('c2')).toBe('SESSION_IN_PROGRESS');
     expect(h.closed.has('c2')).toBe(true);
   });
 });

@@ -158,10 +158,12 @@ describe('disconnection', () => {
     const h = table(['Alice']);
     h.send('c0', { type: 'start' });
     while (h.view('c0').deal?.turn === 0) playIfMyTurn(h, 'c0');
+    const token = h.messages('c0').find((m) => m.type === 'welcome');
+    const before = h.view('c0').deal;
     h.disconnect('c0');
-    const room = h.room;
     h.advance(60_000);
-    expect(h.room.currentDeal).toEqual(room.currentDeal);
+    h.join('c9', 'Alice', token?.type === 'welcome' ? token.token : undefined);
+    expect(h.view('c9').deal).toEqual(before);
   });
 
   it('deletes a room left empty for 24 hours', () => {
@@ -187,6 +189,18 @@ describe('a whole session', () => {
     h.send('c1', { type: 'continue' });
     expect(h.view('c1').session?.continued).toBeNull();
     expect(h.view('c1').deal?.phase).toBe('bidding');
+  });
+
+  it('deals on when the last player still to continue leaves', () => {
+    const h = table(['Alice', 'Bob']);
+    h.send('c0', { type: 'start' });
+    for (let i = 0; i < 5000 && h.view('c0').session?.continued === null; i++) {
+      if (!playIfMyTurn(h, 'c0') && !playIfMyTurn(h, 'c1')) h.advance(1000);
+    }
+    h.send('c0', { type: 'continue' });
+    h.disconnect('c1');
+    expect(h.view('c0').session?.continued).toBeNull();
+    expect(h.view('c0').deal?.phase).toBe('bidding');
   });
 
   it('runs N played deals to a final score sheet, then can start again', () => {

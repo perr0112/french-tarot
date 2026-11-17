@@ -14,7 +14,7 @@ export type RoomErrorCode =
   | 'NOT_JOINED'
   | 'ALREADY_JOINED'
   | 'NICKNAME_TAKEN'
-  | 'GAME_IN_PROGRESS'
+  | 'SESSION_IN_PROGRESS'
   | 'NOT_HOST'
   | 'WRONG_ROOM_PHASE'
   | 'SEAT_INVALID'
