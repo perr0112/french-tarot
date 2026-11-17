@@ -49,6 +49,10 @@ describe('scoreDeal (hand-computed golden examples)', () => {
     expect(result).toMatchObject({ gap: 46, dealScore: 582, perSeat: [1746, -582, -582, -582] });
   });
 
+  it('names the taker in the breakdown, for the score sheet', () => {
+    expect(scoreDeal(facts({ taker: 2, takerHalfPoints: 120, takerOudlers: 1 })).taker).toBe(2);
+  });
+
   it('scores a made garde: (25 + 4) × 2 = 58', () => {
     const result = scoreDeal(facts({ contract: 'garde', takerHalfPoints: 90, takerOudlers: 2 }));
     expect(result).toMatchObject({

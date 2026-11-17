@@ -26,6 +26,7 @@ export interface ScoreFacts {
 /** Itemised result of a deal; every signed term is from the taker's side (ADR-0004). */
 export interface Breakdown {
   readonly contract: Contract;
+  readonly taker: Seat;
   readonly partner: Seat | null;
   readonly multiplier: number;
   /** The taker's side's points, which may end in a half point in 3 or 5 players. */
@@ -81,6 +82,7 @@ export function scoreDeal(facts: ScoreFacts): Breakdown {
 
   return {
     contract: facts.contract,
+    taker: facts.taker,
     partner: facts.partner,
     multiplier,
     points,
