@@ -1,0 +1,56 @@
+.panel {
+  composes: panel from '../design/ui.module.css';
+  display: grid;
+  gap: var(--space-3);
+  justify-items: center;
+  text-align: center;
+  max-width: min(560px, calc(100vw - var(--space-5)));
+  margin-inline: auto;
+}
+
+.title {
+  font-weight: var(--weight-emphasis);
+  margin: 0;
+}
+
+.hint {
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-line);
+  color: var(--color-ink-muted);
+  margin: 0;
+}
+
+.warning {
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-line);
+  color: var(--color-negative);
+  margin: 0;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-1);
+}
+
+.chip {
+  width: 36px;
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: var(--radius-card);
+  cursor: pointer;
+  opacity: 0.45;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.chipOn {
+  opacity: 1;
+}
+
+.check {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}

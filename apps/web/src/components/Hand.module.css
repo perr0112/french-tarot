@@ -1,0 +1,66 @@
+.hand {
+  display: flex;
+  justify-content: center;
+  list-style: none;
+  margin: 0;
+  padding: var(--space-4) var(--space-4) var(--space-2);
+  --card-width: clamp(44px, 7vw, 84px);
+  /* Horizontal distance between two cards: overlap more as the hand grows, never overflow. */
+  --step: min(
+    calc(var(--card-width) * 0.58),
+    calc((100vw - var(--space-6) - var(--card-width)) / max(var(--count) - 1, 1))
+  );
+}
+
+.slot {
+  width: var(--card-width);
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.slot + .slot {
+  margin-left: calc(var(--step) - var(--card-width));
+}
+
+.card {
+  display: block;
+  width: var(--card-width);
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: var(--radius-card);
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out);
+}
+
+.card:disabled {
+  cursor: default;
+}
+
+.enabled {
+  cursor: pointer;
+}
+
+.enabled:hover {
+  transform: translateY(calc(var(--space-3) * -1));
+}
+
+.dimmed {
+  opacity: 0.45;
+}
+
+.picked {
+  transform: translateY(calc(var(--space-5) * -1));
+}
+
+.picked :global(svg) {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+@media (max-width: 600px) {
+  .hand {
+    padding-inline: var(--space-2);
+  }
+}
