@@ -1,0 +1,20 @@
+{
+  "name": "@tarot/party",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@tarot/bots": "workspace:*",
+    "@tarot/engine": "workspace:*",
+    "@tarot/protocol": "workspace:*",
+    "partyserver": "^0.5.10"
+  },
+  "scripts": {
+    "dev": "wrangler dev",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261116.1",
+    "wrangler": "^4.163.0"
+  }
+}
