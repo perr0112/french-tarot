@@ -90,4 +90,43 @@ describe('createDealInPlay', () => {
     const hands = state.hands.map((hand, seat) => (seat === 1 ? hand.slice(1) : hand));
     expect(() => createDealInPlay({ ...inputOf(state), hands })).toThrow('Invalid distribution');
   });
+
+  it('refuses a King or an oudler in the écart', () => {
+    for (let seed = 1; ; seed++) {
+      const state = playUntil(createDeal({ players: 4, dealer: 0, seed }), seed, 10);
+      if (state === null || state.ecart.length === 0) continue;
+      const taker = state.taker as Seat;
+      // Swap a discarded card with a King still held by the taker, if any.
+      const king = state.hands[taker]?.find((c) => c.endsWith('14'));
+      if (!king) continue;
+      const [discarded] = state.ecart;
+      const hands = state.hands.map((hand, seat) =>
+        seat === taker ? hand.map((c) => (c === king ? (discarded as typeof c) : c)) : hand,
+      );
+      const ecart = state.ecart.map((c) => (c === discarded ? king : c));
+      expect(() => createDealInPlay({ ...inputOf(state), hands, ecart })).toThrow(
+        'Invalid distribution',
+      );
+      return;
+    }
+  });
+
+  it('refuses a trick played out of seat order', () => {
+    const state = sample();
+    const [first, ...rest] = state.tricks;
+    if (!first) throw new Error('No trick played');
+    const cards = [...first.cards].reverse();
+    expect(() =>
+      createDealInPlay({ ...inputOf(state), tricks: [{ ...first, cards }, ...rest] }),
+    ).toThrow('Invalid distribution');
+  });
+
+  it('refuses a current trick led by the wrong seat', () => {
+    const state = sample();
+    const current = state.currentTrick ?? { leader: 0, cards: [] };
+    const leader = (current.leader + 1) % state.players;
+    expect(() =>
+      createDealInPlay({ ...inputOf(state), currentTrick: { ...current, leader } }),
+    ).toThrow('Invalid distribution');
+  });
 });

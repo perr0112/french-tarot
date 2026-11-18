@@ -13,7 +13,7 @@ import {
   type Rng,
   type Seat,
 } from '@tarot/engine';
-import { colourOf, completedTricks, type BotMemory } from '../memory';
+import { colourOf, completedTricks, knowsEveryTrick, type BotMemory } from '../memory';
 
 /** Where an unseen card may lie: another seat's hand, or the cards set aside (chien or écart). */
 type Slot = Seat | 'aside';
@@ -21,15 +21,15 @@ type Slot = Seat | 'aside';
 const ATTEMPTS = 20;
 
 /**
- * One full guess of the hidden cards, consistent with everything the seat knows (its hand, the
- * cards played, the colours others lack, shown poignées and écart trumps, the revealed chien, a
- * known partner), as a deal in play the engine can play out. Null when no guess fits, or when the
+ * A sampled deal: one full distribution of the hidden cards, consistent with everything the seat
+ * knows (its hand, the cards played, the colours others lack, shown poignées and écart trumps,
+ * the revealed chien, a known partner), as a deal in play the engine can play out. Null when none fits, or when the
  * memory misses part of the deal's tricks.
  */
-export function sampleWorld(view: PlayerView, memory: BotMemory, rng: Rng): DealState | null {
+export function sampleDeal(view: PlayerView, memory: BotMemory, rng: Rng): DealState | null {
   const { taker, contract } = view;
   if (view.phase !== 'playing' || taker === null || contract === null) return null;
-  if (memory.tricks.length !== completedTricks(view)) return null;
+  if (!knowsEveryTrick(memory, completedTricks(view))) return null;
 
   const me = view.seat;
   const takesChien = CONTRACT_RULES[contract].chien === 'takerHand';
@@ -47,7 +47,7 @@ export function sampleWorld(view: PlayerView, memory: BotMemory, rng: Rng): Deal
 
   const placed = new Set([...hands.flat(), ...aside]);
   const pool = ALL_CARDS.filter((c) => !played.has(c) && !placed.has(c));
-  const room = (slot: Slot) =>
+  const freePlaces = (slot: Slot) =>
     slot === 'aside'
       ? chienSize - aside.length
       : (view.handSizes[slot] ?? 0) - (hands[slot]?.length ?? 0);
@@ -78,12 +78,12 @@ export function sampleWorld(view: PlayerView, memory: BotMemory, rng: Rng): Deal
   const options = pool.map((card) => ({ card, slots: slotsFor(card) }));
 
   for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
-    const guess = hands.map((hand) => [...hand]);
-    const guessAside = [...aside];
+    const sampled = hands.map((hand) => [...hand]);
+    const sampledAside = [...aside];
     const free = new Map<Slot, number>(
       [...view.handSizes.keys(), 'aside' as const].map((slot): [Slot, number] => [
         slot,
-        room(slot),
+        freePlaces(slot),
       ]),
     );
     const openFor = (slots: readonly Slot[]) => slots.filter((s) => (free.get(s) ?? 0) > 0);
@@ -111,8 +111,8 @@ export function sampleWorld(view: PlayerView, memory: BotMemory, rng: Rng): Deal
         break;
       }
       free.set(slot, (free.get(slot) ?? 0) - 1);
-      if (slot === 'aside') guessAside.push(card);
-      else guess[slot]?.push(card);
+      if (slot === 'aside') sampledAside.push(card);
+      else sampled[slot]?.push(card);
     }
     if (!fits) continue;
     try {
@@ -127,9 +127,9 @@ export function sampleWorld(view: PlayerView, memory: BotMemory, rng: Rng): Deal
         poignees: view.poignees,
         tricks: memory.tricks,
         currentTrick: view.currentTrick,
-        hands: guess,
-        chien: takesChien ? (view.chien ?? []) : guessAside,
-        ecart: takesChien ? guessAside : [],
+        hands: sampled,
+        chien: takesChien ? (view.chien ?? []) : sampledAside,
+        ecart: takesChien ? sampledAside : [],
       });
     } catch {
       // Inconsistent with a rule the slots do not encode: draw again.

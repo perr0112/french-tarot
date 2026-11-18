@@ -66,6 +66,23 @@ export function memoryFromTricks(
   return { tricks, played, voids };
 }
 
+/** Whether the memory holds every trick completed so far: Difficile needs the whole history. */
+export const knowsEveryTrick = (memory: BotMemory, completed: number) =>
+  memory.tricks.length === completed;
+
+/**
+ * Whether `remember` can bring the memory up to date: it may only miss the last trick, which
+ * the view still shows. A memory saved before tricks were remembered never can.
+ */
+export function canCatchUp(memory: BotMemory, completed: number): boolean {
+  if (!Array.isArray(memory.tricks)) return false;
+  const known = memory.tricks.length;
+  return known === completed || known === completed - 1;
+}
+
+/** Whether two tricks of one deal are the same: a card is played only once in a deal. */
+const sameTrick = (a: Trick | undefined, b: Trick) => a?.cards[0]?.card === b.cards[0]?.card;
+
 /**
  * Adds what the view shows to the memory. A deal not yet in play starts a fresh memory, and so
  * does a memory holding more tricks than this deal has had: it belongs to a previous deal (a
@@ -75,7 +92,6 @@ export function remember(previous: BotMemory, view: PlayerView): BotMemory {
   if (view.phase !== 'playing') return emptyMemory();
   const known = previous.tricks.length > completedTricks(view) ? [] : previous.tricks;
   const last = view.lastTrick;
-  const seen = last !== null && known.at(-1)?.cards[0]?.card === last.cards[0]?.card;
-  const tricks = last === null || seen ? known : [...known, last];
+  const tricks = last === null || sameTrick(known.at(-1), last) ? known : [...known, last];
   return memoryFromTricks(view.players, tricks, view.currentTrick);
 }

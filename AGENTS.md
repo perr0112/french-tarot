@@ -59,7 +59,9 @@ See `CONTEXT.md` for the domain language and `docs/adr/` for the reasoning behin
 
 - Pure, deterministic functions: `applyAction(state, seat, action)` returns `{ ok: true, state }` or
   `{ ok: false, error }` with a closed set of typed error codes — illegal actions never throw.
-  (`createDealFromHands`, used to build test situations, does throw on an invalid distribution.)
+  (The constructors `createDealFromHands`, for test situations, and `createDealInPlay`, for bots'
+  sampled deals, do throw on an invalid distribution: their input comes from our own code, not
+  from a player.)
 - State is plain, immutable, JSON-serialisable data (no classes, `Map`s or `Set`s), so it can be
   persisted and replayed as is.
 - Cards are typed string ids: `S01`–`S14`, `H…`, `D…`, `C…` (11 Valet, 12 Cavalier, 13 Dame, 14 Roi),
@@ -241,11 +243,11 @@ Primary source and page references: `docs/research/fft-rules.md`.
 
 Three levels, all strictly using the redacted player view and `getLegalActions`:
 
-| Level         | Bidding                                                        | Écart                             | Card play                                                                                                                                |
-| ------------- | -------------------------------------------------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| **Facile**    | Simple threshold on hand strength                              | Random legal                      | Random legal card                                                                                                                        |
-| **Moyen**     | Heuristic hand evaluation (oudlers, trumps, kings, long suits) | Heuristic (cut suits, keep kings) | Heuristics: protect the Petit, play the Excuse wisely, give points to partner, avoid giving points to opponents                          |
-| **Difficile** | Same as Moyen, tuned                                           | Same as Moyen, tuned              | Card tracking + Monte-Carlo determinisation (sample hidden hands consistent with known info, simulate, choose best) within a time budget |
+| Level         | Bidding                                                        | Écart                             | Card play                                                                                                                                                                                                                                                 |
+| ------------- | -------------------------------------------------------------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Facile**    | Simple threshold on hand strength                              | Random legal                      | Random legal card                                                                                                                                                                                                                                         |
+| **Moyen**     | Heuristic hand evaluation (oudlers, trumps, kings, long suits) | Heuristic (cut suits, keep kings) | Heuristics: protect the Petit, play the Excuse wisely, give points to partner, avoid giving points to opponents                                                                                                                                           |
+| **Difficile** | Same as Moyen                                                  | Same as Moyen                     | Card tracking + Monte-Carlo determinisation (sample hidden hands consistent with known info, play out with Moyen, choose the best average score) with a fixed, capped number of samples; in 5 players, Moyen's play until the partner is known (ADR-0005) |
 
 - Bots also handle: king call (5p), poignée declaration, chelem (only when near-certain).
 - A bot decision must complete within a bounded time (target < 1 s on the room server); add a small artificial delay so humans can follow the play.

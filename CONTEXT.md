@@ -161,12 +161,16 @@ A program that plays a seat, deciding only from what a human at that seat could 
 _Avoid_: AI, robot (in code)
 
 **Bot level** (niveau):
-How strong a bot plays: Facile (`easy`), Moyen (`medium`), later Difficile.
+How strong a bot plays: Facile (`easy`), Moyen (`medium`), Difficile (`hard`).
 _Avoid_: Difficulty, skill
 
 **Bot memory**:
-What a bot remembers of the current deal from its own turns: the cards played and the colours each seat showed it lacks. It starts afresh with each deal.
+What a bot remembers of the current deal: every completed trick, the cards played and the colours each seat showed it lacks. It starts afresh with each deal; a bot standing in for a player mid-deal gets it from the tricks, which every seat saw.
 _Avoid_: History, knowledge
+
+**Sampled deal** (tirage):
+One full distribution of the cards a seat cannot see, consistent with everything it knows, played out to judge a card.
+_Avoid_: World, guess, determinisation (for the deal itself)
 
 **Colour**:
 A suit or the trumps, as far as following is concerned: what a seat must play into, or may lack.

@@ -89,5 +89,32 @@ describe('a bot standing in for a player mid-deal', () => {
     const completed = first?.view.tricksWon.reduce((a, b) => a + b, 0) ?? 0;
     expect(completed).toBeGreaterThanOrEqual(3);
     expect(first?.memory.tricks).toHaveLength(completed);
+    expect(first?.memory.tricks.map((t) => t.cards)).toEqual(
+      h.room.currentDeal?.tricks.slice(0, completed).map((t) => t.cards),
+    );
+  });
+
+  it('rebuilds a memory saved before tricks were remembered', () => {
+    const h = new RoomHarness();
+    h.join('c0', 'Alice');
+    [1, 2, 3].forEach((seat) => h.send('c0', { type: 'setBot', seat, level: 'medium' }));
+    h.send('c0', { type: 'start' });
+    for (let step = 0; step < 2000 && (h.room.currentDeal?.tricks.length ?? 0) < 2; step++) {
+      const template = h.view('c0').deal?.legalActions[0];
+      if (template) h.send('c0', { type: 'action', action: simple(template) });
+      else h.advance(1000);
+    }
+    // Rooms stored by the previous version kept memories without their tricks.
+    const old = { played: [], voids: [] } as unknown as BotMemory;
+    h.room = { ...h.room, memories: h.room.memories.map(() => old) };
+    seen.length = 0;
+    for (let step = 0; step < 50 && seen.length === 0; step++) {
+      const template = h.view('c0').deal?.legalActions[0];
+      if (template) h.send('c0', { type: 'action', action: simple(template) });
+      else h.advance(1000);
+    }
+    const [first] = seen;
+    const completed = first?.view.tricksWon.reduce((a, b) => a + b, 0) ?? 0;
+    expect(first?.memory.tricks).toHaveLength(completed);
   });
 });

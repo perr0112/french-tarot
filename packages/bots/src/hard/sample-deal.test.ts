@@ -15,45 +15,45 @@ import {
 import { describe, expect, it } from 'vitest';
 import { createBot } from '../index';
 import { colourOf, emptyMemory, type BotMemory } from '../memory';
-import { sampleWorld } from './world';
+import { sampleDeal } from './sample-deal';
 
 const medium = createBot('medium');
 const sorted = (cards: readonly Card[]) => [...cards].sort();
 
-/** Checks one sampled world against what the seat knows and the real deal. */
-function checkWorld(real: DealState, view: PlayerView, memory: BotMemory, world: DealState) {
+/** Checks one sampled deal against what the seat knows and the real deal. */
+function checkSample(real: DealState, view: PlayerView, memory: BotMemory, sample: DealState) {
   const me = view.seat;
-  expect(sorted(world.hands[me] ?? [])).toEqual(sorted(view.hand));
-  world.hands.forEach((hand, seat) => expect(hand).toHaveLength(view.handSizes[seat] ?? -1));
-  expect(world.tricks).toEqual(real.tricks);
-  expect(world.currentTrick).toEqual(real.currentTrick);
-  expect(world.turn).toBe(real.turn);
+  expect(sorted(sample.hands[me] ?? [])).toEqual(sorted(view.hand));
+  sample.hands.forEach((hand, seat) => expect(hand).toHaveLength(view.handSizes[seat] ?? -1));
+  expect(sample.tricks).toEqual(real.tricks);
+  expect(sample.currentTrick).toEqual(real.currentTrick);
+  expect(sample.turn).toBe(real.turn);
   // Nobody holds a colour they showed they lack.
-  world.hands.forEach((hand, seat) => {
+  sample.hands.forEach((hand, seat) => {
     const lacks = memory.voids[seat] ?? [];
     for (const card of hand) expect(lacks).not.toContain(colourOf(card));
   });
   // Shown poignée trumps not yet played stay with their owner.
   for (const p of view.poignees) {
     for (const card of p.cards.filter((c) => !memory.played.includes(c))) {
-      expect(world.hands[p.seat]).toContain(card);
+      expect(sample.hands[p.seat]).toContain(card);
     }
   }
-  if (typeof view.knownPartner === 'number') expect(world.partner).toBe(view.knownPartner);
+  if (typeof view.knownPartner === 'number') expect(sample.partner).toBe(view.knownPartner);
   if (view.chien !== null) {
-    expect(sorted(world.chien)).toEqual(sorted(view.chien));
-    for (const card of view.shownEcartTrumps) expect(world.ecart).toContain(card);
-    for (const card of world.ecart) {
+    expect(sorted(sample.chien)).toEqual(sorted(view.chien));
+    for (const card of view.shownEcartTrumps) expect(sample.ecart).toContain(card);
+    for (const card of sample.ecart) {
       expect(isOudler(card) || rankOf(card) === KING).toBe(false);
       if (isTrump(card)) expect(view.shownEcartTrumps).toContain(card);
     }
   }
-  if (view.ownEcart !== null) expect(sorted(world.ecart)).toEqual(sorted(view.ownEcart));
+  if (view.ownEcart !== null) expect(sorted(sample.ecart)).toEqual(sorted(view.ownEcart));
   if (view.ownEcart === null && view.chien === null)
-    expect(world.chien).toHaveLength(real.chien.length);
+    expect(sample.chien).toHaveLength(real.chien.length);
 }
 
-/** Plays a Moyen-only deal and samples worlds at every turn in play. */
+/** Plays a Moyen-only deal and samples deals at every turn in play. */
 function sampleAlong(players: PlayerCount, seed: number): { samples: number; failed: number } {
   let state = createDeal({ players, dealer: seed % players, seed });
   const memories: BotMemory[] = Array.from({ length: players }, emptyMemory);
@@ -65,10 +65,10 @@ function sampleAlong(players: PlayerCount, seed: number): { samples: number; fai
     const view = getPlayerView(state, seat);
     const { action, memory } = medium.decide(view, memories[seat] ?? emptyMemory(), rng);
     if (state.phase === 'playing') {
-      const world = sampleWorld(view, memory, rng);
+      const sample = sampleDeal(view, memory, rng);
       samples++;
-      if (world === null) failed++;
-      else checkWorld(state, view, memory, world);
+      if (sample === null) failed++;
+      else checkSample(state, view, memory, sample);
     }
     memories[seat] = memory;
     const result = applyAction(state, seat, action);
@@ -78,7 +78,7 @@ function sampleAlong(players: PlayerCount, seed: number): { samples: number; fai
   return { samples, failed };
 }
 
-describe('sampleWorld', () => {
+describe('sampleDeal', () => {
   it.each([3, 4, 5] as const)(
     'deals the unseen cards as the seat could imagine them (%i players)',
     (players) => {
@@ -106,6 +106,6 @@ describe('sampleWorld', () => {
     const seat = state.turn ?? 0;
     const view = getPlayerView(state, seat);
     const partial = medium.decide(view, emptyMemory(), createRng(1)).memory;
-    expect(sampleWorld(view, partial, createRng(1))).toBeNull();
+    expect(sampleDeal(view, partial, createRng(1))).toBeNull();
   });
 });

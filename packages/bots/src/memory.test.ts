@@ -8,6 +8,7 @@ import {
 } from '@tarot/engine';
 import { describe, expect, it } from 'vitest';
 import { createBot, emptyMemory, memoryFromTricks, type BotMemory } from './index';
+import { canCatchUp, knowsEveryTrick } from './memory';
 
 const medium = createBot('medium');
 
@@ -61,5 +62,23 @@ describe('memoryFromTricks', () => {
       played: ['S01', 'T02', 'S03', 'S04'],
       voids: [[], ['S'], [], []],
     });
+  });
+});
+
+describe('memory coverage', () => {
+  const trick = { leader: 0, winner: 0, cards: [] } as const;
+  const knowing = (n: number): BotMemory => ({ ...emptyMemory(), tricks: Array(n).fill(trick) });
+
+  it('can catch up when only the trick still in view is missing', () => {
+    expect(canCatchUp(knowing(3), 3)).toBe(true);
+    expect(canCatchUp(knowing(2), 3)).toBe(true);
+    expect(canCatchUp(knowing(1), 3)).toBe(false);
+    expect(canCatchUp(knowing(4), 3)).toBe(false);
+    expect(canCatchUp({ played: [], voids: [] } as unknown as BotMemory, 0)).toBe(false);
+  });
+
+  it('knows every trick only with the whole history', () => {
+    expect(knowsEveryTrick(knowing(3), 3)).toBe(true);
+    expect(knowsEveryTrick(knowing(2), 3)).toBe(false);
   });
 });

@@ -8,7 +8,7 @@ import { hardBot } from './hard';
 import { mediumBot } from './medium';
 
 export type { Bot, BotDecision, BotLevel } from './bot';
-export { emptyMemory, memoryFromTricks, type BotMemory } from './memory';
+export { canCatchUp, emptyMemory, memoryFromTricks, type BotMemory } from './memory';
 export { simulateDeal, type SimulateDealInput } from './simulate';
 
 const BOTS: Readonly<Record<BotLevel, Bot>> = {

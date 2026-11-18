@@ -1,4 +1,4 @@
-import { createBot, emptyMemory, memoryFromTricks, type BotMemory } from '@tarot/bots';
+import { canCatchUp, createBot, emptyMemory, memoryFromTricks, type BotMemory } from '@tarot/bots';
 import {
   applyAction,
   applySessionAction,
@@ -472,9 +472,7 @@ function nextWake(room: RoomState, now: number): number | null {
  * player mid-deal) is given them: every seat saw them, so they are public.
  */
 function standInMemory(deal: DealState, memory: BotMemory): BotMemory {
-  const known = memory.tricks.length;
-  const missed = known > deal.tricks.length || known < deal.tricks.length - 1;
-  return deal.phase === 'playing' && missed
+  return deal.phase === 'playing' && !canCatchUp(memory, deal.tricks.length)
     ? memoryFromTricks(deal.players, deal.tricks, deal.currentTrick)
     : memory;
 }

@@ -1,4 +1,4 @@
-import { ALL_CARDS, type Card } from './cards';
+import { ALL_CARDS, KING, isOudler, rankOf, type Card } from './cards';
 import { CONTRACT_RULES, type Contract } from './contracts';
 import {
   DEFAULT_DEAL_OPTIONS,
@@ -50,7 +50,16 @@ export function createDealInPlay(input: CreateDealInPlayInput): DealState {
     ...ecart,
     ...played.filter((p) => p.seat === taker).map((p) => p.card),
   ]);
+  // Each trick is led by the previous one's winner and played in seat order.
+  const firstLeader = input.chelemAnnounced ? taker : nextSeat(input.dealer, players);
+  const leaders = [firstLeader, ...tricks.map((t) => t.winner)];
+  const inOrder = (trick: CurrentTrick, index: number) =>
+    trick.leader === leaders[index] &&
+    trick.cards.every((p, k) => p.seat === (trick.leader + k) % players);
   if (
+    !tricks.every(inOrder) ||
+    (currentTrick !== null && !inOrder(currentTrick, tricks.length)) ||
+    ecart.some((card) => isOudler(card) || rankOf(card) === KING) ||
     hands.length !== players ||
     hands.some((hand, seat) => hand.length !== variant.cardsPerPlayer - playedBy(seat)) ||
     chien.length !== variant.chienSize ||
@@ -71,7 +80,6 @@ export function createDealInPlay(input: CreateDealInPlayInput): DealState {
         hands.findIndex((hand) => hand.includes(calledCard)));
   const partner = holder === null || holder === -1 || holder === taker ? null : holder;
 
-  const firstLeader = input.chelemAnnounced ? taker : nextSeat(input.dealer, players);
   const turn = currentTrick
     ? (currentTrick.leader + currentTrick.cards.length) % players
     : (tricks.at(-1)?.winner ?? firstLeader);
