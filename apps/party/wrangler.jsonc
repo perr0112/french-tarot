@@ -7,4 +7,7 @@
     "bindings": [{ "name": "Room", "class_name": "Room" }],
   },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }],
+  // Web pages allowed to connect, comma-separated; `*` stands for part of a host label.
+  // Set it to your Vercel addresses before deploying (docs/deploy.md). Local dev: .dev.vars.
+  "vars": { "ALLOWED_ORIGINS": "" },
 }
