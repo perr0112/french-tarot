@@ -32,7 +32,7 @@ export function DecisionPanel({ view, send, ecart, poignee, onPoigneeChange }: D
               <button
                 key={choice}
                 type="button"
-                className={`${ui.button} ${choice === 'pass' ? '' : ui.primary}`}
+                className={ui.button}
                 onClick={() => send({ type: 'action', action: { type: 'bid', contract: choice } })}
               >
                 {fr.bid[choice]}
@@ -95,7 +95,7 @@ export function DecisionPanel({ view, send, ecart, poignee, onPoigneeChange }: D
             </button>
             <button
               type="button"
-              className={`${ui.button} ${ui.primary}`}
+              className={ui.button}
               onClick={() =>
                 send({ type: 'action', action: { type: 'decideChelem', announce: true } })
               }
@@ -106,16 +106,16 @@ export function DecisionPanel({ view, send, ecart, poignee, onPoigneeChange }: D
         </section>
       );
     case 'playCard':
+      // Without a poignée to offer, a short line is enough: the lit cards say the rest.
+      if (!template.poignee) return <p className={styles.prompt}>{fr.panels.play}</p>;
       return (
         <section className={styles.panel} aria-label={fr.panels.play}>
           <p className={styles.title}>{fr.panels.play}</p>
-          {template.poignee && (
-            <PoigneeChooser
-              template={template.poignee}
-              poignee={poignee}
-              onChange={onPoigneeChange}
-            />
-          )}
+          <PoigneeChooser
+            template={template.poignee}
+            poignee={poignee}
+            onChange={onPoigneeChange}
+          />
         </section>
       );
   }
@@ -135,7 +135,7 @@ function PoigneeChooser({
   const toggle = (card: Card) =>
     poignee &&
     onChange(poignee.includes(card) ? poignee.filter((c) => c !== card) : [...poignee, card]);
-  const sizes = template.levels.map((l) => l.size).join(' ou ');
+  const sizes = template.levels.map((l) => l.size);
   return (
     <>
       <label className={styles.check}>
@@ -161,7 +161,7 @@ function PoigneeChooser({
                 type="button"
                 role="radio"
                 aria-checked={status?.level === level}
-                className={`${ui.button} ${status?.level === level ? ui.primary : ''}`}
+                className={`${ui.button} ${status?.level === level ? styles.levelOn : ''}`}
                 onClick={() => pickLevel(level)}
               >
                 {fr.poigneeLevel[level]} ({size})
@@ -169,7 +169,7 @@ function PoigneeChooser({
             ))}
           </div>
           <p className={styles.hint}>{fr.panels.poigneeHint}</p>
-          <div className={styles.chips}>
+          <div className={styles.chips} role="group" aria-label={fr.panels.poigneeCards}>
             {template.eligible.map((card) => (
               <button
                 key={card}

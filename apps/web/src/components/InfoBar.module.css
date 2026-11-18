@@ -23,14 +23,3 @@
   color: var(--color-ink-on-table-muted);
   font-variant-numeric: tabular-nums;
 }
-
-.cards {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-}
-
-.mini {
-  width: 32px;
-  display: inline-block;
-}

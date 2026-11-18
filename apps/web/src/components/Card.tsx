@@ -1,5 +1,6 @@
 import { EXCUSE, isTrump, rankOf, suitOf, trumpValue, type Card, type Suit } from '@tarot/engine';
 import { cardName, cornerLabel } from '../lib/cards';
+import { fr } from '../strings/fr';
 import styles from './Card.module.css';
 
 /** Suit symbols drawn in a 20×20 box (no font glyphs, which may render as emoji). */
@@ -63,12 +64,15 @@ function TrumpFace({ card }: { card: Card }) {
   return (
     <g className={styles.trump}>
       <rect x="14" y="14" width="72" height="132" rx="4" className={styles.trumpFrame} />
-      <text x="10" y="22" className={styles.index}>
-        {n}
-      </text>
-      <text x="90" y="146" className={styles.index} transform="rotate(180 90 140)">
-        {n}
-      </text>
+      {[0, 180].map((angle) => (
+        <g key={angle} transform={`rotate(${angle} 50 80)`}>
+          <text x="10" y="22" className={styles.index}>
+            {n}
+          </text>
+          {/* Where a suit card shows its suit: a small frame marks a trump. */}
+          <rect x="5" y="27" width="10" height="12" rx="2" className={styles.trumpMark} />
+        </g>
+      ))}
       <text x="50" y="94" className={styles.trumpNumber}>
         {n}
       </text>
@@ -88,7 +92,7 @@ function ExcuseFace() {
       <circle cx="50" cy="80" r="34" className={styles.excuseRing} />
       <polygon points={points} />
       <text x="50" y="140" className={styles.excuseLabel}>
-        Excuse
+        {fr.cards.excuse}
       </text>
     </g>
   );

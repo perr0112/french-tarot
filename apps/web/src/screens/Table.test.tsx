@@ -1,5 +1,5 @@
 import { ALL_CARDS, isTrump, type Card } from '@tarot/engine';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { cardName } from '../lib/cards';
 import { dealWith, playOut, roomView, takes } from '../testing/views';
@@ -82,6 +82,53 @@ describe('the first card', () => {
       type: 'action',
       action: { type: 'playCard', card: 'S03', poignee: trumps(1, 10) },
     });
+  });
+
+  it('does not play while the trumps shown make no poignée', () => {
+    const send = vi.fn();
+    render(<Table view={firstLead()} send={send} />);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Déclarer une poignée' }));
+    const shown = screen.getByRole('group', { name: 'Atouts montrés' });
+    fireEvent.click(within(shown).getByRole('button', { name: 'Atout 5' }));
+    expect(screen.getByText('Montrez exactement 10 ou 13 atouts.')).toBeTruthy();
+    expect(card('S03')).toHaveProperty('disabled', true);
+    fireEvent.click(card('S03'));
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it('forgets a poignée chosen in the previous deal', () => {
+    const send = vi.fn();
+    const { rerender } = render(<Table view={firstLead()} send={send} />);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Déclarer une poignée' }));
+    // Next deal: the same decision with as many cards, but other trumps.
+    const other: Card[] = [...trumps(5, 16), ...suit('H', 1, 6)];
+    const next = playOut(takes(dealWith(other), 'gardeSans'), [
+      [0, { type: 'decideChelem', announce: false }],
+    ]);
+    const session = {
+      deals: 8,
+      played: 1,
+      dealer: 3,
+      totals: [0, 0, 0, 0],
+      history: [{ dealer: 3, result: null, cancelled: { reason: 'allPassed' as const } }],
+      continued: null,
+    };
+    rerender(<Table view={roomView(next, 0, { session })} send={send} />);
+    fireEvent.click(card('H03'));
+    expect(send).toHaveBeenCalledWith({
+      type: 'action',
+      action: { type: 'playCard', card: 'H03' },
+    });
+  });
+
+  it('shows the trumps of a declared poignée to the table', () => {
+    const played = playOut(takes(dealWith(hand), 'gardeSans'), [
+      [0, { type: 'decideChelem', announce: false }],
+      [0, { type: 'playCard', card: 'S03', poignee: trumps(1, 10) }],
+    ]);
+    render(<Table view={roomView(played, 1)} send={vi.fn()} />);
+    const shown = screen.getByRole('group', { name: 'Poignée simple de Alice' });
+    expect(within(shown).getAllByRole('img')).toHaveLength(10);
   });
 
   it('switches to a double poignée of all thirteen trumps', () => {

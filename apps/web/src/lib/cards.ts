@@ -8,7 +8,7 @@ export function cardName(card: Card): string {
   if (trump !== null) return fr.cards.trump(trump);
   const rank = rankOf(card) ?? 0;
   const suit = fr.cards.suit[suitOf(card) ?? 'S'];
-  return `${fr.cards.rank[rank] ?? rank} de ${suit}`;
+  return fr.cards.suitCard(fr.cards.rank[rank] ?? String(rank), suit);
 }
 
 /** The short rank shown in a card's corner (1–10, V, C, D, R, or the trump number). */

@@ -1,5 +1,5 @@
 .home {
-  max-width: 420px;
+  max-width: var(--width-narrow);
   margin: 0 auto;
   padding: var(--space-8) var(--space-4);
   display: grid;

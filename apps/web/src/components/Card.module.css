@@ -8,7 +8,7 @@
 
 .face {
   fill: var(--color-card-face);
-  stroke: rgb(0 0 0 / 0.12);
+  stroke: var(--color-card-edge);
   stroke-width: 1;
 }
 
@@ -40,6 +40,10 @@
   fill: none;
   stroke: var(--color-ink-muted);
   stroke-width: 2;
+}
+
+.trumpMark {
+  fill: var(--color-ink-muted);
 }
 
 .trumpNumber {

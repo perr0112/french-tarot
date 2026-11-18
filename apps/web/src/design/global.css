@@ -28,9 +28,17 @@ select {
   color: inherit;
 }
 
+:root {
+  /* Focus ring colour: light on the table; light surfaces (.panel) switch it to ink. */
+  --focus-ring-color: var(--color-ink-on-table);
+  /* Native checkboxes / radios: checked = selected state, so the accent. */
+  accent-color: var(--color-accent);
+}
+
+/* Focus is never the accent: the accent means selected / your turn (DESIGN.md §3.5). */
 :focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+  outline: var(--border-thick) solid var(--focus-ring-color);
+  outline-offset: var(--focus-offset);
 }
 
 @media (prefers-reduced-motion: reduce) {

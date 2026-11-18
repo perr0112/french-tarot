@@ -1,20 +1,39 @@
+.figure {
+  margin: 0;
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+}
+
+.muted .trick {
+  opacity: 0.7;
+}
+
+.caption {
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-line);
+  color: var(--color-ink-on-table-muted);
+}
+
 .trick {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(3, var(--trick-card));
-  grid-template-rows: repeat(3, calc(var(--trick-card) * 0.9));
+  /* Cards are 5:8; a card spans two half-height rows, so no card hides another. */
+  grid-template-columns: repeat(5, var(--trick-card));
+  grid-template-rows: repeat(2, calc(var(--trick-card) * 0.8)) calc(var(--trick-card) * 1.6);
   grid-template-areas:
-    'topLeft top topRight'
-    'left . right'
-    '. bottom .';
-  --trick-card: clamp(48px, 7vw, 80px);
+    '. topLeft top topRight .'
+    'left . . . right'
+    '. . bottom . .';
+  --trick-card: var(--card-trick);
   justify-content: center;
   align-content: center;
 }
 
 .trick > li {
+  align-self: start;
   width: var(--trick-card);
 }
 

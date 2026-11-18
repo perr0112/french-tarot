@@ -4,7 +4,7 @@
   list-style: none;
   margin: 0;
   padding: var(--space-4) var(--space-4) var(--space-2);
-  --card-width: clamp(44px, 7vw, 84px);
+  --card-width: var(--card-hand);
   /* Horizontal distance between two cards: overlap more as the hand grows, never overflow. */
   --step: min(
     calc(var(--card-width) * 0.58),
@@ -13,6 +13,8 @@
 }
 
 .slot {
+  /* Positioned slots paint in hand order, even when a face is raised or darkened. */
+  position: relative;
   width: var(--card-width);
   flex-shrink: 1;
   min-width: 0;
@@ -29,9 +31,14 @@
   border: none;
   background: none;
   border-radius: var(--radius-card);
+}
+
+/* The face moves, the button stays put and alone takes clicks: no card steals its neighbour's. */
+.card :global(svg) {
+  pointer-events: none;
   transition:
     transform var(--duration-fast) var(--ease-out),
-    opacity var(--duration-fast) var(--ease-out);
+    filter var(--duration-fast) var(--ease-out);
 }
 
 .card:disabled {
@@ -42,23 +49,33 @@
   cursor: pointer;
 }
 
-.enabled:hover {
+.enabled:hover :global(svg) {
   transform: translateY(calc(var(--space-3) * -1));
 }
 
-.dimmed {
-  opacity: 0.45;
-}
-
-.picked {
-  transform: translateY(calc(var(--space-5) * -1));
+/* Darkened, not see-through: the cards behind must not show through. */
+.dimmed :global(svg) {
+  filter: brightness(0.55) saturate(0.4);
 }
 
 .picked :global(svg) {
-  outline: 3px solid var(--color-accent);
-  outline-offset: 1px;
+  transform: translateY(calc(var(--space-5) * -1));
+  box-shadow:
+    0 0 0 var(--border-selected) var(--color-accent),
+    var(--shadow-card);
 }
 
+/* The focus ring follows the face, outside the selection ring (DESIGN.md §3.5). */
+.card:focus-visible {
+  outline: none;
+}
+
+.card:focus-visible :global(svg) {
+  outline: var(--border-thick) solid var(--focus-ring-color);
+  outline-offset: calc(var(--border-selected) + var(--focus-offset));
+}
+
+/* Compact breakpoint (DESIGN.md §3.4). */
 @media (max-width: 600px) {
   .hand {
     padding-inline: var(--space-2);

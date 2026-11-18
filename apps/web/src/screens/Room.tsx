@@ -2,7 +2,7 @@ import { MAX_NICKNAME_LENGTH } from '@tarot/protocol';
 import { useEffect, useState, type FormEvent } from 'react';
 import ui from '../design/ui.module.css';
 import { errorMessage } from '../lib/errors';
-import { useRoomConnection } from '../net/connection';
+import { useRoomConnection, type JoinRequest } from '../net/connection';
 import { navigate } from '../net/routing';
 import { storage } from '../net/storage';
 import { fr } from '../strings/fr';
@@ -15,8 +15,11 @@ const ERROR_SHOWN_MS = 4000;
 
 /** One room: asks for a nickname if needed, then shows the lobby, the table or the ranking. */
 export function Room({ code }: { code: string }) {
-  const [nickname, setNickname] = useState(() => storage.nickname());
-  const { status, view, error, send, dismissError } = useRoomConnection(code, nickname);
+  const [request, setRequest] = useState<JoinRequest | null>(() => {
+    const nickname = storage.nickname();
+    return nickname === null ? null : { nickname };
+  });
+  const { status, view, error, send, dismissError } = useRoomConnection(code, request);
 
   useEffect(() => {
     if (!error) return;
@@ -24,13 +27,13 @@ export function Room({ code }: { code: string }) {
     return () => clearTimeout(timer);
   }, [error, dismissError]);
 
-  if (nickname === null || status === 'nicknameTaken') {
+  if (request === null || status === 'nicknameTaken') {
     return (
       <NicknameForm
         taken={status === 'nicknameTaken'}
         onSubmit={(name) => {
           storage.saveNickname(name);
-          setNickname(name);
+          setRequest({ nickname: name });
         }}
       />
     );

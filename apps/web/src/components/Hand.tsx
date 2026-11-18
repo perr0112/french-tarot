@@ -2,6 +2,7 @@ import type { Card } from '@tarot/engine';
 import type { CSSProperties } from 'react';
 import { sortHand } from '../lib/hand';
 import { cardName } from '../lib/cards';
+import { fr } from '../strings/fr';
 import { CardFace } from './Card';
 import styles from './Hand.module.css';
 
@@ -19,7 +20,7 @@ export function Hand({ cards, active, selected = [], onPick }: HandProps) {
   return (
     <ul
       className={styles.hand}
-      aria-label="Votre main"
+      aria-label={fr.table.yourHand}
       style={{ '--count': cards.length } as CSSProperties}
     >
       {sortHand(cards).map((card) => {

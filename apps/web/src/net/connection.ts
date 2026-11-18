@@ -30,15 +30,21 @@ export interface RoomConnection {
   readonly dismissError: () => void;
 }
 
-/** Joins room `code` as `nickname` (or by the stored token) and keeps the latest snapshot. */
-export function useRoomConnection(code: string, nickname: string | null): RoomConnection {
+/** One attempt to sit at the table; a new object retries, even with the same nickname. */
+export interface JoinRequest {
+  readonly nickname: string;
+}
+
+/** Joins room `code` as the requested nickname (or by the stored token), keeps the latest snapshot. */
+export function useRoomConnection(code: string, request: JoinRequest | null): RoomConnection {
   const [status, setStatus] = useState<ConnectionStatus>('connecting');
   const [view, setView] = useState<RoomView | null>(null);
   const [error, setError] = useState<ServerErrorCode | null>(null);
   const socketRef = useRef<PartySocket | null>(null);
 
   useEffect(() => {
-    if (nickname === null) return;
+    if (request === null) return;
+    const { nickname } = request;
     const socket = new PartySocket({ host: PARTY_HOST, party: 'room', room: code });
     socketRef.current = socket;
     let final = false;
@@ -73,7 +79,7 @@ export function useRoomConnection(code: string, nickname: string | null): RoomCo
       socket.close();
       socketRef.current = null;
     };
-  }, [code, nickname]);
+  }, [code, request]);
 
   const send = useCallback<Send>((message) => {
     socketRef.current?.send(JSON.stringify(message));

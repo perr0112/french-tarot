@@ -14,7 +14,8 @@ export const tokens = {
     'suit-black': '#1C1C1A',
     'card-face': '#FFFDF8',
     'card-back': '#2C4A6B',
-    positive: '#3F8F5A',
+    'card-edge': 'rgb(0 0 0 / 0.12)',
+    positive: '#2F7A49',
     negative: '#B5473D',
   },
   text: {
@@ -37,8 +38,24 @@ export const tokens = {
     out: 'cubic-bezier(0.22, 1, 0.36, 1)',
     'in-out': 'cubic-bezier(0.65, 0, 0.35, 1)',
   },
+  border: { thin: '1px', thick: '2px', selected: '3px' },
+  focus: { offset: '2px' },
+  width: { narrow: '420px', regular: '560px', wide: '720px' },
+  card: {
+    hand: 'clamp(56px, 7vw, 84px)',
+    trick: 'clamp(48px, 7vw, 80px)',
+    mini: '32px',
+    chip: '36px',
+  },
   font: { ui: "'Inter Variable', system-ui, sans-serif" },
 } as const;
+
+/**
+ * Breakpoints (DESIGN.md §5). CSS variables cannot be used inside media queries,
+ * so `compact` is the single breakpoint: write `@media (max-width: 600px)` in CSS
+ * and import this constant in TS.
+ */
+export const breakpoints = { compact: 600 } as const;
 
 /** The tokens as CSS custom properties on :root, e.g. `--color-accent`, `--text-md-size`. */
 export function tokensCss(): string {
@@ -55,6 +72,10 @@ export function tokensCss(): string {
   for (const [k, v] of Object.entries(tokens.shadow)) add(`shadow-${k}`, v);
   for (const [k, v] of Object.entries(tokens.duration)) add(`duration-${k}`, v);
   for (const [k, v] of Object.entries(tokens.ease)) add(`ease-${k}`, v);
+  for (const [k, v] of Object.entries(tokens.border)) add(`border-${k}`, v);
+  for (const [k, v] of Object.entries(tokens.focus)) add(`focus-${k}`, v);
+  for (const [k, v] of Object.entries(tokens.width)) add(`width-${k}`, v);
+  for (const [k, v] of Object.entries(tokens.card)) add(`card-${k}`, v);
   add('font-ui', tokens.font.ui);
   return `:root { ${vars.join(' ')} }`;
 }

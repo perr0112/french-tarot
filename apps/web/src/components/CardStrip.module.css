@@ -1,0 +1,11 @@
+.strip {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.mini {
+  width: var(--card-mini);
+  display: inline-block;
+}

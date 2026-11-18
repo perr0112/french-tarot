@@ -52,22 +52,20 @@ export function Lobby({ view, send }: { view: RoomView; send: Send }) {
                         send({
                           type: 'setBot',
                           seat,
-                          level:
-                            e.target.value === 'none'
-                              ? null
-                              : (e.target.value as 'easy' | 'medium'),
+                          // "none" (remove the bot) matches no level.
+                          level: BOT_LEVELS.find((level) => level === e.target.value) ?? null,
                         })
                       }
                     >
                       {BOT_LEVELS.map((level) => (
                         <option key={level} value={level}>
-                          Bot · {fr.botLevel[level]}
+                          {fr.lobby.bot(fr.botLevel[level])}
                         </option>
                       ))}
                       <option value="none">{fr.lobby.removeBot}</option>
                     </select>
                   ) : (
-                    `Bot · ${fr.botLevel[occupant.level]}`
+                    fr.lobby.bot(fr.botLevel[occupant.level])
                   ))}
                 {occupant.kind === 'empty' &&
                   (host ? (

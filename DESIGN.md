@@ -37,25 +37,27 @@ The values below are the reference; code must match them.
 
 > **Table colour — validated:** a desaturated deep green felt (see §7).
 
-| Token                | Value     | Use                                          |
-| -------------------- | --------- | -------------------------------------------- |
-| `table`              | `#1F3A30` | Table surface (felt)                         |
-| `table-edge`         | `#18302A` | Subtle vignette / seat areas                 |
-| `surface`            | `#FAFAF7` | Panels, score sheet, menus                   |
-| `surface-muted`      | `#F1F0EB` | Secondary surfaces                           |
-| `ink`                | `#1C1C1A` | Primary text on light surfaces               |
-| `ink-muted`          | `#6B6A65` | Secondary text                               |
-| `ink-on-table`       | `#F4F2EA` | Text placed on the table                     |
-| `ink-on-table-muted` | `#B9C2BC` | Secondary text on the table                  |
-| `accent`             | `#E2B04A` | Your turn, focus, selected — the only accent |
-| `suit-red`           | `#C23B32` | ♥ ♦                                          |
-| `suit-black`         | `#1C1C1A` | ♠ ♣                                          |
-| `card-face`          | `#FFFDF8` | Card background                              |
-| `card-back`          | `#2C4A6B` | Card back pattern base                       |
-| `positive`           | `#3F8F5A` | Positive score, contract made                |
-| `negative`           | `#B5473D` | Negative score, contract failed              |
+| Token                | Value               | Use                                   |
+| -------------------- | ------------------- | ------------------------------------- |
+| `table`              | `#1F3A30`           | Table surface (felt)                  |
+| `table-edge`         | `#18302A`           | Subtle vignette / seat areas          |
+| `surface`            | `#FAFAF7`           | Panels, score sheet, menus            |
+| `surface-muted`      | `#F1F0EB`           | Secondary surfaces                    |
+| `ink`                | `#1C1C1A`           | Primary text on light surfaces        |
+| `ink-muted`          | `#6B6A65`           | Secondary text                        |
+| `ink-on-table`       | `#F4F2EA`           | Text placed on the table              |
+| `ink-on-table-muted` | `#B9C2BC`           | Secondary text on the table           |
+| `accent`             | `#E2B04A`           | Your turn, selected — the only accent |
+| `suit-red`           | `#C23B32`           | ♥ ♦                                   |
+| `suit-black`         | `#1C1C1A`           | ♠ ♣                                   |
+| `card-face`          | `#FFFDF8`           | Card background                       |
+| `card-back`          | `#2C4A6B`           | Card back pattern base                |
+| `card-edge`          | `rgb(0 0 0 / 0.12)` | Card face outline (SVG stroke)        |
+| `positive`           | `#2F7A49`           | Positive score, contract made         |
+| `negative`           | `#B5473D`           | Negative score, contract failed       |
 
 Contrast: all text ≥ 4.5:1 against its background (≥ 3:1 for text ≥ 24 px).
+`positive` is 5.02:1 on `surface` and 4.60:1 on `surface-muted`; `negative` is 5.11:1 and 4.68:1.
 
 ### 3.2 Typography
 
@@ -74,9 +76,33 @@ Contrast: all text ≥ 4.5:1 against its background (≥ 3:1 for text ≥ 24 px)
 
 - Spacing scale (px): `4, 8, 12, 16, 24, 32, 48, 64`. No other values.
 - Radius: `radius-sm 6`, `radius-md 10`, `radius-lg 16`, `radius-card 8` (cards, proportional to card size).
+- Border widths: `border-thin 1px` (fields, card edge), `border-thick 2px` (turn indicator, frames, focus ring), `border-selected 3px` (selected card outline). `focus-offset 2px` (focus ring offset).
 - Elevation: `shadow-card` = `0 1px 2px rgb(0 0 0 / 0.18), 0 2px 6px rgb(0 0 0 / 0.12)`; `shadow-raised` (hovered/selected card) = `0 4px 12px rgb(0 0 0 / 0.22)`; `shadow-panel` = `0 8px 24px rgb(0 0 0 / 0.16)`. Nothing heavier.
 
-### 3.4 Motion
+### 3.4 Layout sizes
+
+CSS variables: `--width-*`, `--card-*` (card values are widths; height follows the 5:8 ratio).
+
+| Token           | Value                    | Use                                   |
+| --------------- | ------------------------ | ------------------------------------- |
+| `width-narrow`  | 420 px                   | Home, nickname form                   |
+| `width-regular` | 560 px                   | Decision panels, score sheet drawer   |
+| `width-wide`    | 720 px                   | Lobby, final ranking                  |
+| `card-hand`     | `clamp(56px, 7vw, 84px)` | Cards in the player's hand            |
+| `card-trick`    | `clamp(48px, 7vw, 80px)` | Cards in the current / previous trick |
+| `card-mini`     | 32 px                    | Mini cards in the info bar strip      |
+| `card-chip`     | 36 px                    | Poignée chooser chips                 |
+
+- **Breakpoint**: one only, `compact` = 600 px (`@media (max-width: 600px)`). Media queries cannot read CSS variables, so the value is exported once as `breakpoints.compact` in `tokens.ts`; CSS repeats the literal 600px and nothing else.
+
+### 3.5 Focus, selection, accent
+
+- **Selection and turn** use the accent: selected card = `border-selected` accent outline; current seat = accent.
+- **Keyboard focus never uses the accent**: `:focus-visible` draws a `border-thick` ring with `focus-offset`, in `ink-on-table` on the table and in `ink` inside light surfaces (`.panel` sets `--focus-ring-color`). A focused-and-selected card therefore shows both, distinctly.
+- Native checkboxes / radios: `accent-color: accent` (checked = selected state).
+- **`.primary` (gold) is reserved for the single main action of a screen or panel** ("Valider l'écart", "Lancer la partie", "Continuer"). Choice lists — bids, king call, chelem announce/decline — use the neutral `.button`. Never more than one `.primary` visible per panel.
+
+### 3.6 Motion
 
 | Token              | Value                            | Use                                 |
 | ------------------ | -------------------------------- | ----------------------------------- |
@@ -117,3 +143,7 @@ Record design decisions here (date — decision — reason).
 
 - 2026-11-13 — Initial DESIGN.md created.
 - 2026-11-13 — Table colour validated: desaturated deep green felt (`table #1F3A30`), single gold accent (`#E2B04A`). Chosen over dark/light neutrals for a classic card-table feel kept calm by low saturation.
+- 2026-11-18 — `positive` darkened `#3F8F5A` → `#2F7A49` (3.80:1 → 5.02:1 on `surface`, 4.60:1 on `surface-muted`); `negative` checked (5.11:1 / 4.68:1), unchanged. Reason: design review, contrast below 4.5:1.
+- 2026-11-18 — Added `card-edge` colour token for the hard-coded card SVG stroke.
+- 2026-11-18 — Added layout tokens: `width-narrow/regular/wide` (420/560/720; lobby 640 → `wide`, it holds the seat list and options), `card-hand/trick/mini/chip` (hand minimum raised 44 → 56 px for mobile legibility), `border-thin/thick/selected`, `focus-offset`, and the single `compact` 600 px breakpoint. Reason: hard-coded sizes found in components.
+- 2026-11-18 — Focus ring no longer uses the accent (light / ink ring with offset) so it is distinct from selection; `accent-color` set for native inputs; `.primary` reserved for the one main action per panel, choice lists neutral. Reason: design review, focus and selection looked identical, accent overused.

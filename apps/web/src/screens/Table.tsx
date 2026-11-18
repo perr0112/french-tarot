@@ -32,8 +32,9 @@ export function Table({ view, send }: { view: RoomView; send: Send }) {
   const template = deal?.legalActions[0];
   const [sheetOpen, setSheetOpen] = useState(false);
 
-  // Selections belong to one decision: a new decision (or a new hand) starts from scratch.
-  const decisionKey = `${template?.type ?? 'none'}:${deal?.hand.length ?? 0}`;
+  // Selections belong to one decision of one deal: a new deal, decision or hand starts afresh.
+  const dealNumber = view.session?.history.length ?? 0;
+  const decisionKey = `${dealNumber}:${template?.type ?? 'none'}:${deal?.hand.length ?? 0}`;
   const [selection, setSelection] = useState<Selection>(() => emptySelection(decisionKey));
   const { ecart, poignee } =
     selection.key === decisionKey ? selection : emptySelection(decisionKey);
@@ -47,10 +48,21 @@ export function Table({ view, send }: { view: RoomView; send: Send }) {
   const [reviewingAt, setReviewingAt] = useState<number | null>(null);
   const reviewLastTrick = reviewingAt === cardsPlayed;
 
+  // A poignée being chosen must make a level before any card goes (it leaves with the card).
+  const shownPoignee =
+    template?.type === 'playCard' && template.poignee && poignee ? poignee : null;
+  const poigneeReady =
+    template?.type !== 'playCard' ||
+    !template.poignee ||
+    poignee === null ||
+    poigneeStatus(template.poignee, poignee).level !== null;
+
   // Only cards that can be picked now are lit; the hand stays plain during other decisions.
   const active =
     template?.type === 'playCard'
-      ? template.cards
+      ? poigneeReady
+        ? template.cards
+        : []
       : template?.type === 'ecart'
         ? template.eligible
         : null;
@@ -58,25 +70,22 @@ export function Table({ view, send }: { view: RoomView; send: Send }) {
   const pick = (card: Card) => {
     if (template?.type === 'ecart') {
       update({ ecart: ecart.includes(card) ? ecart.filter((c) => c !== card) : [...ecart, card] });
-    } else if (template?.type === 'playCard') {
-      const shown =
-        poignee && template.poignee && poigneeStatus(template.poignee, poignee).level
-          ? poignee
-          : null;
+    } else if (template?.type === 'playCard' && poigneeReady) {
       send({
         type: 'action',
-        action: { type: 'playCard', card, ...(shown ? { poignee: [...shown] } : {}) },
+        action: {
+          type: 'playCard',
+          card,
+          ...(shownPoignee ? { poignee: [...shownPoignee] } : {}),
+        },
       });
     }
   };
 
   const betweenDeals = view.session?.continued != null;
   // After a trick, its cards stay in the centre until the next card is played.
-  const trick = reviewLastTrick
-    ? deal?.lastTrick?.cards
-    : deal?.currentTrick?.cards.length
-      ? deal.currentTrick.cards
-      : deal?.lastTrick?.cards;
+  const showsLastTrick = reviewLastTrick || !deal?.currentTrick?.cards.length;
+  const trick = showsLastTrick ? deal?.lastTrick : deal?.currentTrick;
   const turnName = deal?.turn != null && deal.turn !== me ? seatName(view, deal.turn) : null;
 
   return (
@@ -98,15 +107,21 @@ export function Table({ view, send }: { view: RoomView; send: Send }) {
             />
           ),
         )}
-        <div className={styles.centre}>
+        <div className={`${styles.centre} ${betweenDeals ? styles.wide : ''}`}>
           {betweenDeals ? (
             <DealResult view={view} send={send} />
           ) : (
             trick && (
               <Trick
-                cards={trick}
+                cards={trick.cards}
                 positions={positions}
-                label={reviewLastTrick ? fr.table.lastTrick : fr.table.trick}
+                label={showsLastTrick ? fr.table.lastTrick : fr.table.trick}
+                caption={
+                  showsLastTrick && deal?.lastTrick
+                    ? fr.table.lastTrickWonBy(seatName(view, deal.lastTrick.winner))
+                    : undefined
+                }
+                muted={reviewLastTrick}
               />
             )
           )}

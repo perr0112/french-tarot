@@ -12,12 +12,11 @@ async function playMyTurn(page: Page): Promise<void> {
   }
   const chelem = page.getByRole('button', { name: 'Ne pas annoncer' });
   if (await chelem.isVisible()) return chelem.click();
-  if (await page.getByRole('region', { name: 'À vous de jouer' }).isVisible()) {
-    const playable = page
-      .getByRole('list', { name: 'Votre main' })
-      .getByRole('button', { disabled: false });
-    await playable.last().click();
-  }
+  // Garde sans has no écart: lit cards in the hand mean it is our card to play.
+  const playable = page
+    .getByRole('list', { name: 'Votre main' })
+    .getByRole('button', { disabled: false });
+  if ((await playable.count()) > 0) await playable.last().click();
 }
 
 test('create a table, fill it with bots and play a deal to its score', async ({ page }) => {

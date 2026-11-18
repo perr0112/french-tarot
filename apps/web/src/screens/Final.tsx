@@ -1,5 +1,6 @@
 import type { RoomView } from '@tarot/protocol';
 import ui from '../design/ui.module.css';
+import { DealResult } from '../components/DealResult';
 import { ScoreSheet } from '../components/ScoreSheet';
 import { formatScore } from '../lib/cards';
 import { seatName } from '../lib/names';
@@ -14,6 +15,8 @@ export function Final({ view, send }: { view: RoomView; send: Send }) {
   return (
     <main className={styles.final}>
       <h1 className={styles.title}>{fr.final.title}</h1>
+      {/* The last deal ends the session: its breakdown is shown here (AGENTS.md §6). */}
+      <DealResult view={view} send={send} />
       <ol className={styles.ranking}>
         {ranking.map(({ seat, total }, i) => {
           // Equal totals share a rank.
