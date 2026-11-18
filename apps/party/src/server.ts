@@ -5,7 +5,7 @@ import { applyRoomCommand, createRoom, type RoomCommand, type RoomState } from '
 
 interface Env extends Cloudflare.Env {
   readonly Room: DurableObjectNamespace<Room>;
-  /** Pages allowed to connect, comma-separated, `*` allowed (see origin.ts, docs/deploy.md). */
+  /** Pages allowed to connect (syntax: isAllowedOrigin in origin.ts). */
   readonly ALLOWED_ORIGINS?: string;
 }
 
@@ -82,7 +82,8 @@ export class Room extends Server<Env> {
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    // Only the web app's own pages may open a table (AGENTS.md §2: the room is authoritative).
+    // Keeps other sites' pages from opening tables from a visitor's browser. Not authentication:
+    // a script outside a browser can send any Origin.
     if (!isAllowedOrigin(request.headers.get('Origin'), env.ALLOWED_ORIGINS)) {
       return new Response('Forbidden', { status: 403 });
     }

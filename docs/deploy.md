@@ -20,7 +20,7 @@ You need a Cloudflare account; the free Workers plan includes SQLite-backed Dura
 2. Deploy:
 
    ```bash
-   pnpm --filter @tarot/party deploy
+   pnpm --filter @tarot/party run deploy:worker
    ```
 
 3. Note the address it prints, e.g. `https://french-tarot-party.<your-subdomain>.workers.dev`. Its host (without `https://`) is your `VITE_PARTY_HOST`.
@@ -30,7 +30,7 @@ Until step 3 of the Vercel part, `ALLOWED_ORIGINS` is empty and the server refus
 ## 2. Web app on Vercel
 
 1. In Vercel, **Add New → Project** and import the GitHub repository.
-2. Set **Root Directory** to `apps/web`. Vercel detects Vite and the pnpm workspace (`packageManager` in the root `package.json`).
+2. Set **Root Directory** to `apps/web`, and leave **Include files outside the root directory** on (the default): the app is built from `packages/` too. Vercel detects Vite and the pnpm workspace (`packageManager` in the root `package.json`).
 3. Under **Environment Variables**, add `VITE_PARTY_HOST` = the host from step 1.3 (e.g. `french-tarot-party.<your-subdomain>.workers.dev`), for Production and Preview.
 4. Deploy. Note the production address (e.g. `https://french-tarot.vercel.app`) and, from any preview deployment, the shape of preview addresses (e.g. `https://french-tarot-git-<branch>-<team>.vercel.app`).
 
@@ -38,16 +38,16 @@ Until step 3 of the Vercel part, `ALLOWED_ORIGINS` is empty and the server refus
 
 ## 3. Allow the web app to connect
 
-1. In `apps/party/wrangler.jsonc`, set `ALLOWED_ORIGINS` to the production address and the preview pattern, comma-separated. A `*` stands for part of one host label:
+1. In `apps/party/wrangler.jsonc`, set `ALLOWED_ORIGINS` to the production address and the preview pattern, comma-separated (pattern syntax: `isAllowedOrigin` in `apps/party/src/origin.ts`). End the preview pattern with your exact Vercel team slug, so that no other team's previews match:
 
    ```jsonc
    "vars": { "ALLOWED_ORIGINS": "https://french-tarot.vercel.app,https://french-tarot-*-<team>.vercel.app" },
    ```
 
-2. Commit it and deploy the room server again (`pnpm --filter @tarot/party deploy`).
+2. Commit it and deploy the room server again (`pnpm --filter @tarot/party run deploy:worker`). The value lives in the repository: each deploy replaces whatever was set in the Cloudflare dashboard, so change it here, not there.
 3. Open the production address, create a table, add bots and start a deal.
 
-Local development is unaffected: `apps/party/.dev.vars` allows `http://localhost:5173`.
+Local development is unaffected: `apps/party/.dev.vars` allows any port on `localhost` and `127.0.0.1`.
 
 ## Updating
 
@@ -55,7 +55,7 @@ Local development is unaffected: `apps/party/.dev.vars` allows `http://localhost
 - **Room server**: redeploy by hand after merging changes to `apps/party`, `packages/engine`, `packages/bots` or `packages/protocol`:
 
   ```bash
-  pnpm --filter @tarot/party deploy
+  pnpm --filter @tarot/party run deploy:worker
   ```
 
   Rooms in progress survive a deploy: their state is stored in the Durable Object after each action.

@@ -39,3 +39,13 @@ describe('isAllowedOrigin', () => {
     ).toBe(false);
   });
 });
+
+describe('local development origins', () => {
+  it('accept any port on localhost and 127.0.0.1, nothing else', () => {
+    const dev = 'http://localhost:*,http://127.0.0.1:*';
+    expect(isAllowedOrigin('http://localhost:5173', dev)).toBe(true);
+    expect(isAllowedOrigin('http://127.0.0.1:5174', dev)).toBe(true);
+    expect(isAllowedOrigin('http://localhost.evil.com:5173', dev)).toBe(false);
+    expect(isAllowedOrigin('http://localhost:5173.evil.com', dev)).toBe(false);
+  });
+});
