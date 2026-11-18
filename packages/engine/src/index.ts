@@ -6,6 +6,7 @@ export * from './cards';
 export * from './variant';
 export * from './contracts';
 export * from './deal';
+export * from './deal-in-play';
 export * from './actions';
 export * from './result';
 export * from './play';
