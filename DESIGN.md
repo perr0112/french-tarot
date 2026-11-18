@@ -75,7 +75,7 @@ Contrast: all text ≥ 4.5:1 against its background (≥ 3:1 for text ≥ 24 px)
 ### 3.3 Space, radius, elevation
 
 - Spacing scale (px): `4, 8, 12, 16, 24, 32, 48, 64`. No other values.
-- Radius: `radius-sm 6`, `radius-md 10`, `radius-lg 16`, `radius-card 8` (cards, proportional to card size).
+- Radius: `radius-sm 6`, `radius-md 10`, `radius-lg 16`, `radius-card 8% / 5%` (cards only: scales with the card, 8% / 5% of its 5:8 box, i.e. 8 units of the 100×160 drawing; use it only on card-shaped boxes).
 - Border widths: `border-thin 1px` (fields, card edge), `border-thick 2px` (turn indicator, frames, focus ring), `border-selected 3px` (selected card outline). `focus-offset 2px` (focus ring offset).
 - Elevation: `shadow-card` = `0 1px 2px rgb(0 0 0 / 0.18), 0 2px 6px rgb(0 0 0 / 0.12)`; `shadow-raised` (hovered/selected card) = `0 4px 12px rgb(0 0 0 / 0.22)`; `shadow-panel` = `0 8px 24px rgb(0 0 0 / 0.16)`. Nothing heavier.
 
@@ -147,3 +147,4 @@ Record design decisions here (date — decision — reason).
 - 2026-11-18 — Added `card-edge` colour token for the hard-coded card SVG stroke.
 - 2026-11-18 — Added layout tokens: `width-narrow/regular/wide` (420/560/720; lobby 640 → `wide`, it holds the seat list and options), `card-hand/trick/mini/chip` (hand minimum raised 44 → 56 px for mobile legibility), `border-thin/thick/selected`, `focus-offset`, and the single `compact` 600 px breakpoint. Reason: hard-coded sizes found in components.
 - 2026-11-18 — Focus ring no longer uses the accent (light / ink ring with offset) so it is distinct from selection; `accent-color` set for native inputs; `.primary` reserved for the one main action per panel, choice lists neutral. Reason: design review, focus and selection looked identical, accent overused.
+- 2026-11-18 — `radius-card` changed from a fixed `8px` to `8% / 5%`, now also used by `Card.module.css`. Reason: the SVG card set is drawn in a 100×160 viewBox with an 8-unit corner; a proportional radius keeps clip, shadow, drawn edge and card buttons matching at every card size.

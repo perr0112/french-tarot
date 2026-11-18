@@ -27,7 +27,7 @@ export const tokens = {
   },
   weight: { regular: '400', emphasis: '600' },
   space: { 1: '4px', 2: '8px', 3: '12px', 4: '16px', 5: '24px', 6: '32px', 7: '48px', 8: '64px' },
-  radius: { sm: '6px', md: '10px', lg: '16px', card: '8px' },
+  radius: { sm: '6px', md: '10px', lg: '16px', card: '8% / 5%' },
   shadow: {
     card: '0 1px 2px rgb(0 0 0 / 0.18), 0 2px 6px rgb(0 0 0 / 0.12)',
     raised: '0 4px 12px rgb(0 0 0 / 0.22)',

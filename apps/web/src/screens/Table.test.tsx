@@ -177,3 +177,12 @@ describe('between deals', () => {
     expect(send).toHaveBeenCalledWith({ type: 'continue' });
   });
 });
+
+describe('the chien', () => {
+  it('shows face down in a garde sans', () => {
+    const hand: Card[] = [...trumps(1, 13), ...suit('S', 1, 5)];
+    render(<Table view={roomView(takes(dealWith(hand), 'gardeSans'), 1)} send={vi.fn()} />);
+    const chien = screen.getByRole('group', { name: 'Chien' });
+    expect(within(chien).getAllByRole('img', { name: 'Carte cachée' })).toHaveLength(6);
+  });
+});

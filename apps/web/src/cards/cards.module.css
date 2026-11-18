@@ -1,0 +1,39 @@
+/* Card drawing styles. Colours come only from the card tokens (DESIGN.md §3.1). */
+
+.red {
+  fill: var(--color-suit-red);
+}
+
+.black,
+.ink {
+  fill: var(--color-ink);
+}
+
+.knockout {
+  fill: var(--color-card-face);
+}
+
+.label {
+  font-family: var(--font-ui);
+  font-weight: var(--weight-emphasis);
+  text-anchor: middle;
+}
+
+.frame {
+  fill: none;
+  stroke: var(--color-ink-muted);
+}
+
+.backLine {
+  fill: none;
+  stroke: var(--color-card-face);
+}
+
+.backCore {
+  fill: var(--color-card-face);
+}
+
+.miniFrame {
+  fill: none;
+  stroke: var(--color-ink);
+}

@@ -75,6 +75,14 @@ export const fr = {
     trump: (n: number) => `Atout ${n}`,
     suitCard: (rank: string, suit: string) => `${rank} de ${suit}`,
     excuse: 'Excuse',
+    hidden: 'Carte cachée',
+  },
+  dev: {
+    cards: 'Planche des cartes',
+    fullSize: 'Taille réelle',
+    fanSize: "Taille de l'éventail",
+    back: 'Dos',
+    miniSize: 'Taille mini',
   },
   table: {
     yourTurn: 'À vous',
