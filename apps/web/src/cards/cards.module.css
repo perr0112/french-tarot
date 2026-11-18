@@ -1,10 +1,17 @@
-/* Card drawing styles. Colours come only from the card tokens (DESIGN.md §3.1). */
+/*
+ * Card drawing styles. Colours come only from the card palette (DESIGN.md §3.1): card-face,
+ * suit-red, suit-black, card-back and ink. The card outline (card-edge) is in Card.module.css.
+ */
 
 .red {
   fill: var(--color-suit-red);
 }
 
-.black,
+.black {
+  fill: var(--color-suit-black);
+}
+
+/* Trumps and the Excuse. */
 .ink {
   fill: var(--color-ink);
 }
@@ -19,9 +26,10 @@
   text-anchor: middle;
 }
 
+/* Trump frames and rules; the stroke weight is set per drawing (light at full size). */
 .frame {
   fill: none;
-  stroke: var(--color-ink-muted);
+  stroke: var(--color-ink);
 }
 
 .backLine {
@@ -31,9 +39,4 @@
 
 .backCore {
   fill: var(--color-card-face);
-}
-
-.miniFrame {
-  fill: none;
-  stroke: var(--color-ink);
 }

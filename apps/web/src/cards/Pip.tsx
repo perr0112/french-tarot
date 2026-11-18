@@ -1,5 +1,4 @@
 import type { Suit } from '@tarot/engine';
-import { HALF_TURN } from './geometry';
 
 /**
  * The four suit shapes, drawn once in a 20×20 box (no font glyphs, which may render as emoji).
@@ -34,14 +33,4 @@ export function Pip({
   const place = `translate(${cx - size / 2} ${cy - size / 2}) scale(${s})`;
   const transform = flip ? `rotate(180 ${cx} ${cy}) ${place}` : place;
   return <path d={PIP_PATHS[suit]} transform={transform} className={className} />;
-}
-
-/** Draws `children` twice: as is, then turned half a turn (corner indices). */
-export function BothCorners({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      {children}
-      <g transform={HALF_TURN}>{children}</g>
-    </>
-  );
 }

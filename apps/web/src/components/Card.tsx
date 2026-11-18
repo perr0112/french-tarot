@@ -1,4 +1,4 @@
-import { EXCUSE, rankOf, suitOf, trumpValue, type Card, type Suit } from '@tarot/engine';
+import { EXCUSE, isOudler, rankOf, suitOf, trumpValue, type Card, type Suit } from '@tarot/engine';
 import {
   CardBackArt,
   CourtCard,
@@ -18,7 +18,7 @@ const VIEW_BOX = `0 0 ${CARD_W} ${CARD_H}`;
 const LAST_PIP_RANK = 10;
 
 /** Default: full art with corner indices. Mini (32–40 px strips): one big value and one mark. */
-export type CardSize = 'full' | 'mini';
+type CardSize = 'full' | 'mini';
 
 /** The card's outline, filled with the face or back colour; its stroke stays inside the card. */
 function Edge({ className }: { className: string | undefined }) {
@@ -35,14 +35,28 @@ function Edge({ className }: { className: string | undefined }) {
   );
 }
 
+/** A suit card's suit, rank and corner label; null for trumps and the Excuse. */
+function suitCard(card: Card): { suit: Suit; rank: number; label: string } | null {
+  const suit = suitOf(card);
+  const rank = rankOf(card);
+  return suit === null || rank === null ? null : { suit, rank, label: cornerLabel(card) };
+}
+
 function Art({ card, size }: { card: Card; size: CardSize }) {
   const mini = size === 'mini';
   if (card === EXCUSE) return mini ? <MiniExcuseCard /> : <ExcuseCard />;
   const trump = trumpValue(card);
-  if (trump !== null) return mini ? <MiniTrumpCard value={trump} /> : <TrumpCard value={trump} />;
-  const suit = suitOf(card) as Suit;
-  const rank = rankOf(card) ?? 0;
-  const label = cornerLabel(card);
+  if (trump !== null) {
+    const oudler = isOudler(card);
+    return mini ? (
+      <MiniTrumpCard value={trump} oudler={oudler} />
+    ) : (
+      <TrumpCard value={trump} oudler={oudler} />
+    );
+  }
+  const suited = suitCard(card);
+  if (!suited) return null;
+  const { suit, rank, label } = suited;
   if (mini) return <MiniSuitCard suit={suit} label={label} />;
   return rank > LAST_PIP_RANK ? (
     <CourtCard suit={suit} rank={rank} label={label} />

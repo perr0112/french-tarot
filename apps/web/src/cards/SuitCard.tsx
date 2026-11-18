@@ -15,8 +15,8 @@ import {
   PIP_TOP,
 } from './geometry';
 import { IndexLabel } from './IndexLabel';
-import { BothCorners, Pip } from './Pip';
-import styles from './cards.module.css';
+import { Pip } from './Pip';
+import { BothCorners, suitClass } from './shapes';
 
 const { left: L, centre: C, right: R } = PIP_COLUMNS;
 const { left: DL, centre: DC, right: DR } = PIP_COLUMNS_DENSE;
@@ -58,8 +58,6 @@ const LAYOUTS: Record<number, Point[]> = {
 /** Ranks drawn with the dense columns and smaller pips. */
 const DENSE: ReadonlySet<number> = new Set([9, 10]);
 
-const colour = (suit: Suit) => (suit === 'H' || suit === 'D' ? styles.red : styles.black);
-
 /** Rank above suit pip, top-left and (turned) bottom-right. */
 function SuitCorners({ suit, label }: { suit: Suit; label: string }) {
   return (
@@ -75,7 +73,7 @@ export function PipCard({ suit, rank, label }: { suit: Suit; rank: number; label
   const pips: Point[] = rank === 1 ? [[CENTER_X, CENTER_Y]] : (LAYOUTS[rank] ?? []);
   const size = rank === 1 ? ACE_SIZE : DENSE.has(rank) ? PIP_SIZE_DENSE : PIP_SIZE;
   return (
-    <g className={colour(suit)}>
+    <g className={suitClass(suit)}>
       <SuitCorners suit={suit} label={label} />
       {pips.map(([x, y]) => (
         <Pip key={`${x}-${y}`} suit={suit} cx={x} cy={y} size={size} flip={y > CENTER_Y} />
@@ -87,7 +85,7 @@ export function PipCard({ suit, rank, label }: { suit: Suit; rank: number; label
 /** A court card (11–14): one geometric silhouette per rank, the suit pip set into it. */
 export function CourtCard({ suit, rank, label }: { suit: Suit; rank: number; label: string }) {
   return (
-    <g className={colour(suit)}>
+    <g className={suitClass(suit)}>
       <SuitCorners suit={suit} label={label} />
       <CourtFigure suit={suit} rank={rank} />
     </g>

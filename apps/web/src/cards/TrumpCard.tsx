@@ -2,8 +2,8 @@ import {
   CENTER_X,
   INDEX_MARK_Y,
   INDEX_X,
-  LINE,
   TRUMP_FRAME,
+  TRUMP_FRAME_STROKE,
   TRUMP_INDEX_MARK,
   TRUMP_NUMBER_BASELINE,
   TRUMP_NUMBER_FONT,
@@ -11,18 +11,15 @@ import {
 } from './geometry';
 import { IndexLabel } from './IndexLabel';
 import { OudlerBadge, OudlerMark } from './OudlerMark';
-import { BothCorners } from './Pip';
+import { BothCorners } from './shapes';
 import styles from './cards.module.css';
-
-const OUDLER_TRUMPS: ReadonlySet<number> = new Set([1, 21]);
 
 /**
  * A trump (1–21): the number is the hero, inside a tall frame shared by all trumps. In the
  * corner, a solid miniature of that frame stands where suit cards show their pip. The Petit and the
  * 21 add the oudler marks: a solid corner badge and discs on the frame.
  */
-export function TrumpCard({ value }: { value: number }) {
-  const oudler = OUDLER_TRUMPS.has(value);
+export function TrumpCard({ value, oudler }: { value: number; oudler: boolean }) {
   const { width, height, radius } = TRUMP_INDEX_MARK;
   return (
     <g className={styles.ink}>
@@ -32,7 +29,7 @@ export function TrumpCard({ value }: { value: number }) {
         width={TRUMP_FRAME.width}
         height={TRUMP_FRAME.height}
         rx={TRUMP_FRAME.radius}
-        strokeWidth={LINE}
+        strokeWidth={TRUMP_FRAME_STROKE}
         className={styles.frame}
       />
       {[TRUMP_RULE.top, TRUMP_RULE.bottom].map((y) => (
@@ -42,7 +39,7 @@ export function TrumpCard({ value }: { value: number }) {
           x2={TRUMP_RULE.x2}
           y1={y}
           y2={y}
-          strokeWidth={LINE}
+          strokeWidth={TRUMP_FRAME_STROKE}
           className={styles.frame}
         />
       ))}
