@@ -1,8 +1,8 @@
 import type { Action, LegalAction, PlayerView, Rng } from '@tarot/engine';
 import type { BotMemory } from './memory';
 
-/** How strongly a bot plays; Facile and Moyen in the UI. Difficile comes with milestone 6. */
-export type BotLevel = 'easy' | 'medium';
+/** How strongly a bot plays: Facile, Moyen and Difficile in the UI. */
+export type BotLevel = 'easy' | 'medium' | 'hard';
 
 export interface BotDecision {
   readonly action: Action;

@@ -1,7 +1,7 @@
 import type { PlayerCount } from '@tarot/engine';
 
-/** Bot levels a host may seat; Difficile comes with milestone 6. */
-export const BOT_LEVELS = ['easy', 'medium'] as const;
+/** Bot levels a host may seat: Facile, Moyen, Difficile. */
+export const BOT_LEVELS = ['easy', 'medium', 'hard'] as const;
 export type SeatBotLevel = (typeof BOT_LEVELS)[number];
 
 export const BOT_SPEEDS = ['fast', 'normal', 'slow'] as const;

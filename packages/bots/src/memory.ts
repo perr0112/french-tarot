@@ -3,9 +3,11 @@ import {
   isTrump,
   suitOf,
   type Card,
+  type CurrentTrick,
   type PlayedCard,
   type PlayerView,
   type Suit,
+  type Trick,
 } from '@tarot/engine';
 
 /** A suit, or 'T' for trumps. */
@@ -13,17 +15,19 @@ export type Colour = Suit | 'T';
 
 /**
  * What a bot remembers of a deal (JSON-serialisable). A seat plays once per trick, so between
- * two of its turns at most one trick completes: the last trick and the current one in its view
- * hold every card played since its previous turn.
+ * two of its turns at most one trick completes: the last trick in its view is the only one it
+ * may not have recorded yet.
  */
 export interface BotMemory {
-  /** Every card seen played this deal. */
+  /** Completed tricks seen, in order; complete when it holds every trick of the deal so far. */
+  readonly tricks: readonly Trick[];
+  /** Every card seen played this deal (recorded tricks, then the current one). */
   readonly played: readonly Card[];
   /** Per seat, the colours that seat showed it lacks (it did not follow). */
   readonly voids: readonly (readonly Colour[])[];
 }
 
-export const emptyMemory = (): BotMemory => ({ played: [], voids: [] });
+export const emptyMemory = (): BotMemory => ({ tricks: [], played: [], voids: [] });
 
 export const colourOf = (card: Card): Colour | null =>
   card === EXCUSE ? null : isTrump(card) ? 'T' : suitOf(card);
@@ -37,29 +41,41 @@ function provenVoids(before: readonly PlayedCard[], card: Card): Colour[] {
   return colour === 'T' ? [ledColour] : [...new Set([ledColour, 'T' as const])];
 }
 
-/** Cards played so far in the deal the view shows. */
-const playedSoFar = (view: PlayerView) =>
-  view.tricksWon.reduce((sum, n) => sum + n, 0) * view.players +
-  (view.currentTrick?.cards.length ?? 0);
+/** Tricks completed so far in the deal the view shows. */
+export const completedTricks = (view: PlayerView) => view.tricksWon.reduce((sum, n) => sum + n, 0);
 
 /**
- * Adds what the view shows to the memory. A deal not yet in play starts a fresh memory, and so
- * does a memory holding more cards than this deal has seen: it belongs to a previous deal (a seat
- * may first act during play, after a Garde contre ended the bidding before its turn).
+ * The memory a seat has after seeing these tricks: public information, since every seat sees
+ * every trick. The room server uses it for a bot standing in for a player mid-deal.
  */
-export function remember(previous: BotMemory, view: PlayerView): BotMemory {
-  if (view.phase !== 'playing') return emptyMemory();
-  const memory = previous.played.length > playedSoFar(view) ? emptyMemory() : previous;
-  const played = [...memory.played];
-  const voids = Array.from({ length: view.players }, (_, s) => [...(memory.voids[s] ?? [])]);
-  for (const trick of [view.lastTrick?.cards ?? [], view.currentTrick?.cards ?? []]) {
+export function memoryFromTricks(
+  players: number,
+  tricks: readonly Trick[],
+  currentTrick: CurrentTrick | null,
+): BotMemory {
+  const played: Card[] = [];
+  const voids: Colour[][] = Array.from({ length: players }, () => []);
+  for (const trick of [...tricks.map((t) => t.cards), currentTrick?.cards ?? []]) {
     trick.forEach(({ seat, card }, i) => {
-      if (played.includes(card)) return;
       played.push(card);
       for (const colour of provenVoids(trick.slice(0, i), card)) {
         if (!voids[seat]?.includes(colour)) voids[seat]?.push(colour);
       }
     });
   }
-  return { played, voids };
+  return { tricks, played, voids };
+}
+
+/**
+ * Adds what the view shows to the memory. A deal not yet in play starts a fresh memory, and so
+ * does a memory holding more tricks than this deal has had: it belongs to a previous deal (a
+ * seat may first act during play, after a Garde contre ended the bidding before its turn).
+ */
+export function remember(previous: BotMemory, view: PlayerView): BotMemory {
+  if (view.phase !== 'playing') return emptyMemory();
+  const known = previous.tricks.length > completedTricks(view) ? [] : previous.tricks;
+  const last = view.lastTrick;
+  const seen = last !== null && known.at(-1)?.cards[0]?.card === last.cards[0]?.card;
+  const tricks = last === null || seen ? known : [...known, last];
+  return memoryFromTricks(view.players, tricks, view.currentTrick);
 }

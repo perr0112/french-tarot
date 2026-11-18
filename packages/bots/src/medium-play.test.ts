@@ -154,7 +154,7 @@ describe('Moyen memory', () => {
 
   it('starts afresh with a new deal', () => {
     const bidding = arrange({ players: 4, hands: {} });
-    const stale = { played: ['S02' as Card], voids: [['S' as const]] };
+    const stale = { tricks: [], played: ['S02' as Card], voids: [['S' as const]] };
     expect(medium.decide(turnView(bidding), stale, createRng(1)).memory).toEqual(emptyMemory());
   });
 });
