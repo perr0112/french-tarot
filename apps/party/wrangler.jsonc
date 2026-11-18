@@ -7,4 +7,7 @@
     "bindings": [{ "name": "Room", "class_name": "Room" }],
   },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }],
+  // Web pages allowed to connect (syntax: src/origin.ts). Set to your Vercel addresses before
+  // deploying (docs/deploy.md); local dev uses .dev.vars.
+  "vars": { "ALLOWED_ORIGINS": "" },
 }

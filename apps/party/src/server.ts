@@ -1,9 +1,12 @@
 import { parseClientMessage, type ServerMessage } from '@tarot/protocol';
 import { Server, routePartykitRequest, type Connection } from 'partyserver';
+import { isAllowedOrigin } from './origin';
 import { applyRoomCommand, createRoom, type RoomCommand, type RoomState } from './room';
 
 interface Env extends Cloudflare.Env {
   readonly Room: DurableObjectNamespace<Room>;
+  /** Pages allowed to connect (syntax: isAllowedOrigin in origin.ts). */
+  readonly ALLOWED_ORIGINS?: string;
 }
 
 const STORAGE_KEY = 'room';
@@ -79,6 +82,11 @@ export class Room extends Server<Env> {
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
+    // Keeps other sites' pages from opening tables from a visitor's browser. Not authentication:
+    // a script outside a browser can send any Origin.
+    if (!isAllowedOrigin(request.headers.get('Origin'), env.ALLOWED_ORIGINS)) {
+      return new Response('Forbidden', { status: 403 });
+    }
     return (await routePartykitRequest(request, env)) ?? new Response('Not found', { status: 404 });
   },
 } satisfies ExportedHandler<Env>;
