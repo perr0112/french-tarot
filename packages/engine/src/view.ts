@@ -53,8 +53,12 @@ export interface PlayerView {
   readonly cancelled: CancelReason | null;
 }
 
+/** The chien is shown once the contract is known and, in 5 players, the King called. */
 const chienRevealed = (state: DealState) =>
-  state.phase !== 'bidding' && state.contract !== null && chienIsRevealed(state.contract);
+  state.phase !== 'bidding' &&
+  state.phase !== 'kingCall' &&
+  state.contract !== null &&
+  chienIsRevealed(state.contract);
 
 /** What a seat knows of the partner (AGENTS.md §3.5): the partner stays secret until revealed. */
 function knownPartner(state: DealState, seat: Seat): Seat | 'alone' | null {
