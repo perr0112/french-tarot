@@ -11,6 +11,7 @@
     "fast-check": "^4.10.2"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "bench": "BENCH=1 vitest run src/hard-benchmark.test.ts"
   }
 }

@@ -1,4 +1,4 @@
-import { createBot, emptyMemory, type BotMemory } from '@tarot/bots';
+import { canCatchUp, createBot, emptyMemory, memoryFromTricks, type BotMemory } from '@tarot/bots';
 import {
   applyAction,
   applySessionAction,
@@ -382,7 +382,7 @@ function play(
 
 /**
  * A human move. It also clears the seat's bot memory, so a bot standing in later in the deal
- * starts afresh instead of trusting what it saw before the player came back.
+ * is rebuilt from the tricks instead of trusting what it saw before the player came back.
  */
 function humanPlay(room: RoomState, seat: Seat, action: Action, now: number) {
   const next = play(room, seat, action, now);
@@ -467,6 +467,16 @@ function nextWake(room: RoomState, now: number): number | null {
   return times.length > 0 ? Math.max(now, Math.min(...times)) : null;
 }
 
+/**
+ * A bot keeps its own memory from turn to turn. One that missed tricks (it stands in for a
+ * player mid-deal) is given them: every seat saw them, so they are public.
+ */
+function standInMemory(deal: DealState, memory: BotMemory): BotMemory {
+  return deal.phase === 'playing' && !canCatchUp(memory, deal.tricks.length)
+    ? memoryFromTricks(deal.players, deal.tricks, deal.currentTrick)
+    : memory;
+}
+
 function wake(room: RoomState, env: RoomEnv): Outcome {
   if (isPaused(room) && env.now >= room.lastActivity + EXPIRE_AFTER_MS) {
     return { room: 'destroy', replies: [] };
@@ -474,7 +484,7 @@ function wake(room: RoomState, env: RoomEnv): Outcome {
   const turn = botTurn(room, env.now);
   if (turn === null || turn.dueAt > env.now) return { room, replies: [] };
   const { deal, seat, level } = turn;
-  const memory = room.memories[seat] ?? emptyMemory();
+  const memory = standInMemory(deal, room.memories[seat] ?? emptyMemory());
   const decision = createBot(level).decide(getPlayerView(deal, seat), memory, createRng(env.seed));
   let next = play(room, seat, decision.action, env.now);
   if (typeof next === 'string') {

@@ -45,7 +45,10 @@ export const fr = {
     hostOnly: "L'hôte règle la table et lance la partie.",
     needSeats: 'Occupez tous les sièges (joueurs ou bots) pour lancer.',
   },
-  botLevel: { easy: 'Facile', medium: 'Moyen' } satisfies Record<SeatBotLevel, string>,
+  botLevel: { easy: 'Facile', medium: 'Moyen', hard: 'Difficile' } satisfies Record<
+    SeatBotLevel,
+    string
+  >,
   botSpeed: { fast: 'Rapide', normal: 'Normale', slow: 'Lente' } satisfies Record<BotSpeed, string>,
   bid: {
     pass: 'Passer',
