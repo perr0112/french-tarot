@@ -1,0 +1,66 @@
+.card {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+.face {
+  fill: var(--color-card-face);
+  stroke: var(--color-card-edge);
+  stroke-width: 1;
+}
+
+.red {
+  fill: var(--color-suit-red);
+}
+
+.black,
+.trump,
+.excuse {
+  fill: var(--color-suit-black);
+}
+
+.index {
+  font-family: var(--font-ui);
+  font-weight: var(--weight-emphasis);
+  font-size: 20px;
+  text-anchor: middle;
+}
+
+.court {
+  font-family: var(--font-ui);
+  font-weight: var(--weight-emphasis);
+  font-size: 44px;
+  text-anchor: middle;
+}
+
+.trumpFrame {
+  fill: none;
+  stroke: var(--color-ink-muted);
+  stroke-width: 2;
+}
+
+.trumpMark {
+  fill: var(--color-ink-muted);
+}
+
+.trumpNumber {
+  font-family: var(--font-ui);
+  font-weight: var(--weight-emphasis);
+  font-size: 46px;
+  text-anchor: middle;
+}
+
+.excuseRing {
+  fill: none;
+  stroke: var(--color-suit-black);
+  stroke-width: 2;
+}
+
+.excuseLabel {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  text-anchor: middle;
+}

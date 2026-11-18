@@ -1,0 +1,71 @@
+/* Shared base components: buttons, fields, panels (owned by the design system). */
+.button {
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-4);
+  font-weight: var(--weight-emphasis);
+  background: var(--color-surface-muted);
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: transform var(--duration-instant) var(--ease-out);
+}
+
+.button:active {
+  transform: scale(0.97);
+}
+
+.button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.primary {
+  background: var(--color-accent);
+  color: var(--color-ink);
+}
+
+.quiet {
+  background: transparent;
+  color: var(--color-ink-on-table);
+  font-weight: var(--weight-regular);
+  text-decoration: underline;
+  text-underline-offset: var(--space-1);
+}
+
+.field {
+  border: var(--border-thin) solid var(--color-ink-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  min-width: 0;
+}
+
+.panel {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+  padding: var(--space-4) var(--space-5);
+  --focus-ring-color: var(--color-ink);
+}
+
+.label {
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-line);
+  color: var(--color-ink-muted);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.title {
+  font-size: var(--text-lg-size);
+  line-height: var(--text-lg-line);
+  font-weight: var(--weight-emphasis);
+  margin: 0 0 var(--space-3);
+}

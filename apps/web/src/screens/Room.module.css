@@ -1,0 +1,50 @@
+.message {
+  max-width: var(--width-narrow);
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-4);
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+}
+
+.form {
+  display: grid;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.field {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.error {
+  margin: 0;
+  color: var(--color-negative);
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-line);
+}
+
+.banner,
+.toast {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-panel);
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-line);
+}
+
+.banner {
+  top: var(--space-2);
+}
+
+.toast {
+  bottom: var(--space-4);
+}

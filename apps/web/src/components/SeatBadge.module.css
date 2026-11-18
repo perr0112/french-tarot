@@ -1,0 +1,36 @@
+.badge {
+  display: grid;
+  justify-items: center;
+  gap: 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: var(--border-thick) solid transparent;
+  text-align: center;
+  min-width: 0;
+}
+
+.turn {
+  border-color: var(--color-accent);
+}
+
+.name {
+  font-weight: var(--weight-emphasis);
+  overflow-wrap: anywhere;
+}
+
+.tags,
+.meta,
+.status {
+  font-size: var(--text-xs-size);
+  line-height: var(--text-xs-line);
+  color: var(--color-ink-on-table-muted);
+}
+
+.bid {
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-line);
+}
+
+.status {
+  font-style: italic;
+}

@@ -1,0 +1,34 @@
+.scroll {
+  overflow-x: auto;
+}
+
+.sheet {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-line);
+}
+
+.sheet th,
+.sheet td {
+  padding: var(--space-1) var(--space-2);
+  text-align: left;
+}
+
+.sheet thead th {
+  color: var(--color-ink-muted);
+  font-weight: var(--weight-regular);
+}
+
+.sheet tfoot {
+  font-weight: var(--weight-emphasis);
+}
+
+.number {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.cancelled {
+  color: var(--color-ink-muted);
+}

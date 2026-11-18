@@ -29,6 +29,13 @@ describe('king call (5 players)', () => {
     ]);
   });
 
+  it('keeps the chien hidden until the King is called (AGENTS.md §3.5)', () => {
+    const deal = takeWith(fiveDeal(), 0, 'garde');
+    for (const seat of [0, 1, 2, 3, 4]) expect(getPlayerView(deal, seat).chien).toBeNull();
+    const called = play(deal, [[0, callKing('H14')]]);
+    expect(getPlayerView(called, 1).chien).toEqual(FIVE_CHIEN);
+  });
+
   it('makes the holder of the called King the partner, then goes on to the écart', () => {
     const deal = play(takeWith(fiveDeal(), 0, 'garde'), [[0, callKing('H14')]]);
     expect(deal).toMatchObject({ calledCard: 'H14', partner: 4, phase: 'ecart', turn: 0 });

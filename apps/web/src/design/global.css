@@ -1,0 +1,50 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--color-table);
+  color: var(--color-ink-on-table);
+  font-family: var(--font-ui);
+  font-size: var(--text-md-size);
+  line-height: var(--text-md-line);
+  font-weight: var(--weight-regular);
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+:root {
+  /* Focus ring colour: light on the table; light surfaces (.panel) switch it to ink. */
+  --focus-ring-color: var(--color-ink-on-table);
+  /* Native checkboxes / radios: checked = selected state, so the accent. */
+  accent-color: var(--color-accent);
+}
+
+/* Focus is never the accent: the accent means selected / your turn (DESIGN.md §3.5). */
+:focus-visible {
+  outline: var(--border-thick) solid var(--focus-ring-color);
+  outline-offset: var(--focus-offset);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 1ms !important;
+  }
+}
