@@ -107,7 +107,7 @@ export function Table({ view, send }: { view: RoomView; send: Send }) {
             />
           ),
         )}
-        <div className={`${styles.centre} ${betweenDeals ? styles.wide : ''}`}>
+        <div className={styles.centre}>
           {betweenDeals ? (
             <DealResult view={view} send={send} />
           ) : (

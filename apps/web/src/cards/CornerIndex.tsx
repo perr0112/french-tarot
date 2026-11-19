@@ -1,13 +1,15 @@
 import type { Suit } from '@tarot/engine';
 import {
+  CARD_W,
   EXCUSE_INDEX_STAR,
   EXCUSE_STAR_POINTS,
+  HALF_TURN,
   INDEX_MARK_SIZE,
   INDEX_MARK_Y,
   INDEX_PLATE,
   INDEX_X,
   OUDLER_BADGE,
-  TRUMP_INDEX_MARK,
+  TRUMP_BAND,
 } from './geometry';
 import { IndexLabel } from './IndexLabel';
 import { Pip } from './Pip';
@@ -20,42 +22,51 @@ export type IndexContent =
   | { kind: 'trump'; value: number; oudler: boolean }
   | { kind: 'excuse' };
 
-/** The light cartouche the index stands on, over the scan. */
-function Plate() {
-  const { x, y, width, height, radius } = INDEX_PLATE;
-  return <rect x={x} y={y} width={width} height={height} rx={radius} className={styles.plate} />;
-}
-
-/** The bouts' corner badge: a solid block behind the index, which is then drawn light. */
+/** The bouts' badge: a solid block behind the index, which is then drawn light. */
 function OudlerBadge() {
   const { x, y, width, height, radius } = OUDLER_BADGE;
   return <rect x={x} y={y} width={width} height={height} rx={radius} className={styles.ink} />;
 }
 
+/** A paper band over a trump's printed number, closed by an ink rule, with our number in it. */
+function TrumpBand({ value, oudler }: { value: number; oudler: boolean }) {
+  const { height, rule } = TRUMP_BAND;
+  return (
+    <>
+      <rect width={CARD_W} height={height} className={styles.paper} />
+      <rect y={height - rule} width={CARD_W} height={rule} />
+      {oudler && <OudlerBadge />}
+      <IndexLabel text={String(value)} preset="trump" light={oudler} />
+    </>
+  );
+}
+
 /**
- * The top-left index drawn over a scan, the part of a card that shows in the fan: rank above
- * suit pip; trump number above a small frame; the oudlers on a solid badge (the Excuse: a star).
+ * The index drawn over a scan, top-left (the part of a card that shows in the fan): rank above
+ * suit pip on a paper cartouche; a trump's number in paper bands at both ends; the oudlers on a
+ * solid badge (the Excuse: a star).
  */
 export function CornerIndex({ content }: { content: IndexContent }) {
   if (content.kind === 'suit') {
     const { suit, label } = content;
+    const { x, y, width, height, radius } = INDEX_PLATE;
     return (
       <g className={suitClass(suit)}>
-        <Plate />
+        <rect x={x} y={y} width={width} height={height} rx={radius} className={styles.paper} />
         <IndexLabel text={label} />
         <Pip suit={suit} cx={INDEX_X} cy={INDEX_MARK_Y} size={INDEX_MARK_SIZE} />
       </g>
     );
   }
   if (content.kind === 'excuse') {
+    const { x, y, width, height } = OUDLER_BADGE;
     return (
       <g className={styles.ink}>
-        <Plate />
         <OudlerBadge />
         <polygon
           points={star(
-            INDEX_X,
-            EXCUSE_INDEX_STAR.cy,
+            x + width / 2,
+            y + height / 2,
             EXCUSE_INDEX_STAR.outer,
             EXCUSE_INDEX_STAR.inner,
             EXCUSE_STAR_POINTS,
@@ -65,20 +76,12 @@ export function CornerIndex({ content }: { content: IndexContent }) {
       </g>
     );
   }
-  const { value, oudler } = content;
-  const { width, height, radius } = TRUMP_INDEX_MARK;
   return (
     <g className={styles.ink}>
-      <Plate />
-      {oudler && <OudlerBadge />}
-      <IndexLabel text={String(value)} light={oudler} />
-      <rect
-        x={INDEX_X - width / 2}
-        y={INDEX_MARK_Y - height / 2}
-        width={width}
-        height={height}
-        rx={radius}
-      />
+      <TrumpBand {...content} />
+      <g transform={HALF_TURN}>
+        <TrumpBand {...content} />
+      </g>
     </g>
   );
 }

@@ -1,12 +1,14 @@
 import { EXCUSE, isOudler, suitOf, trumpValue, type Card } from '@tarot/engine';
-import { useId } from 'react';
+import { useEffect, useId, useState } from 'react';
 import {
   backScan,
   CornerIndex,
   faceScan,
+  isScanLoaded,
   MiniExcuseCard,
   MiniSuitCard,
   MiniTrumpCard,
+  scanLoaded,
   type IndexContent,
 } from '../cards';
 import {
@@ -41,29 +43,44 @@ function Edge({ className }: { className: string | undefined }) {
   );
 }
 
-/** A scan, clipped to the card's outline, its paper margin cut off (SCAN_BLEED). */
-function Scan({ href }: { href: string }) {
+/**
+ * A scan with what is drawn over it, clipped to the card's outline; the scan's paper margin is cut
+ * off (SCAN_BLEED). The scan fades in once loaded, over the paper-coloured face.
+ */
+function Scan({ href, children }: { href: string; children?: React.ReactNode }) {
   const clip = useId();
+  const [loaded, setLoaded] = useState(() => isScanLoaded(href));
+  useEffect(() => {
+    if (loaded) return;
+    let current = true;
+    void scanLoaded(href).then(() => current && setLoaded(isScanLoaded(href)));
+    return () => {
+      current = false;
+    };
+  }, [href, loaded]);
   return (
     <>
       <clipPath id={clip}>
         <rect width={CARD_W} height={CARD_H} rx={CARD_RADIUS} />
       </clipPath>
-      <image
-        href={href}
-        x={-SCAN_BLEED}
-        y={-SCAN_BLEED}
-        width={CARD_W + 2 * SCAN_BLEED}
-        height={CARD_H + 2 * SCAN_BLEED}
-        preserveAspectRatio="xMidYMid slice"
-        clipPath={`url(#${clip})`}
-      />
+      <g clipPath={`url(#${clip})`}>
+        <image
+          href={href}
+          x={-SCAN_BLEED}
+          y={-SCAN_BLEED}
+          width={CARD_W + 2 * SCAN_BLEED}
+          height={CARD_H + 2 * SCAN_BLEED}
+          preserveAspectRatio="xMidYMid slice"
+          className={`${styles.scan} ${loaded ? styles.loaded : ''}`}
+        />
+        {children}
+      </g>
     </>
   );
 }
 
 /** What a card's corner index shows. */
-function indexOf(card: Card): IndexContent {
+function indexContent(card: Card): IndexContent {
   if (card === EXCUSE) return { kind: 'excuse' };
   const trump = trumpValue(card);
   if (trump !== null) return { kind: 'trump', value: trump, oudler: isOudler(card) };
@@ -91,7 +108,7 @@ export function CardFace({
   className?: string;
   size?: CardSize;
 }) {
-  const index = indexOf(card);
+  const index = indexContent(card);
   return (
     <svg
       viewBox={VIEW_BOX}
@@ -99,13 +116,17 @@ export function CardFace({
       role="img"
       aria-label={cardName(card)}
     >
-      <Edge className={styles.face} />
       {size === 'mini' ? (
-        <MiniArt index={index} />
+        <>
+          <Edge className={styles.face} />
+          <MiniArt index={index} />
+        </>
       ) : (
         <>
-          <Scan href={faceScan(card)} />
-          <CornerIndex content={index} />
+          <Edge className={styles.paper} />
+          <Scan href={faceScan(card)}>
+            <CornerIndex content={index} />
+          </Scan>
           <Edge className={styles.outline} />
         </>
       )}
@@ -122,7 +143,7 @@ export function CardBack({ className }: { className?: string }) {
       role="img"
       aria-label={fr.cards.hidden}
     >
-      <Edge className={styles.back} />
+      <Edge className={styles.paper} />
       <Scan href={backScan} />
       <Edge className={styles.outline} />
     </svg>

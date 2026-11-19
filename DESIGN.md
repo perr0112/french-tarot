@@ -50,8 +50,8 @@ The values below are the reference; code must match them.
 | `accent`             | `#E2B04A`           | Your turn, selected — the only accent |
 | `suit-red`           | `#C23B32`           | ♥ ♦                                   |
 | `suit-black`         | `#1C1C1A`           | ♠ ♣                                   |
-| `card-face`          | `#FFFDF8`           | Card background                       |
-| `card-back`          | `#2C4A6B`           | Card back pattern base                |
+| `card-face`          | `#FFFDF8`           | Mini card background                  |
+| `card-paper`         | `#E4E1D5`           | Scans' paper: cartouches, trump bands |
 | `card-edge`          | `rgb(0 0 0 / 0.12)` | Card face outline (stroke over scans) |
 | `positive`           | `#2F7A49`           | Positive score, contract made         |
 | `negative`           | `#B5473D`           | Negative score, contract failed       |
@@ -81,17 +81,18 @@ Contrast: all text ≥ 4.5:1 against its background (≥ 3:1 for text ≥ 24 px)
 
 ### 3.4 Layout sizes
 
-CSS variables: `--width-*`, `--card-*` (card values are widths; height follows the 5:8 ratio).
+CSS variables: `--width-*`, `--card-*` (card values are widths; height = width × `card-ratio`).
 
-| Token           | Value                    | Use                                   |
-| --------------- | ------------------------ | ------------------------------------- |
-| `width-narrow`  | 420 px                   | Home, nickname form                   |
-| `width-regular` | 560 px                   | Decision panels, score sheet drawer   |
-| `width-wide`    | 720 px                   | Lobby, final ranking                  |
-| `card-hand`     | `clamp(56px, 7vw, 84px)` | Cards in the player's hand            |
-| `card-trick`    | `clamp(48px, 7vw, 80px)` | Cards in the current / previous trick |
-| `card-mini`     | 32 px                    | Mini cards in the info bar strip      |
-| `card-chip`     | 36 px                    | Poignée chooser chips                 |
+| Token           | Value                    | Use                                    |
+| --------------- | ------------------------ | -------------------------------------- |
+| `width-narrow`  | 420 px                   | Home, nickname form                    |
+| `width-regular` | 560 px                   | Decision panels, score sheet drawer    |
+| `width-wide`    | 720 px                   | Lobby, final ranking                   |
+| `card-ratio`    | 1.77                     | Card height / width (from geometry.ts) |
+| `card-hand`     | `clamp(56px, 7vw, 84px)` | Cards in the player's hand             |
+| `card-trick`    | `clamp(48px, 7vw, 80px)` | Cards in the current / previous trick  |
+| `card-mini`     | 32 px                    | Mini cards in the info bar strip       |
+| `card-chip`     | 36 px                    | Poignée chooser chips                  |
 
 - **Breakpoint**: one only, `compact` = 600 px (`@media (max-width: 600px)`). Media queries cannot read CSS variables, so the value is exported once as `breakpoints.compact` in `tokens.ts`; CSS repeats the literal 600px and nothing else.
 
@@ -120,10 +121,14 @@ CSS variables: `--width-*`, `--card-*` (card values are widths; height follows t
 ## 4. Cards
 
 - **Art**: scans of the Tarot nouveau B.P. Grimaud (1898), public domain (`apps/web/public/cards/SOURCES.md`), in `public/cards/<card id>.webp`, written by `apps/web/scripts/fetch-cards.py`. The scan is clipped to the card outline, its paper margin cut off.
-- Ratio **100:177**, the scans' proportions.
-- **Corner index** drawn over every scan, top-left only (the part visible in the fan), on a `card-face` cartouche: rank + suit pip; trump number + a small solid frame; the Petit, the 21 and the Excuse on a solid `ink` badge (the Excuse shows a star).
+- Ratio **100:177**, the scans' proportions (`card-ratio`, `radius-card` and the drawing are all derived from `geometry.ts`). The scan is drawn 2.5 units larger than the card on each side, so only its paper margin is cut off, never the art.
+- **Corner index** drawn over every scan in `card-paper`, so it blends with the scan's paper:
+  - suit cards: rank + suit pip top-left, on a cartouche that covers the scan's own top-left pip (all of it, never half);
+  - trumps: the scan's printed number bands (top and bottom) are covered by paper bands closed by a thin `ink` rule; our number sits at the left of the top band and, turned, at the right of the bottom one. In the fan only our number shows, never a cut or upside-down printed one;
+  - the Petit, the 21 and the Excuse: the index on a solid `ink` badge (the Excuse: a star, the badge alone).
+- **Loading**: under a scan the face is `card-paper`; the scan fades in (`duration-fast`) once loaded. Every scan is preloaded when the app opens.
 - **Mini cards** (32–40 px strips): drawn, not scanned — one large value and one mark.
-- Playable vs. unplayable (AGENTS.md §6): unplayable cards are dimmed (opacity ~0.45) **and** not lifted on hover; playable cards lift slightly on hover.
+- Playable vs. unplayable (AGENTS.md §6): unplayable cards are darkened (`filter: brightness(0.6)`, not see-through, colours kept so the scans stay clean) **and** not lifted on hover; playable cards lift slightly on hover.
 - All card art lives in the repo, with its source; nothing is loaded from a third-party host.
 
 ## 5. Layout
@@ -149,3 +154,4 @@ Record design decisions here (date — decision — reason).
 - 2026-11-18 — Focus ring no longer uses the accent (light / ink ring with offset) so it is distinct from selection; `accent-color` set for native inputs; `.primary` reserved for the one main action per panel, choice lists neutral. Reason: design review, focus and selection looked identical, accent overused.
 - 2026-11-18 — `radius-card` changed from a fixed `8px` to `8% / 5%`, now also used by `Card.module.css`. Reason: the SVG card set is drawn in a 100×160 viewBox with an 8-unit corner; a proportional radius keeps clip, shadow, drawn edge and card buttons matching at every card size.
 - 2026-11-19 — Card art switched from original SVG drawings to the Grimaud 1898 scans (user request: cards that look like real ones); ratio 5:8 → 100:177 and `radius-card` `8% / 5%` → `8% / 4.5%` to match the scans.
+- 2026-11-19 — Review of the scans: `card-paper` token (cartouches, trump bands, face under a loading scan) replaces the now unused `card-back`; `card-ratio` token and `radius-card` derived from `geometry.ts`; dimmed cards `brightness(0.55) saturate(0.4)` → `brightness(0.6)` (the desaturation made the scans muddy).

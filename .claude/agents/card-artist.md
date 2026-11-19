@@ -22,7 +22,7 @@ You maintain the playing cards of the French Tarot web app.
 - **Sources are mandatory.** Use only art that is public domain or under a free licence allowing this use; record its source, licence and reuse terms in `SOURCES.md` and credit it where its terms require. Never hot-link: images are committed to the repo.
 - Corner index top-left, readable when cards overlap in the fan.
 - Mini cards stay drawn (one value, one mark): scans do not read at 32–40 px.
-- Drawn parts use only `DESIGN.md` colour tokens (`card-face`, `suit-red`, `suit-black`, `card-back`, `ink`).
+- Drawn parts use only `DESIGN.md` colour tokens (`card-face`, `card-paper`, `suit-red`, `suit-black`, `ink`).
 - Suits must be distinguishable without colour (the pip shape carries the meaning).
 - Keep the scans small: about 2 MB for the whole set.
 

@@ -1,6 +1,5 @@
 import { MAX_NICKNAME_LENGTH } from '@tarot/protocol';
 import { useEffect, useState, type FormEvent } from 'react';
-import { preloadScans } from '../cards';
 import ui from '../design/ui.module.css';
 import { errorMessage } from '../lib/errors';
 import { useRoomConnection, type JoinRequest } from '../net/connection';
@@ -21,8 +20,6 @@ export function Room({ code }: { code: string }) {
     return nickname === null ? null : { nickname };
   });
   const { status, view, error, send, dismissError } = useRoomConnection(code, request);
-
-  useEffect(preloadScans, []);
 
   useEffect(() => {
     if (!error) return;

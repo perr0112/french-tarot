@@ -53,9 +53,10 @@
   transform: translateY(calc(var(--space-3) * -1));
 }
 
-/* Darkened, not see-through: the cards behind must not show through. */
+/* Darkened, not see-through: the cards behind must not show through. Colours are kept, so
+   the scans' reds and trumps stay clean rather than turning muddy. */
 .dimmed :global(svg) {
-  filter: brightness(0.55) saturate(0.4);
+  filter: brightness(0.6);
 }
 
 .picked :global(svg) {

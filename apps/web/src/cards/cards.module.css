@@ -1,6 +1,6 @@
 /*
- * Card drawing styles. Colours come only from the card palette (DESIGN.md §3.1): card-face,
- * suit-red, suit-black, card-back and ink. Card art is scanned (public/cards); the card outline (card-edge) is in Card.module.css.
+ * Styles of what is drawn over the scans and of the mini cards. Colours come only from the card
+ * palette (DESIGN.md §3.1). The card outline (card-edge) and the scans are in Card.module.css.
  */
 
 .red {
@@ -16,9 +16,9 @@
   fill: var(--color-ink);
 }
 
-/* The cartouche behind a corner index, over the scan. */
-.plate {
-  fill: var(--color-card-face);
+/* Cartouches and trump bands over a scan: the scans' paper colour, so they blend in. */
+.paper {
+  fill: var(--color-card-paper);
 }
 
 .knockout {
@@ -31,7 +31,7 @@
   text-anchor: middle;
 }
 
-/* Trump frames and rules; the stroke weight is set per drawing (light at full size). */
+/* Mini trump frame; its stroke weight is set by the drawing. */
 .frame {
   fill: none;
   stroke: var(--color-ink);

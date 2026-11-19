@@ -20,9 +20,11 @@
   margin: 0;
   padding: 0;
   display: grid;
-  /* Cards are 100:177 (the scans); a card spans two half-height rows, so no card hides another. */
+  /* A card spans two half-height rows, so no card hides another. */
   grid-template-columns: repeat(5, var(--trick-card));
-  grid-template-rows: repeat(2, calc(var(--trick-card) * 0.885)) calc(var(--trick-card) * 1.77);
+  grid-template-rows:
+    repeat(2, calc(var(--trick-card) * var(--card-ratio) / 2))
+    calc(var(--trick-card) * var(--card-ratio));
   grid-template-areas:
     '. topLeft top topRight .'
     'left . . . right'

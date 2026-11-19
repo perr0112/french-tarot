@@ -2,7 +2,8 @@ import { LABEL, type LabelPreset } from './geometry';
 import styles from './cards.module.css';
 
 /**
- * A rank or number: `corner` for the corner index, `mini` for the large value of a mini card.
+ * A rank or number: `corner` for a suit card's index, `trump` for a trump's number in its band,
+ * `mini` for the large value of a mini card.
  * Two characters get a smaller size and tighter tracking (shifted to stay centred, since
  * tracking also follows the last glyph). `light` draws it in the card-face colour, over a
  * solid oudler badge or frame. `y` overrides the preset's baseline.

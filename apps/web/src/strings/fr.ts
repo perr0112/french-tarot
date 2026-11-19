@@ -6,7 +6,9 @@ export const fr = {
   app: {
     title: 'Tarot',
     tagline: 'Le tarot à 3, 4 ou 5, entre amis et avec des bots.',
-    cardCredit: 'Cartes : Tarot nouveau B.P. Grimaud, 1898 — Source gallica.bnf.fr / BnF',
+    /** The BnF's required mention stays on one line (non-breaking spaces). */
+    cardCredit:
+      'Cartes\u00a0: Tarot nouveau B.P. Grimaud, 1898 — Source\u00a0gallica.bnf.fr\u00a0/\u00a0BnF',
   },
   home: {
     nickname: 'Votre pseudo',

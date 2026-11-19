@@ -1,4 +1,5 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
+import { preloadScans } from './cards';
 import { useRoute } from './net/routing';
 import { Home } from './screens/Home';
 import { Room } from './screens/Room';
@@ -10,6 +11,8 @@ const ContactSheet = import.meta.env.DEV
 
 export function App() {
   const route = useRoute();
+  // From the first page on, so the cards are cached long before a deal (about 2 MB).
+  useEffect(preloadScans, []);
   if (route.name === 'cards' && ContactSheet) {
     return (
       <Suspense>

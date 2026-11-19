@@ -7,14 +7,31 @@
   box-shadow: var(--shadow-card);
 }
 
+/* Mini cards: drawn on the face colour. */
 .face {
   fill: var(--color-card-face);
   stroke: var(--color-card-edge);
 }
 
-.back {
-  fill: var(--color-card-back);
+/* Under a scan while it loads: the scans' paper colour, so the scan's arrival stays quiet. */
+.paper {
+  fill: var(--color-card-paper);
   stroke: var(--color-card-edge);
+}
+
+.scan {
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.loaded {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scan {
+    transition-duration: var(--duration-instant);
+  }
 }
 
 /* Drawn over the scan, so the edge stays crisp on the paper's edge. */
