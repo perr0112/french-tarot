@@ -3,12 +3,14 @@ import type { RoomView } from '@tarot/protocol';
 import { TRICK_PAUSE_MS } from '@tarot/protocol';
 import { useEffect, useState } from 'react';
 import ui from '../design/ui.module.css';
+import { Chien } from '../components/Chien';
 import { DealResult } from '../components/DealResult';
 import { Hand } from '../components/Hand';
 import { InfoBar } from '../components/InfoBar';
 import { ScoreSheet } from '../components/ScoreSheet';
 import { SeatBadge } from '../components/SeatBadge';
 import { Trick } from '../components/Trick';
+import { chienLeavesTo, chienOnTable } from '../lib/chien';
 import { seatName } from '../lib/names';
 import { poigneeStatus } from '../lib/selection';
 import { seatPositions } from '../lib/seats';
@@ -113,6 +115,8 @@ export function Table({
   // After a trick, its cards stay in the centre until the next card is played.
   const showsLastTrick = reviewLastTrick || !deal?.currentTrick?.cards.length;
   const trick = showsLastTrick ? deal?.lastTrick : deal?.currentTrick;
+  // The taker's own chien cards stay marked in the hand while the écart is chosen.
+  const fromChien = deal?.phase === 'ecart' && deal.taker === me ? (deal.chien ?? []) : [];
   const turnName = deal?.turn != null && deal.turn !== me ? seatName(view, deal.turn) : null;
 
   return (
@@ -139,20 +143,26 @@ export function Table({
             <DealResult view={view} send={send} />
           ) : (
             deal && (
-              <Trick
-                cards={trick?.cards ?? []}
-                winner={showsLastTrick ? (deal.lastTrick?.winner ?? null) : null}
-                positions={positions}
-                me={me}
-                label={showsLastTrick && trick ? fr.table.lastTrick : fr.table.trick}
-                caption={
-                  showsLastTrick && deal?.lastTrick
-                    ? fr.table.lastTrickWonBy(seatName(view, deal.lastTrick.winner))
-                    : undefined
-                }
-                muted={reviewLastTrick}
-                animated={!reviewLastTrick}
-              />
+              <>
+                <Chien
+                  chien={deal.phase === 'finished' ? null : chienOnTable(deal)}
+                  leavesTo={chienLeavesTo(deal)}
+                />
+                <Trick
+                  cards={trick?.cards ?? []}
+                  winner={showsLastTrick ? (deal.lastTrick?.winner ?? null) : null}
+                  positions={positions}
+                  me={me}
+                  label={showsLastTrick && trick ? fr.table.lastTrick : fr.table.trick}
+                  caption={
+                    showsLastTrick && deal?.lastTrick
+                      ? fr.table.lastTrickWonBy(seatName(view, deal.lastTrick.winner))
+                      : undefined
+                  }
+                  muted={reviewLastTrick}
+                  animated={!reviewLastTrick}
+                />
+              </>
             )
           )}
         </div>
@@ -179,6 +189,7 @@ export function Table({
             active={betweenDeals ? null : active}
             selected={ecart}
             onPick={pick}
+            marked={fromChien}
             dealing={dealing}
           />
         )}

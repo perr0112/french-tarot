@@ -12,6 +12,7 @@ import {
   rememberHandBox,
   seatBox,
   slideFrom,
+  takeChienBox,
 } from '../motion/animate';
 import type { Box } from '../motion/flip';
 import { fr } from '../strings/fr';
@@ -31,6 +32,8 @@ export interface HandProps {
   /** Cards picked (écart); shown raised. */
   readonly selected?: readonly Card[];
   readonly onPick?: (card: Card) => void;
+  /** Cards marked as having come from the chien (the taker's écart). */
+  readonly marked?: readonly Card[];
   /** Set at the start of a deal: the cards fly in from the dealer, one after the other. */
   readonly dealing?: Dealing | null;
 }
@@ -59,17 +62,31 @@ function dealIn(slots: readonly HTMLElement[], from: Box | null): (() => void) |
   return skip;
 }
 
-/** Moves the hand to its new layout: kept cards slide, new ones fade in (DESIGN.md §3.6). */
+/**
+ * Moves the hand to its new layout: kept cards slide, new ones (the chien, for the taker) fly in
+ * from where the chien lay, or fade in (DESIGN.md §3.6).
+ */
 function settle(slots: readonly HTMLElement[], before: ReadonlyMap<Card, Box>) {
+  const joining = slots.filter((slot) => !before.has(slot.dataset.card as Card));
+  const chien = before.size > 0 && joining.length > 0 ? takeChienBox() : null;
+  const stagger = dealStagger(joining.length);
   for (const slot of slots) {
     const previous = before.get(slot.dataset.card as Card);
     if (previous) slideFrom(slot, previous);
+    else if (chien) flyIn(slot, chien, { delay: joining.indexOf(slot) * stagger });
     else if (before.size > 0) appear(slot);
   }
 }
 
 /** The local player's hand as a fan; unplayable cards dimmed and not clickable (AGENTS.md §6). */
-export function Hand({ cards, active, selected = [], onPick, dealing = null }: HandProps) {
+export function Hand({
+  cards,
+  active,
+  selected = [],
+  onPick,
+  marked = [],
+  dealing = null,
+}: HandProps) {
   const sorted = sortHand(cards);
   const list = useRef<HTMLUListElement>(null);
   const boxes = useRef<ReadonlyMap<Card, Box>>(new Map());
@@ -114,13 +131,18 @@ export function Hand({ cards, active, selected = [], onPick, dealing = null }: H
         const enabled = active?.includes(card) ?? false;
         const picked = selected.includes(card);
         return (
-          <li key={card} className={styles.slot} data-card={card}>
+          <li
+            key={card}
+            className={`${styles.slot} ${marked.includes(card) ? styles.marked : ''}`}
+            data-card={card}
+          >
             <button
               type="button"
               className={`${styles.card} ${active && !enabled ? styles.dimmed : ''} ${enabled ? styles.enabled : ''} ${picked ? styles.picked : ''}`}
               disabled={!enabled}
               aria-pressed={selected.length > 0 || picked ? picked : undefined}
               aria-label={cardName(card)}
+              aria-description={marked.includes(card) ? fr.table.fromChien : undefined}
               onClick={(event) => {
                 // The face as it stands now (lifted on hover), where a played card leaves from.
                 const face = event.currentTarget.querySelector('svg');

@@ -87,3 +87,8 @@
     padding: var(--space-2);
   }
 }
+
+/* The chien and the trick share the centre: a chien leaving overlaps the first card played. */
+.centre > * {
+  grid-area: 1 / 1;
+}

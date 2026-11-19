@@ -60,6 +60,8 @@ export const tokens = {
     ratio: String(CARD_H / CARD_W),
     hand: 'clamp(56px, 7vw, 84px)',
     trick: 'clamp(48px, 7vw, 80px)',
+    /** The winner's card on the final podium. */
+    podium: 'clamp(84px, 12vw, 128px)',
     mini: '32px',
     chip: '36px',
   },

@@ -8,16 +8,19 @@ import styles from './CardStrip.module.css';
  */
 export function CardStrip({
   label,
+  caption = label,
   cards = [],
   hidden = 0,
 }: {
   label: string;
+  /** The text shown, when shorter than the label (the seat is already named nearby). */
+  caption?: string;
   cards?: readonly Card[];
   hidden?: number;
 }) {
   return (
     <span className={styles.strip} role="group" aria-label={label}>
-      {label}
+      {caption}
       {cards.map((card) => (
         <span key={card} className={styles.mini}>
           <CardFace card={card} size="mini" />

@@ -26,6 +26,7 @@ describe('seatFacts', () => {
       isTurn: true,
       cards: 18,
       tricks: null,
+      dealScore: null,
     });
     expect(seatFacts(view, 0)).toMatchObject({ you: true, bid: 'Garde', cards: null });
   });
@@ -34,7 +35,7 @@ describe('seatFacts', () => {
     const view = roomView(
       playOut(takes(dealWith(hand), 'gardeSans'), [[0, { type: 'decideChelem', announce: false }]]),
     );
-    expect(seatFacts(view, 0).tags).toEqual(['Preneur']);
+    expect(seatFacts(view, 0).tags).toEqual(['Preneur', 'avec le chien']);
     expect(seatFacts(view, 3)).toMatchObject({ tags: ['Donneur'], cards: 18, tricks: 0 });
   });
 
@@ -49,5 +50,31 @@ describe('seatFacts', () => {
     });
     expect(seatFacts(view, 1).status).toBe('déconnecté');
     expect(seatFacts(view, 2).status).toBe('remplacé par un bot');
+  });
+
+  it('tags each defender with the chien in a garde contre', () => {
+    const view = roomView(takes(dealWith(hand), 'gardeContre'), 1);
+    expect(seatFacts(view, 0).tags).toEqual(['Preneur']);
+    expect([1, 2, 3].map((seat) => seatFacts(view, seat).tags.includes('avec le chien'))).toEqual([
+      true,
+      true,
+      true,
+    ]);
+  });
+
+  it('shows what each seat scored while the table waits for the next deal', () => {
+    const result = { perSeat: [-336, 112, 112, 112] };
+    const view = roomView(null, 0, {
+      session: {
+        deals: 8,
+        played: 1,
+        dealer: 0,
+        totals: [-336, 112, 112, 112],
+        history: [{ dealer: 3, result, cancelled: null }],
+        continued: [],
+      },
+    } as unknown as Parameters<typeof roomView>[2]);
+    expect(seatFacts(view, 0).dealScore).toBe(-336);
+    expect(seatFacts(view, 1).dealScore).toBe(112);
   });
 });

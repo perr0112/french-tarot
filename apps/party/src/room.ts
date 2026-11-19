@@ -23,10 +23,11 @@ import {
   type SeatOccupant,
   type ServerErrorCode,
   type ServerMessage,
+  CHIEN_PAUSE_MS,
   TRICK_PAUSE_MS,
 } from '@tarot/protocol';
 
-export { TRICK_PAUSE_MS };
+export { CHIEN_PAUSE_MS, TRICK_PAUSE_MS };
 
 /** Delay before each bot move, by room option (AGENTS.md §5). */
 export const BOT_DELAY_MS: Readonly<Record<BotSpeed, number>> = {
@@ -372,12 +373,13 @@ function play(
   if (!sessionResult.ok) return sessionResult.error.code;
   const after = dealResult.state;
   const trickDone = after.tricks.length > deal.tricks.length;
+  const chienShown = after.phase === 'ecart' && deal.phase !== 'ecart';
   return {
     ...room,
     phase: sessionResult.session.phase === 'finished' ? 'finished' : 'playing',
     session: sessionResult.session,
     currentDeal: after,
-    turnSince: now + (trickDone ? TRICK_PAUSE_MS : 0),
+    turnSince: now + (trickDone ? TRICK_PAUSE_MS : chienShown ? CHIEN_PAUSE_MS : 0),
   };
 }
 

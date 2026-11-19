@@ -34,3 +34,30 @@
 .status {
   font-style: italic;
 }
+
+/* What the seat has shown (a poignée, écart trumps): small cards under its name. */
+.badge > [role='group'] {
+  margin-top: var(--space-1);
+  justify-content: center;
+  font-size: var(--text-xs-size);
+  line-height: var(--text-xs-line);
+  color: var(--color-ink-on-table-muted);
+}
+
+/* The seat's score in the deal just over, set before it like a chip on the felt. */
+.score {
+  margin-top: var(--space-1);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-weight: var(--weight-emphasis);
+  font-variant-numeric: tabular-nums;
+}
+
+.positive {
+  color: var(--color-positive);
+}
+
+.negative {
+  color: var(--color-negative);
+}

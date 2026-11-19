@@ -82,3 +82,16 @@
     padding-inline: var(--space-2);
   }
 }
+
+/* A card that came from the chien (the taker's écart): a short rule over its visible edge,
+   neutral, so it never reads as selected. */
+.marked::before {
+  content: '';
+  position: absolute;
+  top: calc(var(--space-2) * -1);
+  left: var(--space-1);
+  width: calc(min(var(--step), var(--card-width)) - var(--space-2));
+  height: var(--border-thick);
+  border-radius: var(--border-thick);
+  background: var(--color-ink-on-table-muted);
+}

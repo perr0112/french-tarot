@@ -1,5 +1,6 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import { cardName } from '../lib/cards';
 import { roomView } from '../testing/views';
 import { Final } from './Final';
 
@@ -20,5 +21,33 @@ describe('final ranking', () => {
     expect(screen.getByText('Tout le monde a passé.')).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Continuer' })).toBeNull();
     expect(screen.getByRole('button', { name: 'Nouvelle partie' })).toBeTruthy();
+  });
+
+  const ended = (totals: number[]) =>
+    roomView(null, 0, {
+      phase: 'finished',
+      session: {
+        deals: 1,
+        played: 1,
+        dealer: 0,
+        totals,
+        history: [{ dealer: 3, result: null, cancelled: { reason: 'allPassed' } }],
+        continued: null,
+      },
+    });
+  const podium = () =>
+    within(screen.getByRole('list', { name: 'Classement' }))
+      .getAllByRole('listitem')
+      .map((item) => within(item).getByRole('img').getAttribute('aria-label'));
+
+  it('names the winner and lays a card by rank: the 21 first, the Excuse last', () => {
+    render(<Final view={ended([-60, 90, 30, -60])} send={vi.fn()} />);
+    expect(screen.getByRole('heading', { name: 'Bot 2 remporte la partie' })).toBeTruthy();
+    expect(podium()).toEqual((['T21', 'T20', 'EXC', 'EXC'] as const).map(cardName));
+  });
+
+  it('names every winner of a tie', () => {
+    render(<Final view={ended([90, 90, -90, -90])} send={vi.fn()} />);
+    expect(screen.getByRole('heading', { name: 'Égalité entre Alice et Bot 2' })).toBeTruthy();
   });
 });

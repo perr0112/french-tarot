@@ -83,16 +83,17 @@ Contrast: all text ≥ 4.5:1 against its background (≥ 3:1 for text ≥ 24 px)
 
 CSS variables: `--width-*`, `--card-*` (card values are widths; height = width × `card-ratio`).
 
-| Token           | Value                    | Use                                    |
-| --------------- | ------------------------ | -------------------------------------- |
-| `width-narrow`  | 420 px                   | Home, nickname form                    |
-| `width-regular` | 560 px                   | Decision panels, score sheet drawer    |
-| `width-wide`    | 720 px                   | Lobby, final ranking                   |
-| `card-ratio`    | 1.77                     | Card height / width (from geometry.ts) |
-| `card-hand`     | `clamp(56px, 7vw, 84px)` | Cards in the player's hand             |
-| `card-trick`    | `clamp(48px, 7vw, 80px)` | Cards in the current / previous trick  |
-| `card-mini`     | 32 px                    | Mini cards in the info bar strip       |
-| `card-chip`     | 36 px                    | Poignée chooser chips                  |
+| Token           | Value                      | Use                                             |
+| --------------- | -------------------------- | ----------------------------------------------- |
+| `width-narrow`  | 420 px                     | Home, nickname form                             |
+| `width-regular` | 560 px                     | Decision panels, score sheet drawer             |
+| `width-wide`    | 720 px                     | Lobby, final ranking                            |
+| `card-ratio`    | 1.77                       | Card height / width (from geometry.ts)          |
+| `card-hand`     | `clamp(56px, 7vw, 84px)`   | Cards in the player's hand                      |
+| `card-trick`    | `clamp(48px, 7vw, 80px)`   | Cards in the current / previous trick           |
+| `card-podium`   | `clamp(84px, 12vw, 128px)` | The winner's card on the final podium           |
+| `card-mini`     | 32 px                      | Mini cards under a seat (poignée, écart trumps) |
+| `card-chip`     | 36 px                      | Poignée chooser chips                           |
 
 - **Breakpoint**: one only, `compact` = 600 px (`@media (max-width: 600px)`). Media queries cannot read CSS variables, so the value is exported once as `breakpoints.compact` in `tokens.ts`; CSS repeats the literal 600px and nothing else.
 
@@ -127,7 +128,9 @@ CSS variables: `--width-*`, `--card-*` (card values are widths; height = width �
 | Trick collected (when the next is led) | the completed trick leaves at once towards the winner's badge, shrinking to `motion-collected`, faded out by mid-flight                                                                                          | `duration-slow`, `ease-out` |
 | Last trick of a deal                   | its last card lands and the trick stays shown for the room's trick pause (`TRICK_PAUSE_MS`), then the deal result enters                                                                                         | —                           |
 | Deal                                   | your cards fly in one by one from the dealer's badge, fading in over the first fifth of their flight, `motion-deal` in all; a click or key finishes it; not replayed when the page opens on a deal already dealt | `duration-base`, `ease-out` |
-| Hand reflow                            | kept cards slide to their new place; cards joining (the chien) fade in                                                                                                                                           | `duration-fast`, `ease-out` |
+| Hand reflow                            | kept cards slide to their new place; cards joining (the chien, for the taker) fly in from where the chien lay, else fade in                                                                                      | `duration-fast`, `ease-out` |
+| Chien turned over (petite, garde)      | for the other players, each card turns face up where it lies (`rotateY`); the room pauses `CHIEN_PAUSE_MS` before a bot taker discards                                                                           | `duration-fast`, `ease-out` |
+| Chien taken or set aside               | it slides to the taker's badge like a collected trick (after the écart, or in a garde sans); in a garde contre it fades out                                                                                      | `duration-slow`, `ease-out` |
 | Decision panel, deal result            | fade and rise of `space-2` (`.enter`); closing is instant                                                                                                                                                        | `duration-fast`, `ease-out` |
 | Score sheet                            | slides in from the right (`.slideIn`)                                                                                                                                                                            | `duration-base`, `ease-out` |
 
@@ -150,6 +153,8 @@ Under `prefers-reduced-motion`, flights become `duration-instant` fades, the dea
 
 - Local player at the bottom, hand as a fan; opponents around the table; current trick in the centre.
 - Persistent but quiet info: contract + taker, dealer marker, called king (5p, once revealed), score summary.
+- **Things lie where they are at a real table.** The chien lies in the centre: face down from the deal, turned face up for all in a petite or garde (the taker has it in hand, its cards marked by a short neutral rule until the écart is made). A poignée and the taker's shown écart trumps sit under that seat's badge. Between deals, each seat's score of the deal sits under its badge as a chip (`surface`, `positive` / `negative`); the centre holds the breakdown as a narrow slip of the score sheet.
+- **Final screen**: on the felt, the ranking as cards — the 21 to the winner (larger, raised), then 20, 19… and the Excuse to the last place; equal totals share a rank and a card. Then the actions, the score sheet, and the last deal folded away.
 - Whose turn: the accent colour on that seat, nothing else competing.
 - Must remain usable at 375 px wide; no horizontal scroll.
 
@@ -171,3 +176,4 @@ Record design decisions here (date — decision — reason).
 - 2026-11-19 — Card art switched from original SVG drawings to the Grimaud 1898 scans (user request: cards that look like real ones); ratio 5:8 → 100:177 and `radius-card` `8% / 5%` → `8% / 4.5%` to match the scans.
 - 2026-11-19 — Review of the scans: `card-paper` token (cartouches, trump bands, face under a loading scan) replaces the now unused `card-back`; `card-ratio` token and `radius-card` derived from `geometry.ts`; dimmed cards `brightness(0.55) saturate(0.4)` → `brightness(0.6)` (the desaturation made the scans muddy).
 - 2026-11-19 — Motion tokens `motion-deal`, `motion-from-seat`, `motion-collected` (table animations, §3.6).
+- 2026-11-19 — Chien, poignées and écart trumps moved from the info bar to the table (centre, under the seats); deal scores under each seat; final screen as a card podium; `card-podium` token. Reason: user request — information was scattered with no link to the table or the players.

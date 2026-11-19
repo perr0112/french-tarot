@@ -239,9 +239,15 @@ describe('the chien', () => {
       name: 'Carte cachée',
     });
 
-  it.each(['gardeSans', 'gardeContre'] as const)('shows face down in a %s', (contract) => {
-    render(<Table view={roomView(takes(dealWith(hand), contract), 1)} send={vi.fn()} />);
+  it('lies face down in the centre while the players bid', () => {
+    render(<Table view={roomView(dealWith(hand), 1)} send={vi.fn()} />);
     expect(backs()).toHaveLength(6);
+  });
+
+  it.each(['gardeSans', 'gardeContre'] as const)('leaves the centre unseen in a %s', (contract) => {
+    render(<Table view={roomView(takes(dealWith(hand), contract), 1)} send={vi.fn()} />);
+    expect(screen.queryByRole('group', { name: 'Chien' })).toBeNull();
+    expect(screen.queryAllByRole('img', { name: 'Carte cachée' })).toHaveLength(0);
   });
 
   it('shows its three cards face down in 5 players', () => {
@@ -261,9 +267,21 @@ describe('the chien', () => {
     expect(backs()).toHaveLength(3);
   });
 
-  it.each(['petite', 'garde'] as const)('is never face down in a %s', (contract) => {
-    render(<Table view={roomView(takes(dealWith(hand), contract), 1)} send={vi.fn()} />);
-    expect(screen.queryAllByRole('img', { name: 'Carte cachée' })).toHaveLength(0);
+  it.each(['petite', 'garde'] as const)('is shown face up to the others in a %s', (contract) => {
+    const deal = takes(dealWith(hand), contract);
+    render(<Table view={roomView(deal, 1)} send={vi.fn()} />);
+    const shown = within(screen.getByRole('group', { name: 'Chien' })).getAllByRole('img');
+    expect(shown.map((img) => img.getAttribute('aria-label'))).toEqual(deal.chien.map(cardName));
+  });
+
+  it('is in the taker’s hand, its cards marked, during the écart', () => {
+    const deal = takes(dealWith(hand), 'garde');
+    render(<Table view={roomView(deal)} send={vi.fn()} />);
+    expect(screen.queryByRole('group', { name: 'Chien' })).toBeNull();
+    for (const c of deal.chien) {
+      expect(card(c).getAttribute('aria-description')).toBe('Vient du chien');
+    }
+    expect(card('S01').getAttribute('aria-description')).toBeNull();
   });
 
   it('is no longer shown once the deal is over', () => {

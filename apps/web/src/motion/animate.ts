@@ -150,3 +150,26 @@ export function appear(element: Element): Animation | null {
     fill: 'backwards',
   });
 }
+
+/**
+ * Where the chien lay in the centre, so the taker's hand can take its cards from there: written
+ * by the chien on layout, read once by the hand when the cards join it.
+ */
+let chienBox: Box | null = null;
+export const rememberChienBox = (box: Box | null) => void (chienBox = box);
+export const takeChienBox = () => {
+  const box = chienBox;
+  chienBox = null;
+  return box;
+};
+
+/** Turns a card face up where it lies (the chien shown); none under reduced motion. */
+export function turnOver(element: Element, delay = 0): Animation | null {
+  if (!canAnimate(element) || reducedMotion()) return null;
+  return element.animate([{ transform: 'rotateY(90deg)' }, { transform: 'none' }], {
+    duration: DURATION.fast,
+    delay,
+    easing: EASE.out,
+    fill: 'backwards',
+  });
+}
