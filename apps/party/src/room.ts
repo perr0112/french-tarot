@@ -374,12 +374,14 @@ function play(
   const after = dealResult.state;
   const trickDone = after.tricks.length > deal.tricks.length;
   const chienShown = after.phase === 'ecart' && deal.phase !== 'ecart';
+  // Everyone sees a completed trick, or the chien turned over, before the next move.
+  const pauseAfter = trickDone ? TRICK_PAUSE_MS : chienShown ? CHIEN_PAUSE_MS : 0;
   return {
     ...room,
     phase: sessionResult.session.phase === 'finished' ? 'finished' : 'playing',
     session: sessionResult.session,
     currentDeal: after,
-    turnSince: now + (trickDone ? TRICK_PAUSE_MS : chienShown ? CHIEN_PAUSE_MS : 0),
+    turnSince: now + pauseAfter,
   };
 }
 

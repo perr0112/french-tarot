@@ -1,4 +1,4 @@
-import type { Card } from '@tarot/engine';
+import type { Breakdown, Card } from '@tarot/engine';
 import { describe, expect, it } from 'vitest';
 import { dealWith, playOut, roomView, takes } from '../testing/views';
 import { seatFacts } from './seatFacts';
@@ -27,6 +27,8 @@ describe('seatFacts', () => {
       cards: 18,
       tricks: null,
       dealScore: null,
+      poignee: null,
+      ecartTrumps: [],
     });
     expect(seatFacts(view, 0)).toMatchObject({ you: true, bid: 'Garde', cards: null });
   });
@@ -63,7 +65,24 @@ describe('seatFacts', () => {
   });
 
   it('shows what each seat scored while the table waits for the next deal', () => {
-    const result = { perSeat: [-336, 112, 112, 112] };
+    // A garde by Alice, failed by 31: −112 for her side, three times over.
+    const result: Breakdown = {
+      contract: 'garde',
+      taker: 0,
+      partner: null,
+      multiplier: 2,
+      points: 20,
+      oudlers: 1,
+      needed: 51,
+      made: false,
+      gap: 31,
+      contractScore: -112,
+      petitAuBout: 0,
+      poignee: 0,
+      chelem: 0,
+      dealScore: -112,
+      perSeat: [-336, 112, 112, 112],
+    };
     const view = roomView(null, 0, {
       session: {
         deals: 8,
@@ -73,7 +92,7 @@ describe('seatFacts', () => {
         history: [{ dealer: 3, result, cancelled: null }],
         continued: [],
       },
-    } as unknown as Parameters<typeof roomView>[2]);
+    });
     expect(seatFacts(view, 0).dealScore).toBe(-336);
     expect(seatFacts(view, 1).dealScore).toBe(112);
   });

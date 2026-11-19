@@ -1,6 +1,7 @@
-/* A slip of the score sheet: narrow, the figures in one column, the total ruled off. */
+/* A slip of the score sheet: narrow, the figures in one column, the total in bold. */
 .result {
   width: min(var(--width-narrow), 100%);
+  margin-inline: auto;
 }
 
 .headline {
@@ -30,14 +31,4 @@
 
 .total {
   font-weight: var(--weight-emphasis);
-  padding-top: var(--space-1);
-  border-top: var(--border-thin) solid var(--color-card-edge);
-}
-
-.positive {
-  color: var(--color-positive);
-}
-
-.negative {
-  color: var(--color-negative);
 }

@@ -144,10 +144,7 @@ export function Table({
           ) : (
             deal && (
               <>
-                <Chien
-                  chien={deal.phase === 'finished' ? null : chienOnTable(deal)}
-                  leavesTo={chienLeavesTo(deal)}
-                />
+                <Chien chien={chienOnTable(deal)} leavesTo={chienLeavesTo(deal)} />
                 <Trick
                   cards={trick?.cards ?? []}
                   winner={showsLastTrick ? (deal.lastTrick?.winner ?? null) : null}

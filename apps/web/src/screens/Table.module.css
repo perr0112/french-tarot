@@ -8,7 +8,9 @@
 .felt {
   display: grid;
   grid-template-columns: 1fr 2fr 1fr;
-  grid-template-rows: auto 1fr auto;
+  /* The middle row keeps its height (see .centre) and the space left goes below it, so the
+     centre never moves when a decision panel opens or closes. */
+  grid-template-rows: auto auto 1fr;
   grid-template-areas:
     'topLeft top topRight'
     'left centre right'
@@ -46,6 +48,8 @@
   display: grid;
   place-items: center;
   width: 100%;
+  /* As tall as a trick, whatever lies there (the chien, nothing), so the seats beside it stay. */
+  min-height: calc(var(--card-trick) * var(--card-ratio) * 2);
 }
 
 .waiting {
@@ -80,6 +84,10 @@
       'left . right'
       'centre centre centre';
     padding-inline: var(--space-2);
+  }
+
+  .centre {
+    align-self: start;
   }
 
   /* Room for every player's column of the score sheet. */

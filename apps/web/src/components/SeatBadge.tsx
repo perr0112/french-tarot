@@ -22,9 +22,7 @@ export function SeatBadge({
   className?: string | undefined;
 }) {
   const facts = seatFacts(view, seat);
-  const deal = view.deal;
-  const poignee = deal?.poignees.find((p) => p.seat === seat);
-  const ecartTrumps = deal?.taker === seat ? deal.shownEcartTrumps : [];
+  const { poignee, ecartTrumps } = facts;
   const counts = [
     facts.cards === null ? null : fr.table.cards(facts.cards),
     facts.tricks === null ? null : fr.table.tricks(facts.tricks),
@@ -54,7 +52,7 @@ export function SeatBadge({
       {ecartTrumps.length > 0 && <CardStrip label={fr.table.ecartTrumps} cards={ecartTrumps} />}
       {facts.dealScore !== null && (
         <span
-          className={`${styles.score} ${facts.dealScore < 0 ? styles.negative : styles.positive} ${ui.enter}`}
+          className={`${styles.score} ${facts.dealScore < 0 ? ui.negative : ui.positive} ${ui.enter}`}
           aria-label={fr.table.dealScore(formatScore(facts.dealScore))}
         >
           {formatScore(facts.dealScore)}

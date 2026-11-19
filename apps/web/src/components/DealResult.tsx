@@ -17,12 +17,16 @@ export function DealResult({ view, send }: { view: RoomView; send: Send }) {
   const result = record.result;
   const me = view.you.seat;
   const waiting = view.seats.flatMap((occupant, seat) =>
-    occupant.kind === 'human' && occupant.connected && !session.continued?.includes(seat)
+    // The local player has their own button.
+    seat !== me &&
+    occupant.kind === 'human' &&
+    occupant.connected &&
+    !session.continued?.includes(seat)
       ? [seatName(view, seat)]
       : [],
   );
   const signed = (value: number) => (
-    <span className={value > 0 ? styles.positive : value < 0 ? styles.negative : ''}>
+    <span className={value > 0 ? ui.positive : value < 0 ? ui.negative : ''}>
       {formatScore(value)}
     </span>
   );
@@ -33,7 +37,7 @@ export function DealResult({ view, send }: { view: RoomView; send: Send }) {
         <>
           <p className={styles.headline}>
             <span>{fr.table.contract(fr.bid[result.contract], seatName(view, result.taker))}</span>
-            <strong className={result.made ? styles.positive : styles.negative}>
+            <strong className={result.made ? ui.positive : ui.negative}>
               {result.made ? fr.result.made(result.gap) : fr.result.failed(result.gap)}
             </strong>
           </p>

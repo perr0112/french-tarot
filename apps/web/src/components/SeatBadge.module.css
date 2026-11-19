@@ -38,6 +38,8 @@
 /* What the seat has shown (a poignée, écart trumps): small cards under its name. */
 .badge > [role='group'] {
   margin-top: var(--space-1);
+  /* At most five small cards a row: a poignée wraps under its seat instead of widening it. */
+  max-width: calc(5 * var(--card-mini) + 4 * var(--space-1));
   justify-content: center;
   font-size: var(--text-xs-size);
   line-height: var(--text-xs-line);
@@ -52,12 +54,4 @@
   background: var(--color-surface);
   font-weight: var(--weight-emphasis);
   font-variant-numeric: tabular-nums;
-}
-
-.positive {
-  color: var(--color-positive);
-}
-
-.negative {
-  color: var(--color-negative);
 }

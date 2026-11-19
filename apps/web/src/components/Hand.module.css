@@ -94,4 +94,14 @@
   height: var(--border-thick);
   border-radius: var(--border-thick);
   background: var(--color-ink-on-table-muted);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+/* The rule rises with its card (hover, picked for the écart), so it stays in sight. */
+.marked:has(.enabled:hover)::before {
+  transform: translateY(calc(var(--space-3) * -1));
+}
+
+.marked:has(.picked)::before {
+  transform: translateY(calc(var(--space-5) * -1));
 }

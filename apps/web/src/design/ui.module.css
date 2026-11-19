@@ -61,6 +61,7 @@
   flex-wrap: wrap;
   gap: var(--space-2);
   align-items: center;
+  justify-content: center;
 }
 
 .title {
@@ -106,4 +107,13 @@
   .slideIn {
     animation: fade-in var(--duration-instant) var(--ease-out);
   }
+}
+
+/* A score's sign, also carried by its + or − (DESIGN.md §2: never colour alone). */
+.positive {
+  color: var(--color-positive);
+}
+
+.negative {
+  color: var(--color-negative);
 }

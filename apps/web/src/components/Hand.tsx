@@ -130,10 +130,11 @@ export function Hand({
       {sorted.map((card) => {
         const enabled = active?.includes(card) ?? false;
         const picked = selected.includes(card);
+        const fromChien = marked.includes(card);
         return (
           <li
             key={card}
-            className={`${styles.slot} ${marked.includes(card) ? styles.marked : ''}`}
+            className={`${styles.slot} ${fromChien ? styles.marked : ''}`}
             data-card={card}
           >
             <button
@@ -142,7 +143,7 @@ export function Hand({
               disabled={!enabled}
               aria-pressed={selected.length > 0 || picked ? picked : undefined}
               aria-label={cardName(card)}
-              aria-description={marked.includes(card) ? fr.table.fromChien : undefined}
+              aria-description={fromChien ? fr.table.fromChien : undefined}
               onClick={(event) => {
                 // The face as it stands now (lifted on hover), where a played card leaves from.
                 const face = event.currentTarget.querySelector('svg');

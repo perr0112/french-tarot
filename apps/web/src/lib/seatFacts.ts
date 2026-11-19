@@ -1,4 +1,4 @@
-import type { Seat } from '@tarot/engine';
+import { CONTRACT_RULES, type Card, type Poignee, type Seat } from '@tarot/engine';
 import type { RoomView } from '@tarot/protocol';
 import { fr } from '../strings/fr';
 import { seatName } from './names';
@@ -20,6 +20,10 @@ export interface SeatFacts {
   readonly tricks: number | null;
   /** What the seat scored in the deal just over, while the table waits for the next one. */
   readonly dealScore: number | null;
+  /** The poignée it showed with its first card. */
+  readonly poignee: Poignee | null;
+  /** The trumps the taker had to show in the écart. */
+  readonly ecartTrumps: readonly Card[];
 }
 
 /**
@@ -28,11 +32,19 @@ export interface SeatFacts {
  */
 function holdsChien(view: RoomView, seat: Seat): boolean {
   const deal = view.deal;
-  if (!deal || deal.taker === null || deal.phase === 'finished') return false;
-  if (deal.contract === 'gardeSans') return seat === deal.taker;
-  if (deal.contract !== 'gardeContre' || seat === deal.taker) return false;
-  if (deal.players < 5) return true;
-  return deal.knownPartner !== null && seat !== deal.knownPartner;
+  if (!deal || deal.taker === null || deal.contract === null || deal.phase === 'finished') {
+    return false;
+  }
+  switch (CONTRACT_RULES[deal.contract].chien) {
+    case 'takerHand':
+      return false;
+    case 'taker':
+      return seat === deal.taker;
+    case 'defence':
+      if (seat === deal.taker) return false;
+      if (deal.players < 5) return true;
+      return deal.knownPartner !== null && seat !== deal.knownPartner;
+  }
 }
 
 export function seatFacts(view: RoomView, seat: Seat): SeatFacts {
@@ -53,7 +65,9 @@ export function seatFacts(view: RoomView, seat: Seat): SeatFacts {
       ? fr.table.disconnected
       : null;
   const running = deal !== null && deal.phase !== 'finished';
-  const lastResult = view.session?.continued ? view.session.history.at(-1)?.result : null;
+  // The session waits for the players to ask for the next deal: the last one is over.
+  const betweenDeals = view.session?.continued != null;
+  const lastResult = betweenDeals ? view.session?.history.at(-1)?.result : null;
   return {
     name: seatName(view, seat),
     you,
@@ -65,5 +79,7 @@ export function seatFacts(view: RoomView, seat: Seat): SeatFacts {
     tricks:
       deal?.phase === 'playing' || deal?.phase === 'finished' ? (deal.tricksWon[seat] ?? 0) : null,
     dealScore: lastResult?.perSeat[seat] ?? null,
+    poignee: deal?.poignees.find((p) => p.seat === seat) ?? null,
+    ecartTrumps: deal?.taker === seat ? deal.shownEcartTrumps : [],
   };
 }

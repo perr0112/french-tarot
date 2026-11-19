@@ -1,6 +1,8 @@
 import type { BidChoice, PoigneeLevel } from '@tarot/engine';
 import type { BotSpeed, SeatBotLevel, ServerErrorCode } from '@tarot/protocol';
 
+const poigneeShown = (level: string) => `Poignée ${level.toLowerCase()}`;
+
 /** All user-facing strings (French only). Never inline UI copy in components. */
 export const fr = {
   app: {
@@ -107,9 +109,9 @@ export const fr = {
     withChien: 'avec le chien',
     fromChien: 'Vient du chien',
     ecartTrumps: "Atouts à l'écart",
-    poigneeShown: (level: string) => `Poignée ${level.toLowerCase()}`,
+    poigneeShown,
     dealScore: (score: string) => `Score de la donne : ${score}`,
-    poignee: (name: string, level: string) => `Poignée ${level.toLowerCase()} de ${name}`,
+    poignee: (name: string, level: string) => `${poigneeShown(level)} de ${name}`,
     lastTrick: 'Dernier pli',
     trick: 'Pli en cours',
     hideLastTrick: 'Revenir au pli',

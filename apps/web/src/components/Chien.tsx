@@ -1,15 +1,22 @@
 import type { Seat } from '@tarot/engine';
 import { useLayoutEffect, useRef, useState } from 'react';
-import type { ChienOnTable } from '../lib/chien';
-import { flyOut, layoutBox, rememberChienBox, seatBox, turnOver } from '../motion/animate';
+import type { ChienDestination, ChienOnTable } from '../lib/chien';
+import {
+  DURATION,
+  flyOut,
+  layoutBox,
+  rememberChienBox,
+  seatBox,
+  turnOver,
+} from '../motion/animate';
 import { fr } from '../strings/fr';
 import { CardBack, CardFace } from './Card';
 import styles from './Chien.module.css';
 
-/** The chien on its way out of the centre: to a seat, or to the whole defence (null). */
+/** The chien on its way out of the centre: to a seat, or to the whole defence. */
 interface Leaving {
   readonly chien: ChienOnTable;
-  readonly to: Seat | null;
+  readonly to: Seat | 'defence';
 }
 
 interface Motion {
@@ -46,7 +53,7 @@ export function Chien({
 }: {
   chien: ChienOnTable | null;
   /** Where it goes once it leaves the centre (lib/chien.ts). */
-  leavesTo: Seat | 'hand' | null;
+  leavesTo: ChienDestination;
 }) {
   const key = keyOf(chien);
   const list = useRef<HTMLOListElement>(null);
@@ -63,8 +70,9 @@ export function Chien({
     setPrevious({ key, chien });
     setMotion({
       turned: before !== null && !before.faceUp && chien?.faceUp === true,
+      // Into the local hand: the hand flies the cards in. Nowhere (a cancelled deal): it goes.
       leaving:
-        before !== null && chien === null && leavesTo !== 'hand'
+        before !== null && chien === null && leavesTo !== 'hand' && leavesTo !== null
           ? { chien: before, to: leavesTo }
           : null,
     });
@@ -72,13 +80,18 @@ export function Chien({
 
   useLayoutEffect(() => {
     const root = list.current;
-    if (!root) return;
+    if (!root) {
+      // Gone from the centre: only the taker's hand, taking it this very commit, may use where
+      // it lay.
+      if (leavesTo !== 'hand') rememberChienBox(null);
+      return;
+    }
     // The middle card: where the taker's hand takes the chien from.
     const slots = [...root.children] as HTMLElement[];
     const middle = slots[Math.floor(slots.length / 2)];
     if (middle) rememberChienBox(layoutBox(middle));
-    if (motion.turned) slots.forEach((slot, i) => turnOver(slot, i * 40));
-  }, [key, motion.turned]);
+    if (motion.turned) slots.forEach((slot, i) => turnOver(slot, i * DURATION.turnStagger));
+  }, [key, motion.turned, leavesTo]);
 
   const leaving = motion.leaving;
   useLayoutEffect(() => {
@@ -88,7 +101,7 @@ export function Chien({
     const done = () => {
       if (mounted) setMotion((m) => (m.leaving === leaving ? { ...m, leaving: null } : m));
     };
-    const target = leaving.to === null ? null : seatBox(leaving.to);
+    const target = leaving.to === 'defence' ? null : seatBox(leaving.to);
     const flights = [...root.children].map((el) => flyOut(el, target));
     if (flights.some((f) => f === null)) {
       done();

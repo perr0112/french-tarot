@@ -16,6 +16,7 @@ export const DURATION = {
   base: ms(tokens.duration.base),
   slow: ms(tokens.duration.slow),
   deal: ms(tokens.motion.deal),
+  turnStagger: ms(tokens.motion['turn-stagger']),
 } as const;
 export const EASE = tokens.ease;
 /** Cards leaving a seat's badge (played, dealt) start small there and grow to their place. */
@@ -107,13 +108,15 @@ export function flyIn(
 
 /**
  * Takes an element from its place to `to`, shrinking (a trick collected). It leaves at once and
- * has faded by mid-flight, so the next trick's cards are never mixed with it.
+ * has faded by mid-flight, so the next trick's cards are never mixed with it. With no `to` (the
+ * chien set aside for the defence), it fades out where it lies.
  */
 export function flyOut(element: Element, to: Box | null): Animation | null {
   if (!canAnimate(element)) return null;
   if (reducedMotion() || !to) {
     return element.animate([{ opacity: 1 }, { opacity: 0 }], {
-      duration: DURATION.instant,
+      duration: reducedMotion() ? DURATION.instant : DURATION.slow,
+      easing: EASE.out,
       fill: 'forwards',
     });
   }
@@ -152,8 +155,9 @@ export function appear(element: Element): Animation | null {
 }
 
 /**
- * Where the chien lay in the centre, so the taker's hand can take its cards from there: written
- * by the chien on layout, read once by the hand when the cards join it.
+ * Where the chien lies in the centre, so the taker's hand can take its cards from there: written
+ * by the chien on layout, cleared when it leaves the centre any other way, read once by the hand
+ * when the cards join it.
  */
 let chienBox: Box | null = null;
 export const rememberChienBox = (box: Box | null) => void (chienBox = box);

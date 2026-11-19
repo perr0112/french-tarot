@@ -45,9 +45,10 @@ export const tokens = {
   duration: { instant: '100ms', fast: '180ms', base: '260ms', slow: '400ms' },
   /**
    * Table motion (DESIGN.md §3.6): `deal` is the whole deal animation, whatever the number of
-   * cards; cards leaving a badge start at `from-seat`; collected tricks end at `collected`.
+   * cards; cards leaving a badge start at `from-seat`; collected tricks end at `collected`;
+   * the chien's cards turn over `turn-stagger` apart.
    */
-  motion: { deal: '700ms', 'from-seat': '0.5', collected: '0.4' },
+  motion: { deal: '700ms', 'from-seat': '0.5', collected: '0.4', 'turn-stagger': '40ms' },
   ease: {
     out: 'cubic-bezier(0.22, 1, 0.36, 1)',
     'in-out': 'cubic-bezier(0.65, 0, 0.35, 1)',
@@ -60,6 +61,8 @@ export const tokens = {
     ratio: String(CARD_H / CARD_W),
     hand: 'clamp(56px, 7vw, 84px)',
     trick: 'clamp(48px, 7vw, 80px)',
+    /** Share of a card hidden by the next one in a spread (the chien). */
+    'spread-overlap': '0.45',
     /** The winner's card on the final podium. */
     podium: 'clamp(84px, 12vw, 128px)',
     mini: '32px',

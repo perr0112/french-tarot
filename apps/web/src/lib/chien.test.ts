@@ -2,6 +2,7 @@ import { ALL_CARDS, getPlayerView, isTrump, type Card } from '@tarot/engine';
 import { describe, expect, it } from 'vitest';
 import { dealWith, playOut, takes } from '../testing/views';
 import { chienLeavesTo, chienOnTable } from './chien';
+import { sortHand } from './hand';
 
 const hand: Card[] = [
   ...ALL_CARDS.filter((c) => isTrump(c) && Number(c.slice(1)) <= 13),
@@ -18,7 +19,7 @@ describe('chienOnTable', () => {
     const deal = takes(dealWith(hand), 'garde');
     expect(chienOnTable(getPlayerView(deal, 1))).toEqual({
       faceUp: true,
-      cards: chienCards(dealWith(hand)),
+      cards: sortHand(chienCards(dealWith(hand))),
     });
   });
 
@@ -49,7 +50,17 @@ describe('chienLeavesTo', () => {
     expect(chienLeavesTo(getPlayerView(takes(dealWith(hand), 'garde'), 0))).toBe('hand');
   });
 
-  it('goes to nobody in particular in a garde contre: the whole defence', () => {
-    expect(chienLeavesTo(getPlayerView(takes(dealWith(hand), 'gardeContre'), 1))).toBeNull();
+  it('goes to the whole defence in a garde contre', () => {
+    expect(chienLeavesTo(getPlayerView(takes(dealWith(hand), 'gardeContre'), 1))).toBe('defence');
+  });
+
+  it('goes nowhere when everyone passed', () => {
+    const passed = playOut(dealWith(hand), [
+      [0, { type: 'bid', contract: 'pass' }],
+      [1, { type: 'bid', contract: 'pass' }],
+      [2, { type: 'bid', contract: 'pass' }],
+      [3, { type: 'bid', contract: 'pass' }],
+    ]);
+    expect(chienLeavesTo(getPlayerView(passed, 1))).toBeNull();
   });
 });

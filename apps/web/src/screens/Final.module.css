@@ -31,6 +31,7 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  /* Cards of different sizes stand on one line, and so do the names under them. */
   align-items: end;
   gap: var(--space-5) var(--space-4);
 }
@@ -44,6 +45,10 @@
 
 .podium .first {
   --podium-card: var(--card-podium);
+}
+
+/* Only the winner's card is raised: every name stays on one line. */
+.first .card {
   transform: translateY(calc(var(--space-5) * -1));
 }
 

@@ -83,17 +83,18 @@ Contrast: all text ≥ 4.5:1 against its background (≥ 3:1 for text ≥ 24 px)
 
 CSS variables: `--width-*`, `--card-*` (card values are widths; height = width × `card-ratio`).
 
-| Token           | Value                      | Use                                             |
-| --------------- | -------------------------- | ----------------------------------------------- |
-| `width-narrow`  | 420 px                     | Home, nickname form                             |
-| `width-regular` | 560 px                     | Decision panels, score sheet drawer             |
-| `width-wide`    | 720 px                     | Lobby, final ranking                            |
-| `card-ratio`    | 1.77                       | Card height / width (from geometry.ts)          |
-| `card-hand`     | `clamp(56px, 7vw, 84px)`   | Cards in the player's hand                      |
-| `card-trick`    | `clamp(48px, 7vw, 80px)`   | Cards in the current / previous trick           |
-| `card-podium`   | `clamp(84px, 12vw, 128px)` | The winner's card on the final podium           |
-| `card-mini`     | 32 px                      | Mini cards under a seat (poignée, écart trumps) |
-| `card-chip`     | 36 px                      | Poignée chooser chips                           |
+| Token                 | Value                      | Use                                                        |
+| --------------------- | -------------------------- | ---------------------------------------------------------- |
+| `width-narrow`        | 420 px                     | Home, nickname form                                        |
+| `width-regular`       | 560 px                     | Decision panels, score sheet drawer                        |
+| `width-wide`          | 720 px                     | Lobby, final ranking                                       |
+| `card-ratio`          | 1.77                       | Card height / width (from geometry.ts)                     |
+| `card-hand`           | `clamp(56px, 7vw, 84px)`   | Cards in the player's hand                                 |
+| `card-trick`          | `clamp(48px, 7vw, 80px)`   | Cards in the current / previous trick                      |
+| `card-spread-overlap` | 0.45                       | Share of a card hidden by the next in a spread (the chien) |
+| `card-podium`         | `clamp(84px, 12vw, 128px)` | The winner's card on the final podium                      |
+| `card-mini`           | 32 px                      | Mini cards under a seat (poignée, écart trumps)            |
+| `card-chip`           | 36 px                      | Poignée chooser chips                                      |
 
 - **Breakpoint**: one only, `compact` = 600 px (`@media (max-width: 600px)`). Media queries cannot read CSS variables, so the value is exported once as `breakpoints.compact` in `tokens.ts`; CSS repeats the literal 600px and nothing else.
 
@@ -119,7 +120,7 @@ CSS variables: `--width-*`, `--card-*` (card values are widths; height = width �
 - Respect `prefers-reduced-motion`: replace movement with opacity fades ≤ 150 ms.
 - Bot move pacing (fast / normal / slow, AGENTS.md §5) is a game delay, not an animation duration.
 
-**Table animations** (Web Animations API, `apps/web/src/motion/`; the view is always up to date, an animation only catches up and never delays input). Motion tokens: `motion-deal` 700 ms (a whole deal), `motion-from-seat` 0.5 (start scale of a card leaving a badge), `motion-collected` 0.4 (end scale of a collected card).
+**Table animations** (Web Animations API, `apps/web/src/motion/`; the view is always up to date, an animation only catches up and never delays input). Motion tokens: `motion-deal` 700 ms (a whole deal), `motion-from-seat` 0.5 (start scale of a card leaving a badge), `motion-collected` 0.4 (end scale of a collected card), `motion-turn-stagger` 40 ms (between two chien cards turning over).
 
 | What                                   | Motion                                                                                                                                                                                                           | Token                       |
 | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
@@ -129,8 +130,8 @@ CSS variables: `--width-*`, `--card-*` (card values are widths; height = width �
 | Last trick of a deal                   | its last card lands and the trick stays shown for the room's trick pause (`TRICK_PAUSE_MS`), then the deal result enters                                                                                         | —                           |
 | Deal                                   | your cards fly in one by one from the dealer's badge, fading in over the first fifth of their flight, `motion-deal` in all; a click or key finishes it; not replayed when the page opens on a deal already dealt | `duration-base`, `ease-out` |
 | Hand reflow                            | kept cards slide to their new place; cards joining (the chien, for the taker) fly in from where the chien lay, else fade in                                                                                      | `duration-fast`, `ease-out` |
-| Chien turned over (petite, garde)      | for the other players, each card turns face up where it lies (`rotateY`); the room pauses `CHIEN_PAUSE_MS` before a bot taker discards                                                                           | `duration-fast`, `ease-out` |
-| Chien taken or set aside               | it slides to the taker's badge like a collected trick (after the écart, or in a garde sans); in a garde contre it fades out                                                                                      | `duration-slow`, `ease-out` |
+| Chien turned over (petite, garde)      | for the other players, each card turns face up where it lies (`rotateY`), `motion-turn-stagger` apart; the room pauses `CHIEN_PAUSE_MS` before a bot taker discards                                              | `duration-fast`, `ease-out` |
+| Chien taken or set aside               | it slides to the taker's badge like a collected trick (after the écart, or in a garde sans); in a garde contre it fades out where it lies; a cancelled deal's simply goes                                        | `duration-slow`, `ease-out` |
 | Decision panel, deal result            | fade and rise of `space-2` (`.enter`); closing is instant                                                                                                                                                        | `duration-fast`, `ease-out` |
 | Score sheet                            | slides in from the right (`.slideIn`)                                                                                                                                                                            | `duration-base`, `ease-out` |
 
@@ -177,3 +178,4 @@ Record design decisions here (date — decision — reason).
 - 2026-11-19 — Review of the scans: `card-paper` token (cartouches, trump bands, face under a loading scan) replaces the now unused `card-back`; `card-ratio` token and `radius-card` derived from `geometry.ts`; dimmed cards `brightness(0.55) saturate(0.4)` → `brightness(0.6)` (the desaturation made the scans muddy).
 - 2026-11-19 — Motion tokens `motion-deal`, `motion-from-seat`, `motion-collected` (table animations, §3.6).
 - 2026-11-19 — Chien, poignées and écart trumps moved from the info bar to the table (centre, under the seats); deal scores under each seat; final screen as a card podium; `card-podium` token. Reason: user request — information was scattered with no link to the table or the players.
+- 2026-11-19 — Review: `motion-turn-stagger` and `card-spread-overlap` tokens; chien cards get `shadow-card` so the backs can be counted; score colours `.positive` / `.negative` shared in `ui.module.css`; the deal slip's total in bold without a rule.

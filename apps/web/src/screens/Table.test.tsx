@@ -212,7 +212,7 @@ describe('the end of a deal', () => {
 });
 
 describe('between deals', () => {
-  it('asks for the next deal and names who is still awaited', () => {
+  it('asks for the next deal and names who else is still awaited', () => {
     const send = vi.fn();
     const view = roomView(null, 0, {
       session: {
@@ -226,7 +226,7 @@ describe('between deals', () => {
     });
     render(<Table view={view} send={send} />);
     expect(screen.getByText('Tout le monde a passé.')).toBeTruthy();
-    expect(screen.getByText('En attente de : Alice, Bob')).toBeTruthy();
+    expect(screen.getByText('En attente de : Bob')).toBeTruthy();
     click('Continuer');
     expect(send).toHaveBeenCalledWith({ type: 'continue' });
   });

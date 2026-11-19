@@ -21,8 +21,13 @@
   width: var(--chien-card);
 }
 
+.card {
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
 .card + .card {
-  margin-left: calc(var(--chien-card) * -0.45);
+  margin-left: calc(var(--chien-card) * var(--card-spread-overlap) * -1);
 }
 
 [data-leaving] {
