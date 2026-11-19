@@ -1,3 +1,4 @@
+import { CONTRACT_RULES, variantFor, type Contract } from '@tarot/engine';
 import type { RoomView } from '@tarot/protocol';
 import { cardName, formatScore } from '../lib/cards';
 import { seatName } from '../lib/names';
@@ -5,6 +6,9 @@ import { fr } from '../strings/fr';
 import ui from '../design/ui.module.css';
 import { CardStrip } from './CardStrip';
 import styles from './InfoBar.module.css';
+
+/** A garde sans or contre sets the chien aside face down: its size is public, its cards never. */
+const hiddenChien = (contract: Contract) => CONTRACT_RULES[contract].chien !== 'takerHand';
 
 /** Quiet, persistent game state: contract, called card, poignées, chien, scores (DESIGN.md §5). */
 export function InfoBar({
@@ -46,6 +50,9 @@ export function InfoBar({
         ))}
         {deal?.chien && deal.phase !== 'finished' && (
           <CardStrip label={fr.table.chien} cards={deal.chien} />
+        )}
+        {deal?.contract && hiddenChien(deal.contract) && deal.phase !== 'finished' && (
+          <CardStrip label={fr.table.chien} hidden={variantFor(deal.players).chienSize} />
         )}
         {deal && deal.shownEcartTrumps.length > 0 && (
           <CardStrip label={fr.table.ecartTrumps} cards={deal.shownEcartTrumps} />

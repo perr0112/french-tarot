@@ -46,3 +46,10 @@
   font-size: var(--text-sm-size);
   line-height: var(--text-sm-line);
 }
+
+.credit {
+  margin: 0;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-line);
+  color: var(--color-ink-on-table-muted);
+}

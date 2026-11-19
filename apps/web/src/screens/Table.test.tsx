@@ -1,4 +1,5 @@
-import { ALL_CARDS, isTrump, type Card } from '@tarot/engine';
+import { ALL_CARDS, createDeal, isTrump, type Card } from '@tarot/engine';
+import { DEFAULT_ROOM_OPTIONS } from '@tarot/protocol';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { cardName } from '../lib/cards';
@@ -175,5 +176,47 @@ describe('between deals', () => {
     expect(screen.getByText('En attente de : Alice, Bob')).toBeTruthy();
     click('Continuer');
     expect(send).toHaveBeenCalledWith({ type: 'continue' });
+  });
+});
+
+describe('the chien', () => {
+  const hand: Card[] = [...trumps(1, 13), ...suit('S', 1, 5)];
+  const backs = () =>
+    within(screen.getByRole('group', { name: 'Chien' })).getAllByRole('img', {
+      name: 'Carte cachée',
+    });
+
+  it.each(['gardeSans', 'gardeContre'] as const)('shows face down in a %s', (contract) => {
+    render(<Table view={roomView(takes(dealWith(hand), contract), 1)} send={vi.fn()} />);
+    expect(backs()).toHaveLength(6);
+  });
+
+  it('shows its three cards face down in 5 players', () => {
+    const deal = playOut(createDeal({ players: 5, dealer: 0, seed: 11 }), [
+      [1, { type: 'bid', contract: 'gardeSans' }],
+      [2, { type: 'bid', contract: 'pass' }],
+      [3, { type: 'bid', contract: 'pass' }],
+      [4, { type: 'bid', contract: 'pass' }],
+      [0, { type: 'bid', contract: 'pass' }],
+    ]);
+    const seats = Array.from({ length: 5 }, () => ({
+      kind: 'bot' as const,
+      level: 'medium' as const,
+    }));
+    const options = { ...DEFAULT_ROOM_OPTIONS, players: 5 as const };
+    render(<Table view={roomView(deal, 0, { seats, options })} send={vi.fn()} />);
+    expect(backs()).toHaveLength(3);
+  });
+
+  it.each(['petite', 'garde'] as const)('is never face down in a %s', (contract) => {
+    render(<Table view={roomView(takes(dealWith(hand), contract), 1)} send={vi.fn()} />);
+    expect(screen.queryAllByRole('img', { name: 'Carte cachée' })).toHaveLength(0);
+  });
+
+  it('is no longer shown once the deal is over', () => {
+    const view = roomView(takes(dealWith(hand), 'gardeSans'), 1);
+    const deal = view.deal && { ...view.deal, phase: 'finished' as const };
+    render(<Table view={{ ...view, deal }} send={vi.fn()} />);
+    expect(screen.queryByRole('group', { name: 'Chien' })).toBeNull();
   });
 });

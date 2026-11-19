@@ -1,10 +1,17 @@
 import { useEffect, useState } from 'react';
 
-export type Route = { readonly name: 'home' } | { readonly name: 'room'; readonly code: string };
+export type Route =
+  | { readonly name: 'home' }
+  | { readonly name: 'room'; readonly code: string }
+  /** The card contact sheet, for reviewing card art; development builds only. */
+  | { readonly name: 'cards' };
 
 const ROOM_PATH = /^\/salle\/([A-Z0-9]{6})\/?$/;
 
-export function routeOf(pathname: string): Route {
+const CARDS_PATH = /^\/dev\/cartes\/?$/;
+
+export function routeOf(pathname: string, dev: boolean = import.meta.env.DEV): Route {
+  if (dev && CARDS_PATH.test(pathname)) return { name: 'cards' };
   const match = ROOM_PATH.exec(pathname);
   return match?.[1] ? { name: 'room', code: match[1] } : { name: 'home' };
 }

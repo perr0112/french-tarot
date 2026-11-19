@@ -1,0 +1,34 @@
+.sheet {
+  padding: var(--space-5);
+  display: grid;
+  gap: var(--space-4);
+}
+
+.title,
+.heading {
+  margin: 0;
+  font-weight: var(--weight-emphasis);
+}
+
+.title {
+  font-size: var(--text-xl-size);
+  line-height: var(--text-xl-line);
+}
+
+.heading {
+  font-size: var(--text-lg-size);
+  line-height: var(--text-lg-line);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.full {
+  /* Real size: as large as a card in the hand. */
+  width: var(--card-hand);
+  margin: 0;
+  text-align: center;
+}

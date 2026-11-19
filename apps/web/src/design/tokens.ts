@@ -1,3 +1,5 @@
+import { CARD_H, CARD_RADIUS, CARD_W } from '../cards/geometry';
+
 /** Design tokens (DESIGN.md §3). Components use them through the CSS custom properties below. */
 export const tokens = {
   color: {
@@ -13,7 +15,8 @@ export const tokens = {
     'suit-red': '#C23B32',
     'suit-black': '#1C1C1A',
     'card-face': '#FFFDF8',
-    'card-back': '#2C4A6B',
+    /** The paper of the scanned cards: cartouches and bands drawn over them. */
+    'card-paper': '#E4E1D5',
     'card-edge': 'rgb(0 0 0 / 0.12)',
     positive: '#2F7A49',
     negative: '#B5473D',
@@ -27,7 +30,13 @@ export const tokens = {
   },
   weight: { regular: '400', emphasis: '600' },
   space: { 1: '4px', 2: '8px', 3: '12px', 4: '16px', 5: '24px', 6: '32px', 7: '48px', 8: '64px' },
-  radius: { sm: '6px', md: '10px', lg: '16px', card: '8px' },
+  /** card: the drawn corner (geometry.ts) as a share of the card's width / height. */
+  radius: {
+    sm: '6px',
+    md: '10px',
+    lg: '16px',
+    card: `${(CARD_RADIUS / CARD_W) * 100}% / ${((CARD_RADIUS / CARD_H) * 100).toFixed(2)}%`,
+  },
   shadow: {
     card: '0 1px 2px rgb(0 0 0 / 0.18), 0 2px 6px rgb(0 0 0 / 0.12)',
     raised: '0 4px 12px rgb(0 0 0 / 0.22)',
@@ -42,6 +51,8 @@ export const tokens = {
   focus: { offset: '2px' },
   width: { narrow: '420px', regular: '560px', wide: '720px' },
   card: {
+    /** Height / width of every card (the scans' proportions, geometry.ts). */
+    ratio: String(CARD_H / CARD_W),
     hand: 'clamp(56px, 7vw, 84px)',
     trick: 'clamp(48px, 7vw, 80px)',
     mini: '32px',

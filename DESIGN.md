@@ -26,7 +26,7 @@ Goal in one line: **clean, uncluttered, pleasant — the table and the cards are
 - Animating layout properties (`width`, `height`, `top`, `left`) — animate `transform` and `opacity`.
 - Colour as the only carrier of information (suits, playable state, teams): always pair it with shape, position or text.
 - Modals for information that could be inline. A modal is for a decision the game is waiting on.
-- Emoji or third-party icon/card art.
+- Emoji or third-party icons. Card art: only the sourced scans of §4.
 
 ## 3. Tokens
 
@@ -50,9 +50,9 @@ The values below are the reference; code must match them.
 | `accent`             | `#E2B04A`           | Your turn, selected — the only accent |
 | `suit-red`           | `#C23B32`           | ♥ ♦                                   |
 | `suit-black`         | `#1C1C1A`           | ♠ ♣                                   |
-| `card-face`          | `#FFFDF8`           | Card background                       |
-| `card-back`          | `#2C4A6B`           | Card back pattern base                |
-| `card-edge`          | `rgb(0 0 0 / 0.12)` | Card face outline (SVG stroke)        |
+| `card-face`          | `#FFFDF8`           | Mini card background                  |
+| `card-paper`         | `#E4E1D5`           | Scans' paper: cartouches, trump bands |
+| `card-edge`          | `rgb(0 0 0 / 0.12)` | Card face outline (stroke over scans) |
 | `positive`           | `#2F7A49`           | Positive score, contract made         |
 | `negative`           | `#B5473D`           | Negative score, contract failed       |
 
@@ -75,23 +75,24 @@ Contrast: all text ≥ 4.5:1 against its background (≥ 3:1 for text ≥ 24 px)
 ### 3.3 Space, radius, elevation
 
 - Spacing scale (px): `4, 8, 12, 16, 24, 32, 48, 64`. No other values.
-- Radius: `radius-sm 6`, `radius-md 10`, `radius-lg 16`, `radius-card 8` (cards, proportional to card size).
+- Radius: `radius-sm 6`, `radius-md 10`, `radius-lg 16`, `radius-card 8% / 4.5%` (cards only: scales with the card, 8% / 4.5% of its 100:177 box, i.e. 8 units of the 100×177 drawing; use it only on card-shaped boxes).
 - Border widths: `border-thin 1px` (fields, card edge), `border-thick 2px` (turn indicator, frames, focus ring), `border-selected 3px` (selected card outline). `focus-offset 2px` (focus ring offset).
 - Elevation: `shadow-card` = `0 1px 2px rgb(0 0 0 / 0.18), 0 2px 6px rgb(0 0 0 / 0.12)`; `shadow-raised` (hovered/selected card) = `0 4px 12px rgb(0 0 0 / 0.22)`; `shadow-panel` = `0 8px 24px rgb(0 0 0 / 0.16)`. Nothing heavier.
 
 ### 3.4 Layout sizes
 
-CSS variables: `--width-*`, `--card-*` (card values are widths; height follows the 5:8 ratio).
+CSS variables: `--width-*`, `--card-*` (card values are widths; height = width × `card-ratio`).
 
-| Token           | Value                    | Use                                   |
-| --------------- | ------------------------ | ------------------------------------- |
-| `width-narrow`  | 420 px                   | Home, nickname form                   |
-| `width-regular` | 560 px                   | Decision panels, score sheet drawer   |
-| `width-wide`    | 720 px                   | Lobby, final ranking                  |
-| `card-hand`     | `clamp(56px, 7vw, 84px)` | Cards in the player's hand            |
-| `card-trick`    | `clamp(48px, 7vw, 80px)` | Cards in the current / previous trick |
-| `card-mini`     | 32 px                    | Mini cards in the info bar strip      |
-| `card-chip`     | 36 px                    | Poignée chooser chips                 |
+| Token           | Value                    | Use                                    |
+| --------------- | ------------------------ | -------------------------------------- |
+| `width-narrow`  | 420 px                   | Home, nickname form                    |
+| `width-regular` | 560 px                   | Decision panels, score sheet drawer    |
+| `width-wide`    | 720 px                   | Lobby, final ranking                   |
+| `card-ratio`    | 1.77                     | Card height / width (from geometry.ts) |
+| `card-hand`     | `clamp(56px, 7vw, 84px)` | Cards in the player's hand             |
+| `card-trick`    | `clamp(48px, 7vw, 80px)` | Cards in the current / previous trick  |
+| `card-mini`     | 32 px                    | Mini cards in the info bar strip       |
+| `card-chip`     | 36 px                    | Poignée chooser chips                  |
 
 - **Breakpoint**: one only, `compact` = 600 px (`@media (max-width: 600px)`). Media queries cannot read CSS variables, so the value is exported once as `breakpoints.compact` in `tokens.ts`; CSS repeats the literal 600px and nothing else.
 
@@ -119,12 +120,16 @@ CSS variables: `--width-*`, `--card-*` (card values are widths; height follows t
 
 ## 4. Cards
 
-- Ratio **5:8**. Corner index (rank + suit) top-left and bottom-right, readable when cards overlap in the fan.
-- **Trumps**: the number is the hero — large, centred, unique per trump; a consistent trump frame distinguishes them from suit cards at a glance.
-- **Excuse**: instantly recognisable, visually unlike any trump or suit card.
-- **Court cards** (Valet, Cavalier, Dame, Roi): stylised, geometric, one consistent illustration language; the four suits stay distinguishable without colour.
-- Playable vs. unplayable (AGENTS.md §6): unplayable cards are dimmed (opacity ~0.45) **and** not lifted on hover; playable cards lift slightly on hover.
-- All card art is original and lives in the repo.
+- **Art**: scans of the Tarot nouveau B.P. Grimaud (1898), public domain (`apps/web/public/cards/SOURCES.md`), in `public/cards/<card id>.webp`, written by `apps/web/scripts/fetch-cards.py`. The scan is clipped to the card outline, its paper margin cut off.
+- Ratio **100:177**, the scans' proportions (`card-ratio`, `radius-card` and the drawing are all derived from `geometry.ts`). The scan is drawn 2.5 units larger than the card on each side, so only its paper margin is cut off, never the art.
+- **Corner index** drawn over every scan in `card-paper`, so it blends with the scan's paper:
+  - suit cards: rank + suit pip top-left, on a cartouche that covers the scan's own top-left pip (all of it, never half);
+  - trumps: the scan's printed number bands (top and bottom) are covered by paper bands closed by a thin `ink` rule; our number sits upright at the left of the top band and the right of the bottom one (never turned: a turned 9 reads 6). In the fan only our number shows, never a cut or printed one;
+  - the Petit, the 21 and the Excuse: the index on a solid `ink` badge (the Excuse: a star, the badge alone).
+- **Loading**: under a scan the face is `card-paper`; the scan fades in (`duration-fast`) once loaded. Every scan is preloaded when the app opens.
+- **Mini cards** (32–40 px strips): drawn, not scanned — one large value and one mark.
+- Playable vs. unplayable (AGENTS.md §6): unplayable cards (and the reviewed last trick, at `brightness(0.85)`) are darkened (`filter: brightness(0.6)`, not see-through, colours kept so the scans stay clean) **and** not lifted on hover; playable cards lift slightly on hover.
+- All card art lives in the repo, with its source; nothing is loaded from a third-party host.
 
 ## 5. Layout
 
@@ -147,3 +152,6 @@ Record design decisions here (date — decision — reason).
 - 2026-11-18 — Added `card-edge` colour token for the hard-coded card SVG stroke.
 - 2026-11-18 — Added layout tokens: `width-narrow/regular/wide` (420/560/720; lobby 640 → `wide`, it holds the seat list and options), `card-hand/trick/mini/chip` (hand minimum raised 44 → 56 px for mobile legibility), `border-thin/thick/selected`, `focus-offset`, and the single `compact` 600 px breakpoint. Reason: hard-coded sizes found in components.
 - 2026-11-18 — Focus ring no longer uses the accent (light / ink ring with offset) so it is distinct from selection; `accent-color` set for native inputs; `.primary` reserved for the one main action per panel, choice lists neutral. Reason: design review, focus and selection looked identical, accent overused.
+- 2026-11-18 — `radius-card` changed from a fixed `8px` to `8% / 5%`, now also used by `Card.module.css`. Reason: the SVG card set is drawn in a 100×160 viewBox with an 8-unit corner; a proportional radius keeps clip, shadow, drawn edge and card buttons matching at every card size.
+- 2026-11-19 — Card art switched from original SVG drawings to the Grimaud 1898 scans (user request: cards that look like real ones); ratio 5:8 → 100:177 and `radius-card` `8% / 5%` → `8% / 4.5%` to match the scans.
+- 2026-11-19 — Review of the scans: `card-paper` token (cartouches, trump bands, face under a loading scan) replaces the now unused `card-back`; `card-ratio` token and `radius-card` derived from `geometry.ts`; dimmed cards `brightness(0.55) saturate(0.4)` → `brightness(0.6)` (the desaturation made the scans muddy).

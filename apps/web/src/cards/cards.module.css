@@ -1,0 +1,38 @@
+/*
+ * Styles of what is drawn over the scans and of the mini cards. Colours come only from the card
+ * palette (DESIGN.md §3.1). The card outline (card-edge) and the scans are in Card.module.css.
+ */
+
+.red {
+  fill: var(--color-suit-red);
+}
+
+.black {
+  fill: var(--color-suit-black);
+}
+
+/* Trumps and the Excuse. */
+.ink {
+  fill: var(--color-ink);
+}
+
+/* Cartouches and trump bands over a scan: the scans' paper colour, so they blend in. */
+.paper {
+  fill: var(--color-card-paper);
+}
+
+.knockout {
+  fill: var(--color-card-face);
+}
+
+.label {
+  font-family: var(--font-ui);
+  font-weight: var(--weight-emphasis);
+  text-anchor: middle;
+}
+
+/* Mini trump frame; its stroke weight is set by the drawing. */
+.frame {
+  fill: none;
+  stroke: var(--color-ink);
+}

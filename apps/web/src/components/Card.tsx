@@ -1,120 +1,151 @@
-import { EXCUSE, isTrump, rankOf, suitOf, trumpValue, type Card, type Suit } from '@tarot/engine';
+import { EXCUSE, isOudler, suitOf, trumpValue, type Card } from '@tarot/engine';
+import { useEffect, useId, useState } from 'react';
+import {
+  backScan,
+  CornerIndex,
+  faceScan,
+  isScanLoaded,
+  MiniExcuseCard,
+  MiniSuitCard,
+  MiniTrumpCard,
+  scanLoaded,
+  type IndexContent,
+} from '../cards';
+import {
+  CARD_H,
+  CARD_RADIUS,
+  CARD_W,
+  EDGE_INSET,
+  EDGE_STROKE,
+  SCAN_BLEED,
+} from '../cards/geometry';
 import { cardName, cornerLabel } from '../lib/cards';
 import { fr } from '../strings/fr';
 import styles from './Card.module.css';
 
-/** Suit symbols drawn in a 20×20 box (no font glyphs, which may render as emoji). */
-function SuitShape({ suit, x, y, size }: { suit: Suit; x: number; y: number; size: number }) {
-  const scale = size / 20;
-  const shape = {
-    S: (
-      <path d="M10 1C10 1 1 7.5 1 12c0 2.8 2.2 4.5 4.6 4.5 1.8 0 3.2-.9 3.8-2.1L8 19h4l-1.4-4.6c.6 1.2 2 2.1 3.8 2.1 2.4 0 4.6-1.7 4.6-4.5C19 7.5 10 1 10 1Z" />
-    ),
-    H: (
-      <path d="M10 18S1 12 1 6.5C1 3.5 3.5 1.5 6 1.5c1.8 0 3.2 1.1 4 2.5.8-1.4 2.2-2.5 4-2.5 2.5 0 5 2 5 5C19 12 10 18 10 18Z" />
-    ),
-    D: <path d="M10 0.5 18 10 10 19.5 2 10Z" />,
-    C: (
-      <>
-        <circle cx="10" cy="5.6" r="4.3" />
-        <circle cx="5" cy="11.6" r="4.3" />
-        <circle cx="15" cy="11.6" r="4.3" />
-        <path d="M9 11.5 7.4 19h5.2L11 11.5Z" />
-      </>
-    ),
-  }[suit];
-  return <g transform={`translate(${x} ${y}) scale(${scale})`}>{shape}</g>;
+const VIEW_BOX = `0 0 ${CARD_W} ${CARD_H}`;
+
+/** Default: the scanned card with its corner index. Mini (32–40 px strips): one value, one mark. */
+type CardSize = 'full' | 'mini';
+
+/** The card's outline; its stroke stays inside the card. */
+function Edge({ className }: { className: string | undefined }) {
+  return (
+    <rect
+      x={EDGE_INSET}
+      y={EDGE_INSET}
+      width={CARD_W - 2 * EDGE_INSET}
+      height={CARD_H - 2 * EDGE_INSET}
+      rx={CARD_RADIUS - EDGE_INSET}
+      strokeWidth={EDGE_STROKE}
+      className={className}
+    />
+  );
 }
 
-const RED: ReadonlySet<Suit> = new Set(['H', 'D']);
-
-function SuitCardFace({ card }: { card: Card }) {
-  const suit = suitOf(card) as Suit;
-  const rank = rankOf(card) ?? 0;
-  const label = cornerLabel(card);
-  const court = rank > 10;
-  const corner = (
+/**
+ * A scan with what is drawn over it, clipped to the card's outline; the scan's paper margin is cut
+ * off (SCAN_BLEED). The scan fades in once loaded, over the paper-coloured face.
+ */
+function Scan({ href, children }: { href: string; children?: React.ReactNode }) {
+  const clip = useId();
+  const [loaded, setLoaded] = useState(() => isScanLoaded(href));
+  useEffect(() => {
+    if (loaded) return;
+    let current = true;
+    void scanLoaded(href).then(() => current && setLoaded(isScanLoaded(href)));
+    return () => {
+      current = false;
+    };
+  }, [href, loaded]);
+  return (
     <>
-      <text x="10" y="22" className={styles.index}>
-        {label}
-      </text>
-      <SuitShape suit={suit} x={4.5} y={27} size={11} />
+      <clipPath id={clip}>
+        <rect width={CARD_W} height={CARD_H} rx={CARD_RADIUS} />
+      </clipPath>
+      <g clipPath={`url(#${clip})`}>
+        <image
+          href={href}
+          x={-SCAN_BLEED}
+          y={-SCAN_BLEED}
+          width={CARD_W + 2 * SCAN_BLEED}
+          height={CARD_H + 2 * SCAN_BLEED}
+          preserveAspectRatio="xMidYMid slice"
+          className={`${styles.scan} ${loaded ? styles.loaded : ''}`}
+        />
+        {children}
+      </g>
     </>
   );
-  return (
-    <g className={RED.has(suit) ? styles.red : styles.black}>
-      {corner}
-      <g transform="rotate(180 50 80)">{corner}</g>
-      {court ? (
-        <>
-          <text x="50" y="84" className={styles.court}>
-            {label}
-          </text>
-          <SuitShape suit={suit} x={38} y={92} size={24} />
-        </>
-      ) : (
-        <SuitShape suit={suit} x={32} y={62} size={36} />
-      )}
-    </g>
-  );
 }
 
-function TrumpFace({ card }: { card: Card }) {
-  const n = trumpValue(card) ?? 0;
-  return (
-    <g className={styles.trump}>
-      <rect x="14" y="14" width="72" height="132" rx="4" className={styles.trumpFrame} />
-      {[0, 180].map((angle) => (
-        <g key={angle} transform={`rotate(${angle} 50 80)`}>
-          <text x="10" y="22" className={styles.index}>
-            {n}
-          </text>
-          {/* Where a suit card shows its suit: a small frame marks a trump. */}
-          <rect x="5" y="27" width="10" height="12" rx="2" className={styles.trumpMark} />
-        </g>
-      ))}
-      <text x="50" y="94" className={styles.trumpNumber}>
-        {n}
-      </text>
-    </g>
-  );
+/** What a card's corner index shows. */
+function indexContent(card: Card): IndexContent {
+  if (card === EXCUSE) return { kind: 'excuse' };
+  const trump = trumpValue(card);
+  if (trump !== null) return { kind: 'trump', value: trump, oudler: isOudler(card) };
+  const suit = suitOf(card);
+  if (suit === null) throw new Error(`Not a card: ${card}`);
+  return { kind: 'suit', suit, label: cornerLabel(card) };
 }
 
-function ExcuseFace() {
-  // An eight-point star in a ring: unlike any trump number or suit symbol.
-  const points = Array.from({ length: 16 }, (_, i) => {
-    const r = i % 2 === 0 ? 26 : 11;
-    const a = (Math.PI * i) / 8 - Math.PI / 2;
-    return `${50 + r * Math.cos(a)},${80 + r * Math.sin(a)}`;
-  }).join(' ');
-  return (
-    <g className={styles.excuse}>
-      <circle cx="50" cy="80" r="34" className={styles.excuseRing} />
-      <polygon points={points} />
-      <text x="50" y="140" className={styles.excuseLabel}>
-        {fr.cards.excuse}
-      </text>
-    </g>
-  );
+function MiniArt({ index }: { index: IndexContent }) {
+  if (index.kind === 'excuse') return <MiniExcuseCard />;
+  if (index.kind === 'trump') return <MiniTrumpCard value={index.value} oudler={index.oudler} />;
+  return <MiniSuitCard suit={index.suit} label={index.label} />;
 }
 
-/** One card face, 5:8, original art (DESIGN.md §4). Sized by its container's width. */
-export function CardFace({ card, className }: { card: Card; className?: string }) {
+/**
+ * One card face (DESIGN.md §4): the Grimaud 1898 scan with a corner index over it, or in mini
+ * mode a drawn value and mark. Sized by its container's width.
+ */
+export function CardFace({
+  card,
+  className,
+  size = 'full',
+}: {
+  card: Card;
+  className?: string;
+  size?: CardSize;
+}) {
+  const index = indexContent(card);
   return (
     <svg
-      viewBox="0 0 100 160"
+      viewBox={VIEW_BOX}
       className={`${styles.card} ${className ?? ''}`}
       role="img"
       aria-label={cardName(card)}
     >
-      <rect x="1" y="1" width="98" height="158" rx="8" className={styles.face} />
-      {card === EXCUSE ? (
-        <ExcuseFace />
-      ) : isTrump(card) ? (
-        <TrumpFace card={card} />
+      {size === 'mini' ? (
+        <>
+          <Edge className={styles.face} />
+          <MiniArt index={index} />
+        </>
       ) : (
-        <SuitCardFace card={card} />
+        <>
+          <Edge className={styles.paper} />
+          <Scan href={faceScan(card)}>
+            <CornerIndex content={index} />
+          </Scan>
+          <Edge className={styles.outline} />
+        </>
       )}
+    </svg>
+  );
+}
+
+/** The back of a card: the same for every card, so it tells nothing (DESIGN.md §4). */
+export function CardBack({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox={VIEW_BOX}
+      className={`${styles.card} ${className ?? ''}`}
+      role="img"
+      aria-label={fr.cards.hidden}
+    >
+      <Edge className={styles.paper} />
+      <Scan href={backScan} />
+      <Edge className={styles.outline} />
     </svg>
   );
 }

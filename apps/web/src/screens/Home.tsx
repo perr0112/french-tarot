@@ -65,6 +65,7 @@ export function Home() {
           </button>
         </form>
       </div>
+      <p className={styles.credit}>{fr.app.cardCredit}</p>
     </main>
   );
 }

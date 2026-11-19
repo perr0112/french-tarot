@@ -2,65 +2,40 @@
   display: block;
   width: 100%;
   height: auto;
+  /* Same corner as the drawn edge at every size: 8 units of the 100×177 viewBox. */
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
 }
 
+/* Mini cards: drawn on the face colour. */
 .face {
   fill: var(--color-card-face);
   stroke: var(--color-card-edge);
-  stroke-width: 1;
 }
 
-.red {
-  fill: var(--color-suit-red);
+/* Under a scan while it loads: the scans' paper colour, so the scan's arrival stays quiet. */
+.paper {
+  fill: var(--color-card-paper);
+  stroke: var(--color-card-edge);
 }
 
-.black,
-.trump,
-.excuse {
-  fill: var(--color-suit-black);
+.scan {
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-.index {
-  font-family: var(--font-ui);
-  font-weight: var(--weight-emphasis);
-  font-size: 20px;
-  text-anchor: middle;
+.loaded {
+  opacity: 1;
 }
 
-.court {
-  font-family: var(--font-ui);
-  font-weight: var(--weight-emphasis);
-  font-size: 44px;
-  text-anchor: middle;
+@media (prefers-reduced-motion: reduce) {
+  .scan {
+    transition-duration: var(--duration-instant);
+  }
 }
 
-.trumpFrame {
+/* Drawn over the scan, so the edge stays crisp on the paper's edge. */
+.outline {
   fill: none;
-  stroke: var(--color-ink-muted);
-  stroke-width: 2;
-}
-
-.trumpMark {
-  fill: var(--color-ink-muted);
-}
-
-.trumpNumber {
-  font-family: var(--font-ui);
-  font-weight: var(--weight-emphasis);
-  font-size: 46px;
-  text-anchor: middle;
-}
-
-.excuseRing {
-  fill: none;
-  stroke: var(--color-suit-black);
-  stroke-width: 2;
-}
-
-.excuseLabel {
-  font-family: var(--font-ui);
-  font-size: 13px;
-  text-anchor: middle;
+  stroke: var(--color-card-edge);
 }

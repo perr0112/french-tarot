@@ -5,6 +5,7 @@ import {
   getPlayerView,
   type Action,
   type Card,
+  type Contract,
   type DealState,
   type Seat,
 } from '@tarot/engine';
@@ -28,14 +29,16 @@ export function playOut(deal: DealState, moves: readonly [Seat, Action][]): Deal
   }, deal);
 }
 
-/** Seat 0 takes `contract`, the others pass. */
-export const takes = (deal: DealState, contract: 'petite' | 'garde' | 'gardeSans') =>
-  playOut(deal, [
-    [0, { type: 'bid', contract }],
+/** Seat 0 takes `contract`, the others pass (a garde contre ends the bidding at once). */
+export function takes(deal: DealState, contract: Contract): DealState {
+  const taken = playOut(deal, [[0, { type: 'bid', contract }]]);
+  if (taken.phase !== 'bidding') return taken;
+  return playOut(taken, [
     [1, { type: 'bid', contract: 'pass' }],
     [2, { type: 'bid', contract: 'pass' }],
     [3, { type: 'bid', contract: 'pass' }],
   ]);
+}
 
 /** The room snapshot seat `seat` would receive while `deal` is in play. */
 export function roomView(

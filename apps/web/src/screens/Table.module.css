@@ -70,14 +70,15 @@
 
 /* Compact breakpoint (DESIGN.md §3.4). */
 @media (max-width: 600px) {
+  /* The trick (and the deal result) need the full width: the centre takes its own row under
+     the seats, so no trick card covers the left or right seat. */
   .felt {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas:
+      'topLeft top topRight'
+      'left . right'
+      'centre centre centre';
     padding-inline: var(--space-2);
-  }
-
-  /* The deal result needs the full width: it takes its own row under the seats. */
-  .wide {
-    grid-row: 3;
-    grid-column: 1 / -1;
   }
 }
