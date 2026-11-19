@@ -21,6 +21,17 @@ export function Room({ code }: { code: string }) {
   });
   const { status, view, error, send, dismissError } = useRoomConnection(code, request);
 
+  // The deal in play when this page first saw the table (a reload, a link opened mid-deal): it
+  // is shown as it is, not dealt in again. undefined until the first view.
+  const [dealtBeforeJoining, setDealtBeforeJoining] = useState<number | null | undefined>();
+  if (view && dealtBeforeJoining === undefined) {
+    setDealtBeforeJoining(
+      view.phase === 'playing' && view.deal && view.session?.continued == null
+        ? (view.session?.history.length ?? 0)
+        : null,
+    );
+  }
+
   useEffect(() => {
     if (!error) return;
     const timer = setTimeout(dismissError, ERROR_SHOWN_MS);
@@ -62,7 +73,9 @@ export function Room({ code }: { code: string }) {
         </p>
       )}
       {view?.phase === 'lobby' && <Lobby view={view} send={send} />}
-      {view?.phase === 'playing' && <Table view={view} send={send} />}
+      {view?.phase === 'playing' && (
+        <Table view={view} send={send} dealtBeforeJoining={dealtBeforeJoining ?? null} />
+      )}
       {view?.phase === 'finished' && <Final view={view} send={send} />}
     </>
   );

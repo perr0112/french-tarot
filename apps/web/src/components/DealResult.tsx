@@ -24,7 +24,7 @@ export function DealResult({ view, send }: { view: RoomView; send: Send }) {
     </span>
   );
   return (
-    <section className={ui.panel} aria-label={fr.result.title}>
+    <section className={`${ui.panel} ${ui.enter}`} aria-label={fr.result.title}>
       <h2 className={ui.title}>{result ? fr.result.title : fr.result.cancelled}</h2>
       {result ? (
         <>

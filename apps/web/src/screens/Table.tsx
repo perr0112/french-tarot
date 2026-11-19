@@ -1,6 +1,7 @@
 import type { Card } from '@tarot/engine';
 import type { RoomView } from '@tarot/protocol';
-import { useState } from 'react';
+import { TRICK_PAUSE_MS } from '@tarot/protocol';
+import { useEffect, useState } from 'react';
 import ui from '../design/ui.module.css';
 import { DealResult } from '../components/DealResult';
 import { Hand } from '../components/Hand';
@@ -25,7 +26,16 @@ interface Selection {
 const emptySelection = (key: string): Selection => ({ key, ecart: [], poignee: null });
 
 /** The game table: opponents around, the trick in the centre, the local hand at the bottom. */
-export function Table({ view, send }: { view: RoomView; send: Send }) {
+export function Table({
+  view,
+  send,
+  dealtBeforeJoining = null,
+}: {
+  view: RoomView;
+  send: Send;
+  /** The deal already dealt when this page joined the table: it is shown, not dealt in again. */
+  dealtBeforeJoining?: number | null;
+}) {
   const deal = view.deal;
   const me = view.you.seat ?? 0;
   const positions = seatPositions(view.options.players, me);
@@ -85,9 +95,21 @@ export function Table({ view, send }: { view: RoomView; send: Send }) {
   const betweenDeals = view.session?.continued != null;
   // A fresh deal: nobody has spoken yet, the hand is dealt in from the dealer's seat.
   const dealing =
-    deal?.phase === 'bidding' && deal.bids.length === 0
+    deal?.phase === 'bidding' && deal.bids.length === 0 && dealNumber !== dealtBeforeJoining
       ? { key: String(dealNumber), from: deal.dealer }
       : null;
+  // A deal played to its end keeps its last trick shown for the usual pause, so its last card
+  // lands and is seen, before the result (shown at once when the page opens on it).
+  const lastTrickPause = betweenDeals && deal?.phase === 'finished' && deal.lastTrick !== null;
+  const [resultFor, setResultFor] = useState<number | null>(() =>
+    betweenDeals ? dealNumber : null,
+  );
+  const showsResult = betweenDeals && (!lastTrickPause || resultFor === dealNumber);
+  useEffect(() => {
+    if (!betweenDeals || resultFor === dealNumber) return;
+    const timer = setTimeout(() => setResultFor(dealNumber), TRICK_PAUSE_MS);
+    return () => clearTimeout(timer);
+  }, [betweenDeals, resultFor, dealNumber]);
   // After a trick, its cards stay in the centre until the next card is played.
   const showsLastTrick = reviewLastTrick || !deal?.currentTrick?.cards.length;
   const trick = showsLastTrick ? deal?.lastTrick : deal?.currentTrick;
@@ -113,7 +135,7 @@ export function Table({ view, send }: { view: RoomView; send: Send }) {
           ),
         )}
         <div className={styles.centre}>
-          {betweenDeals ? (
+          {showsResult ? (
             <DealResult view={view} send={send} />
           ) : (
             deal && (
@@ -122,7 +144,7 @@ export function Table({ view, send }: { view: RoomView; send: Send }) {
                 winner={showsLastTrick ? (deal.lastTrick?.winner ?? null) : null}
                 positions={positions}
                 me={me}
-                label={showsLastTrick ? fr.table.lastTrick : fr.table.trick}
+                label={showsLastTrick && trick ? fr.table.lastTrick : fr.table.trick}
                 caption={
                   showsLastTrick && deal?.lastTrick
                     ? fr.table.lastTrickWonBy(seatName(view, deal.lastTrick.winner))
@@ -162,7 +184,7 @@ export function Table({ view, send }: { view: RoomView; send: Send }) {
         )}
       </div>
       {sheetOpen && (
-        <aside className={styles.drawer} aria-label={fr.table.scoreSheet}>
+        <aside className={`${styles.drawer} ${ui.slideIn}`} aria-label={fr.table.scoreSheet}>
           <div className={ui.panel}>
             <div className={styles.drawerHead}>
               <h2 className={ui.title}>{fr.table.scoreSheet}</h2>

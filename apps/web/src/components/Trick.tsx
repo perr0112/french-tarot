@@ -8,7 +8,8 @@ import styles from './Trick.module.css';
 
 /** A completed trick on its way to its winner, drawn where it stood until its cards are gone. */
 interface Collecting {
-  readonly id: number;
+  /** The trick's cards: no two tricks of a deal share one. */
+  readonly id: string;
   readonly winner: Seat;
   readonly cards: readonly PlayedCard[];
 }
@@ -19,9 +20,16 @@ interface Motion {
   readonly collecting: Collecting | null;
 }
 
-const still: Motion = { arrived: [], collecting: null };
-const keyOf = ({ cards, winner }: ShownTrick) => `${cards.map((c) => c.card).join()}|${winner}`;
-let collections = 0;
+const noMotion: Motion = { arrived: [], collecting: null };
+const cardsKey = (cards: readonly PlayedCard[]) => cards.map((c) => c.card).join();
+const keyOf = ({ cards, winner }: ShownTrick) => `${cardsKey(cards)}|${winner}`;
+
+/** The shown trick as last rendered, and the last one shown while animated (before a review). */
+interface Previous {
+  readonly key: string;
+  readonly animated: boolean;
+  readonly lastAnimated: ShownTrick | null;
+}
 
 /**
  * The cards of a trick, each placed towards the seat that played it. When `animated`, a new card
@@ -49,27 +57,32 @@ export function Trick({
   caption?: string | undefined;
   /** A trick looked back at, not the one being played. */
   muted?: boolean;
-  /** Animate changes; off while looking back, so toggling the review moves nothing. */
+  /**
+   * Animate changes; off while looking back, so opening the review moves nothing. Once it is
+   * back on, changes are counted from the trick shown before the review.
+   */
   animated?: boolean;
 }) {
   const shown: ShownTrick = { cards, winner };
   const key = keyOf(shown);
   const list = useRef<HTMLOListElement>(null);
 
-  // What changed is worked out while rendering, so a collected trick is drawn in the same frame
-  // as the card that replaces it.
-  const [seen, setSeen] = useState<{ key: string; shown: ShownTrick; animated: boolean } | null>(
-    null,
-  );
-  const [motion, setMotion] = useState<Motion>(still);
-  if (seen?.key !== key || seen.animated !== animated) {
-    const changes =
-      animated && seen?.animated ? trickChanges(seen.shown, shown) : trickChanges(null, shown);
-    setSeen({ key, shown, animated });
+  // What changed is worked out while rendering (React's "previous props" pattern), so a
+  // collected trick is drawn in the same frame as the card that replaces it.
+  const [previous, setPrevious] = useState<Previous | null>(null);
+  const [motion, setMotion] = useState<Motion>(noMotion);
+  if (previous?.key !== key || previous.animated !== animated) {
+    const base = animated ? (previous?.lastAnimated ?? null) : null;
+    const changes = trickChanges(base, shown);
+    setPrevious({
+      key,
+      animated,
+      lastAnimated: animated ? shown : (previous?.lastAnimated ?? null),
+    });
     setMotion({
       arrived: changes.arrived,
       collecting: changes.collected
-        ? { id: ++collections, ...changes.collected }
+        ? { id: cardsKey(changes.collected.cards), ...changes.collected }
         : animated
           ? motion.collecting
           : null,
@@ -93,8 +106,12 @@ export function Trick({
   useLayoutEffect(() => {
     const root = list.current;
     if (!root || !collecting) return;
-    const done = () =>
-      setMotion((m) => (m.collecting?.id === collecting.id ? { ...m, collecting: null } : m));
+    let mounted = true;
+    const done = () => {
+      if (mounted) {
+        setMotion((m) => (m.collecting?.id === collecting.id ? { ...m, collecting: null } : m));
+      }
+    };
     const target = seatBox(collecting.winner);
     const flights = [...root.querySelectorAll('[data-collecting]')].map((el) => flyOut(el, target));
     if (flights.some((f) => f === null)) {
@@ -102,15 +119,25 @@ export function Trick({
       return;
     }
     void Promise.all(flights.map((f) => f?.finished)).then(done, done);
+    return () => {
+      mounted = false;
+      flights.forEach((f) => f?.cancel());
+    };
   }, [collecting]);
 
+  const place = (seat: Seat) => styles[positions[seat] ?? 'top'];
+
   return (
-    <figure className={`${styles.figure} ${muted ? styles.muted : ''}`}>
+    // Nothing to show before the first card of a deal (kept mounted, so that card flies in).
+    <figure
+      className={`${styles.figure} ${muted ? styles.muted : ''}`}
+      hidden={cards.length === 0 && !collecting}
+    >
       <ol ref={list} className={styles.trick} aria-label={label}>
         {collecting?.cards.map(({ seat, card }) => (
           <li
             key={`collecting-${collecting.id}-${card}`}
-            className={`${styles[positions[seat] ?? 'top']} ${styles.collecting}`}
+            className={`${place(seat)} ${styles.collecting}`}
             data-collecting=""
             aria-hidden
           >
@@ -118,7 +145,7 @@ export function Trick({
           </li>
         ))}
         {cards.map(({ seat, card }) => (
-          <li key={card} className={styles[positions[seat] ?? 'top']} data-card={card}>
+          <li key={card} className={place(seat)} data-card={card}>
             <CardFace card={card} />
           </li>
         ))}

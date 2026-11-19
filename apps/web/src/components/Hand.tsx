@@ -1,10 +1,10 @@
 import type { Card, Seat } from '@tarot/engine';
-import { useLayoutEffect, useRef, type CSSProperties } from 'react';
+import { useEffect, useLayoutEffect, useRef, type CSSProperties } from 'react';
 import { sortHand } from '../lib/hand';
 import { cardName } from '../lib/cards';
 import {
   appear,
-  DEAL_STAGGER_MS,
+  dealStagger,
   flyIn,
   FROM_SEAT_SCALE,
   reducedMotion,
@@ -35,19 +35,28 @@ export interface HandProps {
   readonly dealing?: Dealing | null;
 }
 
-/** Deals the slots in from the dealer's seat; a click or a key finishes it at once. */
-function dealIn(slots: readonly HTMLElement[], from: Box | null) {
-  if (reducedMotion()) return;
+const SKIP_EVENTS = ['pointerdown', 'keydown'] as const;
+
+/**
+ * Deals the slots in from the dealer's seat, one after the other, in `motion-deal` in all; a
+ * click or a key finishes it at once. Returns what ends it early (the hand going away).
+ */
+function dealIn(slots: readonly HTMLElement[], from: Box | null): (() => void) | null {
+  if (reducedMotion()) return null;
+  const stagger = dealStagger(slots.length);
   const flights = slots
-    .map((slot, i) => flyIn(slot, from, { delay: i * DEAL_STAGGER_MS, scale: FROM_SEAT_SCALE }))
+    .map((slot, i) => flyIn(slot, from, { delay: i * stagger, scale: FROM_SEAT_SCALE, fade: true }))
     .filter((f) => f !== null);
-  if (flights.length === 0) return;
-  const skip = () => flights.forEach((f) => f.finish());
-  const events = ['pointerdown', 'keydown'] as const;
-  events.forEach((e) => window.addEventListener(e, skip, { once: true, capture: true }));
-  void Promise.all(flights.map((f) => f.finished))
-    .catch(() => undefined)
-    .then(() => events.forEach((e) => window.removeEventListener(e, skip, { capture: true })));
+  if (flights.length === 0) return null;
+  const unlisten = () =>
+    SKIP_EVENTS.forEach((e) => window.removeEventListener(e, skip, { capture: true }));
+  function skip() {
+    unlisten();
+    flights.forEach((f) => f.finish());
+  }
+  SKIP_EVENTS.forEach((e) => window.addEventListener(e, skip, { capture: true }));
+  void Promise.all(flights.map((f) => f.finished)).then(unlisten, unlisten);
+  return skip;
 }
 
 /** Moves the hand to its new layout: kept cards slide, new ones fade in (DESIGN.md §3.6). */
@@ -65,6 +74,7 @@ export function Hand({ cards, active, selected = [], onPick, dealing = null }: H
   const list = useRef<HTMLUListElement>(null);
   const boxes = useRef<ReadonlyMap<Card, Box>>(new Map());
   const dealt = useRef<string | null>(null);
+  const endDeal = useRef<(() => void) | null>(null);
   const handKey = sorted.join();
   const dealKey = dealing?.key ?? null;
   const dealer = dealing?.from ?? null;
@@ -84,11 +94,14 @@ export function Hand({ cards, active, selected = [], onPick, dealing = null }: H
     boxes.current = now;
     if (dealKey !== null && dealer !== null && dealt.current !== dealKey) {
       dealt.current = dealKey;
-      dealIn(slots, seatBox(dealer));
+      endDeal.current = dealIn(slots, seatBox(dealer));
     } else {
       settle(slots, before);
     }
   }, [handKey, dealKey, dealer]);
+
+  // A deal still flying in when the hand goes away is finished, and stops listening for a skip.
+  useEffect(() => () => endDeal.current?.(), []);
 
   return (
     <ul
@@ -108,7 +121,12 @@ export function Hand({ cards, active, selected = [], onPick, dealing = null }: H
               disabled={!enabled}
               aria-pressed={selected.length > 0 || picked ? picked : undefined}
               aria-label={cardName(card)}
-              onClick={() => onPick?.(card)}
+              onClick={(event) => {
+                // The face as it stands now (lifted on hover), where a played card leaves from.
+                const face = event.currentTarget.querySelector('svg');
+                if (face) rememberHandBox(card, face.getBoundingClientRect());
+                onPick?.(card);
+              }}
             >
               <CardFace card={card} />
             </button>

@@ -1,6 +1,6 @@
 import { ALL_CARDS, createDeal, isTrump, type Card } from '@tarot/engine';
-import { DEFAULT_ROOM_OPTIONS } from '@tarot/protocol';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { DEFAULT_ROOM_OPTIONS, TRICK_PAUSE_MS } from '@tarot/protocol';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { cardName } from '../lib/cards';
 import { dealWith, playOut, roomView, takes } from '../testing/views';
@@ -155,6 +155,59 @@ describe('chelem decision', () => {
       type: 'action',
       action: { type: 'decideChelem', announce: true },
     });
+  });
+});
+
+describe('the end of a deal', () => {
+  const lastTrick = {
+    leader: 1,
+    winner: 1,
+    cards: [
+      { seat: 1, card: 'S14' },
+      { seat: 2, card: 'S02' },
+      { seat: 3, card: 'S03' },
+      { seat: 0, card: 'S04' },
+    ],
+  } as const;
+  const finished = () => {
+    const view = roomView(takes(dealWith([...trumps(1, 13), ...suit('S', 1, 5)]), 'garde'), 0, {
+      session: {
+        deals: 8,
+        played: 1,
+        dealer: 0,
+        totals: [0, 0, 0, 0],
+        history: [{ dealer: 3, result: null, cancelled: { reason: 'allPassed' } }],
+        continued: [],
+      },
+    });
+    const deal = view.deal && {
+      ...view.deal,
+      phase: 'finished' as const,
+      currentTrick: null,
+      lastTrick,
+    };
+    return { ...view, deal };
+  };
+  const result = () => screen.queryByText('Tout le monde a passé.');
+
+  it('keeps the last trick shown for the usual pause, then shows the result', () => {
+    vi.useFakeTimers();
+    try {
+      const playing = roomView(dealWith([...trumps(1, 13), ...suit('S', 1, 5)]));
+      const { rerender } = render(<Table view={playing} send={vi.fn()} />);
+      rerender(<Table view={finished()} send={vi.fn()} />);
+      expect(result()).toBeNull();
+      expect(screen.getByRole('img', { name: cardName('S04') })).toBeTruthy();
+      act(() => vi.advanceTimersByTime(TRICK_PAUSE_MS));
+      expect(result()).toBeTruthy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('shows the result at once when the page opens on it', () => {
+    render(<Table view={finished()} send={vi.fn()} />);
+    expect(result()).toBeTruthy();
   });
 });
 

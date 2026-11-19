@@ -23,7 +23,10 @@ import {
   type SeatOccupant,
   type ServerErrorCode,
   type ServerMessage,
+  TRICK_PAUSE_MS,
 } from '@tarot/protocol';
+
+export { TRICK_PAUSE_MS };
 
 /** Delay before each bot move, by room option (AGENTS.md §5). */
 export const BOT_DELAY_MS: Readonly<Record<BotSpeed, number>> = {
@@ -31,8 +34,6 @@ export const BOT_DELAY_MS: Readonly<Record<BotSpeed, number>> = {
   normal: 800,
   slow: 1500,
 };
-/** Pause after a completed trick, so everyone sees it before the next card. */
-export const TRICK_PAUSE_MS = 1500;
 /** How long a disconnected player keeps their seat before a bot plays it. */
 export const REPLACE_AFTER_MS = 10_000;
 /** A room nobody is connected to is deleted after this long without activity. */

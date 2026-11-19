@@ -1,5 +1,5 @@
 .panel {
-  composes: panel from '../design/ui.module.css';
+  composes: panel enter from '../design/ui.module.css';
   display: grid;
   gap: var(--space-3);
   justify-items: center;

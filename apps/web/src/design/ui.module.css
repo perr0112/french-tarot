@@ -41,22 +41,7 @@
   min-width: 0;
 }
 
-/* Panels enter with a short fade and rise; nothing waits for it, and closing is instant. */
-@keyframes panel-enter {
-  from {
-    opacity: 0;
-    transform: translateY(var(--space-2));
-  }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-}
-
 .panel {
-  animation: panel-enter var(--duration-fast) var(--ease-out);
   background: var(--color-surface);
   color: var(--color-ink);
   border-radius: var(--radius-lg);
@@ -85,8 +70,40 @@
   margin: 0 0 var(--space-3);
 }
 
+/*
+ * Entering the table's panels (DESIGN.md §3.6): decisions and the deal result fade and rise, the
+ * score sheet slides in from the right. Nothing waits for them, and closing is instant.
+ */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-2));
+  }
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.enter {
+  animation: rise-in var(--duration-fast) var(--ease-out);
+}
+
+.slideIn {
+  animation: slide-in var(--duration-base) var(--ease-out);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .panel {
+  .enter,
+  .slideIn {
     animation: fade-in var(--duration-instant) var(--ease-out);
   }
 }

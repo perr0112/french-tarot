@@ -43,6 +43,11 @@ export const tokens = {
     panel: '0 8px 24px rgb(0 0 0 / 0.16)',
   },
   duration: { instant: '100ms', fast: '180ms', base: '260ms', slow: '400ms' },
+  /**
+   * Table motion (DESIGN.md §3.6): `deal` is the whole deal animation, whatever the number of
+   * cards; cards leaving a badge start at `from-seat`; collected tricks end at `collected`.
+   */
+  motion: { deal: '700ms', 'from-seat': '0.5', collected: '0.4' },
   ease: {
     out: 'cubic-bezier(0.22, 1, 0.36, 1)',
     'in-out': 'cubic-bezier(0.65, 0, 0.35, 1)',
@@ -83,6 +88,7 @@ export function tokensCss(): string {
   for (const [k, v] of Object.entries(tokens.shadow)) add(`shadow-${k}`, v);
   for (const [k, v] of Object.entries(tokens.duration)) add(`duration-${k}`, v);
   for (const [k, v] of Object.entries(tokens.ease)) add(`ease-${k}`, v);
+  for (const [k, v] of Object.entries(tokens.motion)) add(`motion-${k}`, v);
   for (const [k, v] of Object.entries(tokens.border)) add(`border-${k}`, v);
   for (const [k, v] of Object.entries(tokens.focus)) add(`focus-${k}`, v);
   for (const [k, v] of Object.entries(tokens.width)) add(`width-${k}`, v);
