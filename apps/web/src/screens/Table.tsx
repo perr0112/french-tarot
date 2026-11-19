@@ -83,6 +83,11 @@ export function Table({ view, send }: { view: RoomView; send: Send }) {
   };
 
   const betweenDeals = view.session?.continued != null;
+  // A fresh deal: nobody has spoken yet, the hand is dealt in from the dealer's seat.
+  const dealing =
+    deal?.phase === 'bidding' && deal.bids.length === 0
+      ? { key: String(dealNumber), from: deal.dealer }
+      : null;
   // After a trick, its cards stay in the centre until the next card is played.
   const showsLastTrick = reviewLastTrick || !deal?.currentTrick?.cards.length;
   const trick = showsLastTrick ? deal?.lastTrick : deal?.currentTrick;
@@ -111,10 +116,12 @@ export function Table({ view, send }: { view: RoomView; send: Send }) {
           {betweenDeals ? (
             <DealResult view={view} send={send} />
           ) : (
-            trick && (
+            deal && (
               <Trick
-                cards={trick.cards}
+                cards={trick?.cards ?? []}
+                winner={showsLastTrick ? (deal.lastTrick?.winner ?? null) : null}
                 positions={positions}
+                me={me}
                 label={showsLastTrick ? fr.table.lastTrick : fr.table.trick}
                 caption={
                   showsLastTrick && deal?.lastTrick
@@ -122,6 +129,7 @@ export function Table({ view, send }: { view: RoomView; send: Send }) {
                     : undefined
                 }
                 muted={reviewLastTrick}
+                animated={!reviewLastTrick}
               />
             )
           )}
@@ -130,6 +138,8 @@ export function Table({ view, send }: { view: RoomView; send: Send }) {
       <div className={styles.bottom}>
         {!betweenDeals && template && (
           <DecisionPanel
+            // Each decision enters afresh (DESIGN.md §3.6: panel open).
+            key={template.type}
             view={view}
             send={send}
             ecart={ecart}
@@ -147,6 +157,7 @@ export function Table({ view, send }: { view: RoomView; send: Send }) {
             active={betweenDeals ? null : active}
             selected={ecart}
             onPick={pick}
+            dealing={dealing}
           />
         )}
       </div>

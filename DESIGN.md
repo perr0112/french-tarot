@@ -118,6 +118,20 @@ CSS variables: `--width-*`, `--card-*` (card values are widths; height = width �
 - Respect `prefers-reduced-motion`: replace movement with opacity fades ≤ 150 ms.
 - Bot move pacing (fast / normal / slow, AGENTS.md §5) is a game delay, not an animation duration.
 
+**Table animations** (Web Animations API, `apps/web/src/motion/`; the view is always up to date, an animation only catches up and never delays input):
+
+| What                                   | Motion                                                                                         | Token                          |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------ |
+| Card played by you                     | from its place in the fan to its place in the trick                                            | `duration-base`, `ease-out`    |
+| Card played by another seat            | from the seat's badge, at half size, growing to its place                                      | `duration-base`, `ease-out`    |
+| Trick collected (when the next is led) | the completed trick slides to the winner's badge, shrinking and fading                         | `duration-slow`, `ease-in-out` |
+| Deal                                   | your cards fly in one by one from the dealer's badge (25 ms apart); a click or key finishes it | `duration-base`, `ease-out`    |
+| Hand reflow                            | kept cards slide to their new place; cards joining (the chien) fade in                         | `duration-fast`, `ease-out`    |
+| Panel opens (decision, deal result)    | fade and rise of `space-2`; closing is instant                                                 | `duration-fast`, `ease-out`    |
+| Score sheet                            | slides in from the right                                                                       | `duration-base`, `ease-out`    |
+
+Under `prefers-reduced-motion`, flights become `duration-instant` fades, the deal and the hand reflow are not animated, and panels only fade. Looking back at the last trick animates nothing.
+
 ## 4. Cards
 
 - **Art**: scans of the Tarot nouveau B.P. Grimaud (1898), public domain (`apps/web/public/cards/SOURCES.md`), in `public/cards/<card id>.webp`, written by `apps/web/scripts/fetch-cards.py`. The scan is clipped to the card outline, its paper margin cut off.

@@ -23,6 +23,8 @@ export function SeatBadge({
     <div
       className={`${styles.badge} ${facts.isTurn ? styles.turn : ''} ${className ?? ''}`}
       aria-current={facts.isTurn ? 'true' : undefined}
+      // Where this seat's cards come from and its tricks go (motion/animate.ts).
+      data-seat={seat}
     >
       <span className={styles.name}>
         {facts.name}

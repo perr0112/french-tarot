@@ -41,7 +41,22 @@
   min-width: 0;
 }
 
+/* Panels enter with a short fade and rise; nothing waits for it, and closing is instant. */
+@keyframes panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-2));
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
 .panel {
+  animation: panel-enter var(--duration-fast) var(--ease-out);
   background: var(--color-surface);
   color: var(--color-ink);
   border-radius: var(--radius-lg);
@@ -68,4 +83,10 @@
   line-height: var(--text-lg-line);
   font-weight: var(--weight-emphasis);
   margin: 0 0 var(--space-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation: fade-in var(--duration-instant) var(--ease-out);
+  }
 }

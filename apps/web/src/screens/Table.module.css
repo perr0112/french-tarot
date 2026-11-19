@@ -53,7 +53,15 @@
   color: var(--color-ink-on-table-muted);
 }
 
+/* The score sheet slides in from the right edge it is attached to. */
+@keyframes drawer-enter {
+  from {
+    transform: translateX(100%);
+  }
+}
+
 .drawer {
+  animation: drawer-enter var(--duration-base) var(--ease-out);
   position: fixed;
   inset: 0 0 0 auto;
   width: min(var(--width-regular), 100vw);
@@ -61,11 +69,29 @@
   overflow-y: auto;
 }
 
+/* The drawer itself carries the motion: its panel does not rise as well. */
+.drawer > * {
+  animation: none;
+}
+
 .drawerHead {
   display: flex;
   justify-content: space-between;
   align-items: start;
   gap: var(--space-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer {
+    animation-name: fade-in;
+    animation-duration: var(--duration-instant);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
 }
 
 /* Compact breakpoint (DESIGN.md §3.4). */

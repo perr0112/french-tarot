@@ -35,6 +35,11 @@
   align-content: center;
 }
 
+/* A collected trick, drawn under the new cards while it slides to its winner. */
+.collecting {
+  pointer-events: none;
+}
+
 .trick > li {
   align-self: start;
   width: var(--trick-card);
