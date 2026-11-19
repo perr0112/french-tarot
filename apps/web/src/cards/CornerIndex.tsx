@@ -1,9 +1,9 @@
 import type { Suit } from '@tarot/engine';
 import {
+  CARD_H,
   CARD_W,
   EXCUSE_INDEX_STAR,
   EXCUSE_STAR_POINTS,
-  HALF_TURN,
   INDEX_MARK_SIZE,
   INDEX_MARK_Y,
   INDEX_PLATE,
@@ -28,15 +28,29 @@ function OudlerBadge() {
   return <rect x={x} y={y} width={width} height={height} rx={radius} className={styles.ink} />;
 }
 
-/** A paper band over a trump's printed number, closed by an ink rule, with our number in it. */
-function TrumpBand({ value, oudler }: { value: number; oudler: boolean }) {
+/**
+ * Paper bands over a trump's printed numbers, each closed by an ink rule, with our number upright
+ * at the left of the top band and the right of the bottom one (moved, never turned).
+ */
+function TrumpBands({ value, oudler }: { value: number; oudler: boolean }) {
   const { height, rule } = TRUMP_BAND;
+  const bottom = CARD_H - height;
+  const number = (
+    <>
+      {oudler && <OudlerBadge />}
+      <IndexLabel text={String(value)} preset="trump" light={oudler} />
+    </>
+  );
   return (
     <>
       <rect width={CARD_W} height={height} className={styles.paper} />
       <rect y={height - rule} width={CARD_W} height={rule} />
-      {oudler && <OudlerBadge />}
-      <IndexLabel text={String(value)} preset="trump" light={oudler} />
+      <rect y={bottom} width={CARD_W} height={height} className={styles.paper} />
+      <rect y={bottom} width={CARD_W} height={rule} />
+      {number}
+      <g transform={`translate(${CARD_W - 2 * OUDLER_BADGE.x - OUDLER_BADGE.width} ${bottom})`}>
+        {number}
+      </g>
     </>
   );
 }
@@ -78,10 +92,7 @@ export function CornerIndex({ content }: { content: IndexContent }) {
   }
   return (
     <g className={styles.ink}>
-      <TrumpBand {...content} />
-      <g transform={HALF_TURN}>
-        <TrumpBand {...content} />
-      </g>
+      <TrumpBands {...content} />
     </g>
   );
 }

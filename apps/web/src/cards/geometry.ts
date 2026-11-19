@@ -6,8 +6,6 @@ export const CARD_W = 100;
 export const CARD_H = 177;
 export const CENTER_X = CARD_W / 2;
 export const CENTER_Y = CARD_H / 2;
-/** Rotating by this keeps a drawing point-symmetric (the trumps' bottom band). */
-export const HALF_TURN = `rotate(180 ${CENTER_X} ${CENTER_Y})`;
 /**
  * Card outline: radius 8 units (8% of the width, 4.5% of the height, as the CSS clip), drawn
  * with a 1-unit stroke kept inside the card so the fill reaches the edge (no halo under the
@@ -36,12 +34,12 @@ export const INDEX_MARK_SIZE = 13;
 export const INDEX_PLATE = { x: 2, y: 3, width: 34, height: 37, radius: 3 } as const;
 
 /**
- * Trumps: the scan's number bands (y 0–29…34 at the top, 143…146–177 at the bottom, measured on
- * the 21 scans) are covered by paper bands carrying our index at the left of the top band and,
- * turned, at the right of the bottom one: in the fan only our number shows, never a cut or
- * upside-down one. A thin ink rule closes each band.
+ * Trumps: the scan's number bands (scenes start at y 29…34 and end at 143…146, measured on the
+ * 21 scans) are covered by paper bands of the largest height, carrying our number upright at the
+ * left of the top band and the right of the bottom one: in the fan only our number shows, never
+ * a cut or upside-down one (a turned 9 would read 6). A thin ink rule closes each band.
  */
-export const TRUMP_BAND = { height: 30, rule: 0.8 } as const;
+export const TRUMP_BAND = { height: 35, rule: 0.8 } as const;
 
 /**
  * Label presets (corner index, mini card value). Two-character labels ("10"–"21") use a
@@ -50,7 +48,7 @@ export const TRUMP_BAND = { height: 30, rule: 0.8 } as const;
 export const LABEL = {
   corner: { x: INDEX_X, y: INDEX_BASELINE, font: INDEX_FONT, fontWide: 16, trackingWide: -0.8 },
   /** A trump's number in its band, on the oudler badge's centre: larger, as it stands alone. */
-  trump: { x: 12, y: 23, font: 20, fontWide: 18, trackingWide: -0.9 },
+  trump: { x: 12, y: 25, font: 20, fontWide: 18, trackingWide: -0.9 },
   mini: { x: CENTER_X, y: 78, font: 64, fontWide: 58, trackingWide: -3 },
 } as const;
 export type LabelPreset = keyof typeof LABEL;
@@ -59,7 +57,7 @@ export type LabelPreset = keyof typeof LABEL;
  * Oudler mark: the index stands on a solid badge with a light number (or star, on the Excuse),
  * which shows in the fan and in mini cards. On the Excuse the badge is the whole cartouche.
  */
-export const OUDLER_BADGE = { x: 2.5, y: 4.5, width: 19, height: 23, radius: 3 } as const;
+export const OUDLER_BADGE = { x: 2.5, y: 6.5, width: 19, height: 23, radius: 3 } as const;
 
 /** Stars of the Excuse (corner index and mini card); both have 8 points. */
 export const EXCUSE_STAR_POINTS = 8;

@@ -124,11 +124,11 @@ CSS variables: `--width-*`, `--card-*` (card values are widths; height = width �
 - Ratio **100:177**, the scans' proportions (`card-ratio`, `radius-card` and the drawing are all derived from `geometry.ts`). The scan is drawn 2.5 units larger than the card on each side, so only its paper margin is cut off, never the art.
 - **Corner index** drawn over every scan in `card-paper`, so it blends with the scan's paper:
   - suit cards: rank + suit pip top-left, on a cartouche that covers the scan's own top-left pip (all of it, never half);
-  - trumps: the scan's printed number bands (top and bottom) are covered by paper bands closed by a thin `ink` rule; our number sits at the left of the top band and, turned, at the right of the bottom one. In the fan only our number shows, never a cut or upside-down printed one;
+  - trumps: the scan's printed number bands (top and bottom) are covered by paper bands closed by a thin `ink` rule; our number sits upright at the left of the top band and the right of the bottom one (never turned: a turned 9 reads 6). In the fan only our number shows, never a cut or printed one;
   - the Petit, the 21 and the Excuse: the index on a solid `ink` badge (the Excuse: a star, the badge alone).
 - **Loading**: under a scan the face is `card-paper`; the scan fades in (`duration-fast`) once loaded. Every scan is preloaded when the app opens.
 - **Mini cards** (32–40 px strips): drawn, not scanned — one large value and one mark.
-- Playable vs. unplayable (AGENTS.md §6): unplayable cards are darkened (`filter: brightness(0.6)`, not see-through, colours kept so the scans stay clean) **and** not lifted on hover; playable cards lift slightly on hover.
+- Playable vs. unplayable (AGENTS.md §6): unplayable cards (and the reviewed last trick, at `brightness(0.85)`) are darkened (`filter: brightness(0.6)`, not see-through, colours kept so the scans stay clean) **and** not lifted on hover; playable cards lift slightly on hover.
 - All card art lives in the repo, with its source; nothing is loaded from a third-party host.
 
 ## 5. Layout

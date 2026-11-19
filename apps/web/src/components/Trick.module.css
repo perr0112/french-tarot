@@ -5,8 +5,9 @@
   gap: var(--space-2);
 }
 
+/* Darkened, not see-through (as dimmed cards, DESIGN.md §4): the scans stay clean on the felt. */
 .muted .trick {
-  opacity: 0.7;
+  filter: brightness(0.85);
 }
 
 .caption {
