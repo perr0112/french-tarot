@@ -1,6 +1,6 @@
 /*
  * Card drawing styles. Colours come only from the card palette (DESIGN.md §3.1): card-face,
- * suit-red, suit-black, card-back and ink. The card outline (card-edge) is in Card.module.css.
+ * suit-red, suit-black, card-back and ink. Card art is scanned (public/cards); the card outline (card-edge) is in Card.module.css.
  */
 
 .red {
@@ -14,6 +14,11 @@
 /* Trumps and the Excuse. */
 .ink {
   fill: var(--color-ink);
+}
+
+/* The cartouche behind a corner index, over the scan. */
+.plate {
+  fill: var(--color-card-face);
 }
 
 .knockout {
@@ -30,13 +35,4 @@
 .frame {
   fill: none;
   stroke: var(--color-ink);
-}
-
-.backLine {
-  fill: none;
-  stroke: var(--color-card-face);
-}
-
-.backCore {
-  fill: var(--color-card-face);
 }

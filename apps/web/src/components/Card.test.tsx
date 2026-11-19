@@ -27,6 +27,12 @@ describe('card faces', () => {
     }
   });
 
+  it('shows each card its own scan, under a corner index', () => {
+    expect(drawing(<CardFace card="T21" />)).toContain('cards/T21.webp');
+    expect(drawing(<CardFace card="H14" />)).toContain('cards/H14.webp');
+    expect(drawing(<CardFace card="T21" size="mini" />)).not.toContain('.webp');
+  });
+
   it('names every card for screen readers', () => {
     for (const card of ALL_CARDS) {
       const { unmount } = render(<CardFace card={card} />);
@@ -40,6 +46,7 @@ describe('card back', () => {
   it('is named as a hidden card and tells nothing else', () => {
     render(<CardBack />);
     expect(screen.getByRole('img', { name: 'Carte cachée' })).toBeTruthy();
+    expect(drawing(<CardBack />)).toContain('cards/back.webp');
     expect(drawing(<CardBack />)).not.toMatch(/[SHDCT]\d\d|EXC/);
   });
 });

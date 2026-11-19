@@ -14,7 +14,9 @@ A desktop-first web app to play **French Tarot** following the **official FFT ru
 - Any empty seat can be filled by a **bot** (3 difficulty levels).
 - A game is a **session of N deals** with a cumulative score sheet.
 - **UI language: French only.** Code, comments, commits and docs: English.
-- Card art: **original SVG cards** drawn for this project (no third-party card art).
+- Card art: scans of the **Tarot nouveau B.P. Grimaud (1898)**, public domain, digitised by the BnF
+  (source and terms in `apps/web/public/cards/SOURCES.md`). Non-commercial use only: a commercial
+  release needs a BnF licence or other art.
 
 ### Non-goals (for now)
 
@@ -278,7 +280,9 @@ Three levels, all strictly using the redacted player view and `getLegalActions`:
 
 - **Desktop-first** layout: table view with the local player at the bottom, opponents around, hand displayed as a fan.
   Must remain usable on a mobile screen, but no mobile-specific design effort for now.
-- **Original SVG cards**: numbered and visually distinct trumps (1–21), stylised court cards, a clear Excuse. All art lives in the repo; no copied card designs.
+- **Cards**: the Grimaud 1898 scans, served from the repo (never hot-linked), with a drawn corner index over each
+  for the fan, and drawn mini cards for small strips. Any other art must be public domain or freely licensed,
+  with its source recorded next to it.
 - **Game aids** (always on):
   - Playable cards are highlighted; unplayable cards are dimmed and not clickable.
   - Previous trick can be reviewed.
@@ -334,4 +338,4 @@ Code identifiers are in English. Use these mappings consistently:
 4. **Room server** (PartyKit): rooms, seats, redacted views, reconnection, bot replacement.
 5. **Web UI**: lobby, table, bidding, écart, declarations, trick play, score sheet.
 6. **Bot Difficile** (Monte-Carlo).
-7. **Polish**: SVG card set, animations, game aids, deployment (Vercel + PartyKit/Cloudflare).
+7. **Polish**: card set, animations, game aids, deployment (Vercel + PartyKit/Cloudflare).

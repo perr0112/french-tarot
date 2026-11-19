@@ -4,7 +4,7 @@ import {
   CARD_W,
   CENTER_X,
   CENTER_Y,
-  EXCUSE_STAR,
+  EXCUSE_STAR_POINTS,
   MINI_EXCUSE_STAR,
   MINI_PIP,
   MINI_TRUMP_FRAME,
@@ -67,7 +67,7 @@ export function MiniExcuseCard() {
           CENTER_Y,
           MINI_EXCUSE_STAR.outer,
           MINI_EXCUSE_STAR.inner,
-          EXCUSE_STAR.points,
+          EXCUSE_STAR_POINTS,
         )}
         className={styles.knockout}
       />

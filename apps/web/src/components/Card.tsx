@@ -1,26 +1,32 @@
-import { EXCUSE, isOudler, rankOf, suitOf, trumpValue, type Card, type Suit } from '@tarot/engine';
+import { EXCUSE, isOudler, suitOf, trumpValue, type Card } from '@tarot/engine';
+import { useId } from 'react';
 import {
-  CardBackArt,
-  CourtCard,
-  ExcuseCard,
+  backScan,
+  CornerIndex,
+  faceScan,
   MiniExcuseCard,
   MiniSuitCard,
   MiniTrumpCard,
-  PipCard,
-  TrumpCard,
+  type IndexContent,
 } from '../cards';
-import { CARD_H, CARD_RADIUS, CARD_W, EDGE_INSET, EDGE_STROKE } from '../cards/geometry';
+import {
+  CARD_H,
+  CARD_RADIUS,
+  CARD_W,
+  EDGE_INSET,
+  EDGE_STROKE,
+  SCAN_BLEED,
+} from '../cards/geometry';
 import { cardName, cornerLabel } from '../lib/cards';
 import { fr } from '../strings/fr';
 import styles from './Card.module.css';
 
 const VIEW_BOX = `0 0 ${CARD_W} ${CARD_H}`;
-const LAST_PIP_RANK = 10;
 
-/** Default: full art with corner indices. Mini (32–40 px strips): one big value and one mark. */
+/** Default: the scanned card with its corner index. Mini (32–40 px strips): one value, one mark. */
 type CardSize = 'full' | 'mini';
 
-/** The card's outline, filled with the face or back colour; its stroke stays inside the card. */
+/** The card's outline; its stroke stays inside the card. */
 function Edge({ className }: { className: string | undefined }) {
   return (
     <rect
@@ -35,37 +41,47 @@ function Edge({ className }: { className: string | undefined }) {
   );
 }
 
-/** A suit card's suit, rank and corner label; null for trumps and the Excuse. */
-function suitCard(card: Card): { suit: Suit; rank: number; label: string } | null {
-  const suit = suitOf(card);
-  const rank = rankOf(card);
-  return suit === null || rank === null ? null : { suit, rank, label: cornerLabel(card) };
-}
-
-function Art({ card, size }: { card: Card; size: CardSize }) {
-  const mini = size === 'mini';
-  if (card === EXCUSE) return mini ? <MiniExcuseCard /> : <ExcuseCard />;
-  const trump = trumpValue(card);
-  if (trump !== null) {
-    const oudler = isOudler(card);
-    return mini ? (
-      <MiniTrumpCard value={trump} oudler={oudler} />
-    ) : (
-      <TrumpCard value={trump} oudler={oudler} />
-    );
-  }
-  const suited = suitCard(card);
-  if (!suited) return null;
-  const { suit, rank, label } = suited;
-  if (mini) return <MiniSuitCard suit={suit} label={label} />;
-  return rank > LAST_PIP_RANK ? (
-    <CourtCard suit={suit} rank={rank} label={label} />
-  ) : (
-    <PipCard suit={suit} rank={rank} label={label} />
+/** A scan, clipped to the card's outline, its paper margin cut off (SCAN_BLEED). */
+function Scan({ href }: { href: string }) {
+  const clip = useId();
+  return (
+    <>
+      <clipPath id={clip}>
+        <rect width={CARD_W} height={CARD_H} rx={CARD_RADIUS} />
+      </clipPath>
+      <image
+        href={href}
+        x={-SCAN_BLEED}
+        y={-SCAN_BLEED}
+        width={CARD_W + 2 * SCAN_BLEED}
+        height={CARD_H + 2 * SCAN_BLEED}
+        preserveAspectRatio="xMidYMid slice"
+        clipPath={`url(#${clip})`}
+      />
+    </>
   );
 }
 
-/** One card face, 5:8, original art (DESIGN.md §4). Sized by its container's width. */
+/** What a card's corner index shows. */
+function indexOf(card: Card): IndexContent {
+  if (card === EXCUSE) return { kind: 'excuse' };
+  const trump = trumpValue(card);
+  if (trump !== null) return { kind: 'trump', value: trump, oudler: isOudler(card) };
+  const suit = suitOf(card);
+  if (suit === null) throw new Error(`Not a card: ${card}`);
+  return { kind: 'suit', suit, label: cornerLabel(card) };
+}
+
+function MiniArt({ index }: { index: IndexContent }) {
+  if (index.kind === 'excuse') return <MiniExcuseCard />;
+  if (index.kind === 'trump') return <MiniTrumpCard value={index.value} oudler={index.oudler} />;
+  return <MiniSuitCard suit={index.suit} label={index.label} />;
+}
+
+/**
+ * One card face (DESIGN.md §4): the Grimaud 1898 scan with a corner index over it, or in mini
+ * mode a drawn value and mark. Sized by its container's width.
+ */
 export function CardFace({
   card,
   className,
@@ -75,6 +91,7 @@ export function CardFace({
   className?: string;
   size?: CardSize;
 }) {
+  const index = indexOf(card);
   return (
     <svg
       viewBox={VIEW_BOX}
@@ -83,7 +100,15 @@ export function CardFace({
       aria-label={cardName(card)}
     >
       <Edge className={styles.face} />
-      <Art card={card} size={size} />
+      {size === 'mini' ? (
+        <MiniArt index={index} />
+      ) : (
+        <>
+          <Scan href={faceScan(card)} />
+          <CornerIndex content={index} />
+          <Edge className={styles.outline} />
+        </>
+      )}
     </svg>
   );
 }
@@ -98,7 +123,8 @@ export function CardBack({ className }: { className?: string }) {
       aria-label={fr.cards.hidden}
     >
       <Edge className={styles.back} />
-      <CardBackArt />
+      <Scan href={backScan} />
+      <Edge className={styles.outline} />
     </svg>
   );
 }

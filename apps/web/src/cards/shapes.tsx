@@ -1,5 +1,4 @@
 import type { Suit } from '@tarot/engine';
-import { HALF_TURN } from './geometry';
 import styles from './cards.module.css';
 
 /** Colour class of a suit: red for ♥ ♦, black for ♠ ♣ (the pip shape carries the suit too). */
@@ -12,14 +11,4 @@ export function star(cx: number, cy: number, outer: number, inner: number, point
     const a = (Math.PI * i) / points - Math.PI / 2;
     return `${(cx + r * Math.cos(a)).toFixed(2)},${(cy + r * Math.sin(a)).toFixed(2)}`;
   }).join(' ');
-}
-
-/** Draws `children` twice: as is, then turned half a turn (corner indices). */
-export function BothCorners({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      {children}
-      <g transform={HALF_TURN}>{children}</g>
-    </>
-  );
 }

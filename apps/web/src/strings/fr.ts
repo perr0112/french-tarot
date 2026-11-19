@@ -6,6 +6,7 @@ export const fr = {
   app: {
     title: 'Tarot',
     tagline: 'Le tarot à 3, 4 ou 5, entre amis et avec des bots.',
+    cardCredit: 'Cartes : Tarot nouveau B.P. Grimaud, 1898 — Source gallica.bnf.fr / BnF',
   },
   home: {
     nickname: 'Votre pseudo',

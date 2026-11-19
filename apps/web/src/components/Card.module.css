@@ -2,7 +2,7 @@
   display: block;
   width: 100%;
   height: auto;
-  /* Same corner as the drawn edge at every size: 8 units of the 100×160 viewBox. */
+  /* Same corner as the drawn edge at every size: 8 units of the 100×177 viewBox. */
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
 }
@@ -14,5 +14,11 @@
 
 .back {
   fill: var(--color-card-back);
+  stroke: var(--color-card-edge);
+}
+
+/* Drawn over the scan, so the edge stays crisp on the paper's edge. */
+.outline {
+  fill: none;
   stroke: var(--color-card-edge);
 }
