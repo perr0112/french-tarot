@@ -3,10 +3,24 @@ declare const performance: { now(): number };
 declare const process: { env: Record<string, string | undefined> };
 declare const console: { log(message: string): void };
 import { describe, expect, it } from 'vitest';
+import { createHardBot } from './hard';
+import { SIMULATED_CARDS } from './hard/budget';
 import { createBot, simulateDeal, type Bot } from './index';
 
 const medium = createBot('medium');
-const hard = createBot('hard');
+
+/** BENCH_SIMULATED_CARDS tries another budget than the one Difficile plays with. */
+function benchBudget(): number {
+  const value = process.env.BENCH_SIMULATED_CARDS;
+  if (value === undefined) return SIMULATED_CARDS;
+  const budget = Number(value);
+  // An empty or invalid value would give no sampled deal at all: Moyen against Moyen.
+  if (!Number.isInteger(budget) || budget <= 0) {
+    throw new Error(`BENCH_SIMULATED_CARDS must be a positive integer, not "${value}"`);
+  }
+  return budget;
+}
+const hard = createHardBot(benchBudget());
 
 /** Wraps a bot to record its slowest and average decision time. */
 function timed(bot: Bot) {
@@ -68,18 +82,19 @@ describe.runIf(process.env.BENCH)('Difficile against Moyen (fixed seeds)', () =>
         fs.appendFileSync(out, `${line}\n`);
       }
       expect(average).toBeGreaterThan(0);
-      // Run alone, the benchmark holds the room server's target of < 1 s per decision.
-      expect(Math.max(...times)).toBeLessThan(1000);
+      // Run alone, a decision takes a few milliseconds (budget.ts); the first ones also pay for
+      // the JIT warming up.
+      expect(Math.max(...times)).toBeLessThan(100);
     },
     3_600_000,
   );
 });
 
 describe('Difficile decision time', () => {
-  it('stays within a few times the 1 s target, even on a busy machine', () => {
+  it('stays well within the room server’s time, even on a busy machine', () => {
     const times = [3, 4, 5].flatMap((players) => hardScore(players as 3 | 4 | 5, 1).times);
-    // The full suite runs files in parallel, which slows every decision; the strict 1 s bound
-    // is checked by the benchmark, which runs alone (typical decisions take under 100 ms).
-    expect(Math.max(...times)).toBeLessThan(3000);
+    // The full suite runs files in parallel, which slows every decision; the benchmark, run
+    // alone, checks the tighter bound (decisions take a few milliseconds).
+    expect(Math.max(...times)).toBeLessThan(500);
   }, 60_000);
 });

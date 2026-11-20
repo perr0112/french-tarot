@@ -9,7 +9,7 @@ The web app finds the room server through `VITE_PARTY_HOST`. The room server onl
 
 ## 1. Room server on Cloudflare
 
-You need a Cloudflare account; the free Workers plan includes SQLite-backed Durable Objects.
+You need a Cloudflare account; the free Workers plan includes SQLite-backed Durable Objects, and the bots are sized for its 10 ms of CPU per request (ADR-0005).
 
 1. Sign in (opens your browser):
 
