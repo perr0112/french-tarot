@@ -82,3 +82,49 @@
   gap: var(--space-2);
   align-items: center;
 }
+
+/* The four contracts, rising from left to right (two by two on a phone). */
+.contracts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.contract {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2);
+}
+
+.multiplier {
+  font-size: var(--text-xs-size);
+  line-height: var(--text-xs-line);
+  font-weight: var(--weight-regular);
+  color: var(--color-ink-muted);
+}
+
+/* Passer: alone on the last line, outlined, never filled like a contract. */
+.pass {
+  width: 100%;
+  padding: var(--space-2) var(--space-4);
+  border: var(--border-thin) solid var(--color-ink-muted);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  cursor: pointer;
+  transition: transform var(--duration-instant) var(--ease-out);
+}
+
+.pass:active {
+  transform: scale(0.97);
+}
+
+/* Compact breakpoint (DESIGN.md §3.4). */
+@media (max-width: 600px) {
+  .contracts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
