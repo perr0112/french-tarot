@@ -135,9 +135,9 @@ export function DecisionPanel({ view, send, ecart, poignee, onPoigneeChange }: D
     case 'playCard':
       // Without a poignée to offer, a short line is enough: the lit cards say the rest.
       if (!template.poignee) return <p className={styles.prompt}>{fr.panels.play}</p>;
+      // No title: the seat's accent and the lit cards already say it is one's turn.
       return (
-        <section className={styles.panel} aria-label={fr.panels.play}>
-          <p className={styles.title}>{fr.panels.play}</p>
+        <section className={`${styles.panel} ${styles.tight}`} aria-label={fr.panels.play}>
           <PoigneeChooser
             template={template.poignee}
             poignee={poignee}
@@ -165,22 +165,23 @@ function PoigneeChooser({
   const sizes = template.levels.map((l) => l.size);
   return (
     <>
-      <label className={styles.check}>
-        <input
-          type="checkbox"
-          checked={poignee !== null}
-          onChange={(e) =>
-            onChange(
-              e.target.checked
-                ? defaultPoignee(template, template.levels[0]?.level ?? 'simple')
-                : null,
-            )
-          }
-        />
-        {fr.panels.declarePoignee}
-      </label>
-      {poignee && (
-        <>
+      {/* The box and the levels on one line: the panel stays low, the hand in view. */}
+      <div className={styles.poigneeHead}>
+        <label className={styles.check}>
+          <input
+            type="checkbox"
+            checked={poignee !== null}
+            onChange={(e) =>
+              onChange(
+                e.target.checked
+                  ? defaultPoignee(template, template.levels[0]?.level ?? 'simple')
+                  : null,
+              )
+            }
+          />
+          {fr.panels.declarePoignee}
+        </label>
+        {poignee && (
           <div className={ui.row} role="radiogroup" aria-label={fr.panels.declarePoignee}>
             {template.levels.map(({ level, size }) => (
               <button
@@ -195,6 +196,10 @@ function PoigneeChooser({
               </button>
             ))}
           </div>
+        )}
+      </div>
+      {poignee && (
+        <>
           <p className={styles.hint}>{fr.panels.poigneeHint}</p>
           <div className={styles.chips} role="group" aria-label={fr.panels.poigneeCards}>
             {template.eligible.map((card) => (

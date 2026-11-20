@@ -1,7 +1,11 @@
 .table {
-  min-height: 100%;
+  /* Exactly the visible height, never more: when a panel grows, the felt's empty space below
+     the trick gives way, and the hand stays in view. */
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   background: var(--color-table);
 }
 
@@ -54,6 +58,9 @@
   grid-area: decision;
   display: grid;
   justify-items: center;
+  /* Last resort on a very low screen: the panel scrolls inside, the hand stays in view. */
+  max-height: 45dvh;
+  overflow-y: auto;
 }
 
 .me {
