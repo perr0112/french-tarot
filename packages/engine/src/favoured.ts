@@ -1,4 +1,4 @@
-import { ALL_CARDS, EXCUSE, KING, SUITS, isTrump, trumpValue, type Card } from './cards';
+import { ALL_CARDS, EXCUSE, isTrump, type Card } from './cards';
 import { createDealFromHands, type CreateDealInput, type DealState, type Seat } from './deal';
 import { createRng, shuffle } from './rng';
 import { variantFor } from './variant';
@@ -11,13 +11,17 @@ export interface CreateFavouredDealInput extends CreateDealInput {
   readonly seat: Seat;
 }
 
+/** The trumps always in the favoured hand; the others are drawn among the lower ones. */
+const TOP_TRUMPS: readonly Card[] = ['T21', 'T20', 'T19', 'T18'];
+const TRUMPS = 11;
+
 /**
- * A deal where `seat` holds an exceptional hand (AGENTS.md §5, the host code): 12 trumps
- * including the 21, 20 and 19, the Excuse and two Kings — the whole hand in 5 players,
- * completed with random cards (perhaps more trumps or Kings) in 3 and 4. The other nine trumps,
- * the Kings' suits, the rest of the hand and every other hand come from `seed`: never twice the
- * same, always reproducible. The hands are composed, not dealt packet by packet as createDeal
- * does; a draw that gives another hand a petit sec is drawn again.
+ * A deal where `seat` holds a strong but believable hand (AGENTS.md §5, the host code): 11
+ * trumps including the 21, 20, 19 and 18, the Excuse, and plain suit cards, high or low, for
+ * the rest (3 in 5 players). The other seven trumps, the plain cards and every other hand come
+ * from `seed`: never twice the same, always reproducible. The hands are composed, not dealt
+ * packet by packet as createDeal does; a draw that gives another hand a petit sec is drawn
+ * again, and after ATTEMPTS the last draw is kept, cancelled or not.
  */
 export function createFavouredDeal({
   players,
@@ -28,34 +32,30 @@ export function createFavouredDeal({
 }: CreateFavouredDealInput): DealState {
   const rng = createRng(seed);
   const { cardsPerPlayer, chienSize } = variantFor(players);
-  const lowTrumps = ALL_CARDS.filter((c) => isTrump(c) && (trumpValue(c) ?? 0) <= 18);
-  let deal: DealState | null = null;
-  for (let attempt = 0; attempt < ATTEMPTS && deal?.phase !== 'bidding'; attempt++) {
-    const kings = shuffle(SUITS, rng)
-      .slice(0, 2)
-      .map((suit) => `${suit}${KING}` as Card);
-    const core: Card[] = [
-      'T21',
-      'T20',
-      'T19',
-      ...shuffle(lowTrumps, rng).slice(0, 9),
-      EXCUSE,
-      ...kings,
+  const lowerTrumps = ALL_CARDS.filter((c) => isTrump(c) && !TOP_TRUMPS.includes(c));
+  const plain = ALL_CARDS.filter((c) => !isTrump(c) && c !== EXCUSE);
+  const draw = (): DealState => {
+    const trumps = [
+      ...TOP_TRUMPS,
+      ...shuffle(lowerTrumps, rng).slice(0, TRUMPS - TOP_TRUMPS.length),
     ];
+    const hand = [...trumps, EXCUSE];
+    hand.push(...shuffle(plain, rng).slice(0, cardsPerPlayer - hand.length));
     const rest = shuffle(
-      ALL_CARDS.filter((c) => !core.includes(c)),
+      ALL_CARDS.filter((c) => !hand.includes(c)),
       rng,
     );
-    const hand = [...core, ...rest.splice(0, cardsPerPlayer - core.length)];
     const hands = Array.from({ length: players }, (_, s) =>
       s === seat ? hand : rest.splice(0, cardsPerPlayer),
     );
-    deal = createDealFromHands({
+    return createDealFromHands({
       hands,
       chien: rest.splice(0, chienSize),
       dealer,
       ...(options ? { options } : {}),
     });
-  }
-  return deal as DealState;
+  };
+  let deal = draw();
+  for (let attempt = 1; attempt < ATTEMPTS && deal.phase !== 'bidding'; attempt++) deal = draw();
+  return deal;
 }
