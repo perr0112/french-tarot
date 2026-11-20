@@ -10,7 +10,7 @@ import { ScoreCorner } from '../components/ScoreCorner';
 import { SeatBadge } from '../components/SeatBadge';
 import { Trick } from '../components/Trick';
 import { chienLeavesTo, chienOnTable } from '../lib/chien';
-import { useFreshPoignees } from '../lib/freshPoignees';
+import { useFreshPoignees } from '../hooks/useFreshPoignees';
 import { seatName } from '../lib/names';
 import { poigneeStatus } from '../lib/selection';
 import { seatPositions } from '../lib/seats';
@@ -39,7 +39,7 @@ export function Table({
   /** The deal already dealt when this page joined the table: it is shown, not dealt in again. */
   dealtBeforeJoining?: number | null;
   /** Leaves the table for good (a bot takes the seat). */
-  onLeave?: () => void;
+  onLeave?: (() => void) | undefined;
 }) {
   const deal = view.deal;
   const me = view.you.seat ?? 0;
@@ -167,33 +167,43 @@ export function Table({
             )
           )}
         </div>
-        <ScoreCorner view={view} className={styles.scores} />
       </div>
       <div className={styles.bottom}>
-        {!betweenDeals && template && (
-          <DecisionPanel
-            // Each decision enters afresh (DESIGN.md §3.6: panel open).
-            key={template.type}
-            view={view}
-            send={send}
-            ecart={ecart}
-            poignee={poignee}
-            onPoigneeChange={(cards) => update({ poignee: cards })}
-          />
-        )}
-        {!betweenDeals && !template && turnName && (
-          <p className={styles.waiting}>{fr.table.waitingFor(turnName)}</p>
-        )}
-        <SeatBadge view={view} seat={me} poigneeShowing={poigneesShown.get(me)} />
+        <div className={styles.decision}>
+          {!betweenDeals && template && (
+            <DecisionPanel
+              // Each decision enters afresh (DESIGN.md §3.6: panel open).
+              key={template.type}
+              view={view}
+              send={send}
+              ecart={ecart}
+              poignee={poignee}
+              onPoigneeChange={(cards) => update({ poignee: cards })}
+            />
+          )}
+          {!betweenDeals && !template && turnName && (
+            <p className={styles.waiting}>{fr.table.waitingFor(turnName)}</p>
+          )}
+        </div>
+        <SeatBadge
+          view={view}
+          seat={me}
+          className={styles.me}
+          poigneeShowing={poigneesShown.get(me)}
+        />
+        {/* By the local player's right hand: it takes no room from the seats, trick or hand. */}
+        <ScoreCorner view={view} className={styles.scores} />
         {deal && deal.phase !== 'finished' && (
-          <Hand
-            cards={deal.hand}
-            active={betweenDeals ? null : active}
-            selected={ecart}
-            onPick={pick}
-            marked={fromChien}
-            dealing={dealing}
-          />
+          <div className={styles.hand}>
+            <Hand
+              cards={deal.hand}
+              active={betweenDeals ? null : active}
+              selected={ecart}
+              onPick={pick}
+              marked={fromChien}
+              dealing={dealing}
+            />
+          </div>
         )}
       </div>
     </div>

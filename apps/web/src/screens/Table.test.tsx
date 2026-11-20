@@ -4,7 +4,7 @@ import { DEFAULT_ROOM_OPTIONS, TRICK_PAUSE_MS } from '@tarot/protocol';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { cardName } from '../lib/cards';
-import { POIGNEE_SHOWN_MS } from '../lib/freshPoignees';
+import { POIGNEE_SHOWN_MS } from '../hooks/useFreshPoignees';
 import { dealWith, playOut, roomView, takes } from '../testing/views';
 import { Table } from './Table';
 
@@ -332,7 +332,7 @@ describe('leaving the table', () => {
     const onLeave = vi.fn();
     render(<Table view={roomView(dealWith(trumps(1, 18)))} send={vi.fn()} onLeave={onLeave} />);
     click('Quitter la table');
-    expect(screen.getByText('Quitter la partie ? Un bot prendra votre place.')).toBeTruthy();
+    expect(screen.getByText('Quitter la table ? Un bot prendra votre place.')).toBeTruthy();
     click('Rester');
     expect(onLeave).not.toHaveBeenCalled();
     click('Quitter la table');
@@ -368,8 +368,8 @@ describe('the scores', () => {
   it('unfold into the whole score sheet', () => {
     render(<Table view={scored()} send={vi.fn()} />);
     click('Feuille de marque');
-    expect(screen.queryByRole('list', { name: 'Scores' })).toBeNull();
-    expect(screen.getByRole('table')).toBeTruthy();
+    const sheet = screen.getByRole('region', { name: 'Feuille de marque' });
+    expect(within(sheet).getByRole('table')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Replier' }).getAttribute('aria-expanded')).toBe(
       'true',
     );

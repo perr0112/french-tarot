@@ -43,15 +43,19 @@ export function useRoomConnection(code: string, request: JoinRequest | null): Ro
   const [view, setView] = useState<RoomView | null>(null);
   const [error, setError] = useState<ServerErrorCode | null>(null);
   const socketRef = useRef<PartySocket | null>(null);
-  /** Set once the socket must not reconnect (refused, left, unmounted). */
-  const finalRef = useRef(false);
+  /**
+   * The current connection's flag, set once its socket must not reconnect (refused, left,
+   * replaced): one per connection, so an old socket closing never touches the new one.
+   */
+  const endRef = useRef<{ final: boolean } | null>(null);
 
   useEffect(() => {
     if (request === null) return;
     const { nickname } = request;
     const socket = new PartySocket({ host: PARTY_HOST, party: 'room', room: code });
     socketRef.current = socket;
-    finalRef.current = false;
+    const end = { final: false };
+    endRef.current = end;
 
     socket.addEventListener('open', () => {
       setStatus('open');
@@ -59,27 +63,27 @@ export function useRoomConnection(code: string, request: JoinRequest | null): Ro
       socket.send(JSON.stringify({ type: 'join', nickname, ...(token ? { token } : {}) }));
     });
     socket.addEventListener('close', () => {
-      if (!finalRef.current) setStatus('reconnecting');
+      if (!end.final) setStatus('reconnecting');
     });
     socket.addEventListener('message', (event: MessageEvent<string>) => {
       const message = JSON.parse(event.data) as ServerMessage;
       if (message.type === 'welcome') storage.saveToken(code, message.token);
       else if (message.type === 'state') setView(message.view);
       else if (message.code === 'NICKNAME_TAKEN') {
-        finalRef.current = true;
+        end.final = true;
         setStatus('nicknameTaken');
         socket.close();
       } else {
         setError(message.code);
         if (FINAL_ERRORS.has(message.code)) {
-          finalRef.current = true;
+          end.final = true;
           setStatus('refused');
           socket.close();
         }
       }
     });
     return () => {
-      finalRef.current = true;
+      end.final = true;
       socket.close();
       socketRef.current = null;
     };
@@ -90,7 +94,7 @@ export function useRoomConnection(code: string, request: JoinRequest | null): Ro
   }, []);
   const dismissError = useCallback(() => setError(null), []);
   const leave = useCallback(() => {
-    finalRef.current = true;
+    if (endRef.current) endRef.current.final = true;
     socketRef.current?.send(JSON.stringify({ type: 'leave' } satisfies ClientMessage));
     socketRef.current?.close();
     storage.forgetToken(code);

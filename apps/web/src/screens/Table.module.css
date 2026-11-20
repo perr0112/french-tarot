@@ -6,7 +6,6 @@
 }
 
 .felt {
-  position: relative;
   display: grid;
   grid-template-columns: 1fr 2fr 1fr;
   /* The middle row keeps its height (see .centre) and the space left goes below it, so the
@@ -39,17 +38,38 @@
 }
 .bottom {
   display: grid;
+  /* The local player's decision and badge in the middle; the scores in the right-hand corner,
+     beside them; the hand across the whole width under all three. */
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-areas:
+    '. decision scores'
+    '. me scores'
+    'hand hand hand';
   justify-items: center;
   gap: var(--space-2);
   padding-bottom: var(--space-2);
 }
 
-/* The scores lie in the corner of the table, by the local player's right hand, over the felt:
-   they take no room from the seats, the trick or the hand. */
+.decision {
+  grid-area: decision;
+  display: grid;
+  justify-items: center;
+}
+
+.me {
+  grid-area: me;
+}
+
 .scores {
-  position: absolute;
-  right: var(--space-4);
-  bottom: var(--space-2);
+  grid-area: scores;
+  justify-self: end;
+  align-self: end;
+  margin-right: var(--space-4);
+}
+
+.hand {
+  grid-area: hand;
+  width: 100%;
 }
 
 .centre {
@@ -72,11 +92,11 @@
      the seats, so no trick card covers the left or right seat. */
   .felt {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: auto auto 1fr;
     grid-template-areas:
       'topLeft top topRight'
       'left . right'
       'centre centre centre';
-    grid-template-rows: auto auto 1fr;
     padding-inline: var(--space-2);
   }
 
@@ -84,8 +104,15 @@
     align-self: start;
   }
 
+  .bottom {
+    grid-template-areas:
+      'decision decision decision'
+      '. me scores'
+      'hand hand hand';
+  }
+
   .scores {
-    right: var(--space-2);
+    margin-right: var(--space-2);
   }
 }
 

@@ -20,10 +20,15 @@ export function Room({ code }: { code: string }) {
     return nickname === null ? null : { nickname };
   });
   const { status, view, error, send, dismissError, leave } = useRoomConnection(code, request);
-  const onLeave = () => {
-    leave();
-    navigate('/');
-  };
+  // Only while connected: a message sent while reconnecting would be lost, and the room would
+  // keep the seat waiting (the banner says why the button is gone).
+  const onLeave =
+    status === 'open'
+      ? () => {
+          leave();
+          navigate('/');
+        }
+      : undefined;
 
   // The deal in play when this page first saw the table (a reload, a link opened mid-deal): it
   // is shown as it is, not dealt in again. undefined until the first view.

@@ -176,6 +176,20 @@ describe('leaving a session', () => {
   });
 });
 
+describe('leaving after a session', () => {
+  it('frees the seat: the next session waits for it to be filled', () => {
+    const h = table(['Alice', 'Bob'], { deals: 1 });
+    h.send('c0', { type: 'start' });
+    runUntil(h, ['c0', 'c1'], () => h.view('c0').phase === 'finished');
+    h.send('c1', { type: 'leave' });
+    expect(h.view('c0').seats[1]).toEqual({ kind: 'empty' });
+    h.send('c0', { type: 'newSession' });
+    expect(h.lastError('c0')).toBe('SEATS_NOT_FILLED');
+    h.send('c0', { type: 'backToLobby' });
+    expect(h.view('c0').seats[1]).toEqual({ kind: 'empty' });
+  });
+});
+
 describe('disconnection', () => {
   it('lets a bot play for a player gone for 10 s, until they come back', () => {
     const h = table(['Alice', 'Bob']);

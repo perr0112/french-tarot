@@ -180,7 +180,10 @@ function handleMessage(
       return done(asHostIn(room, me, 'lobby') ?? start(room, env));
     case 'newSession':
       return done(
-        asHostIn(room, me, 'finished') ?? beginSession(room, room.session?.dealer ?? 0, env),
+        asHostIn(room, me, 'finished') ??
+          (seatsOf(room).some((seat) => isFree(room, seat))
+            ? 'SEATS_NOT_FILLED'
+            : beginSession(room, room.session?.dealer ?? 0, env)),
       );
     case 'backToLobby':
       return done(
@@ -291,13 +294,14 @@ function disconnect(room: RoomState, connection: string, now: number, env: RoomE
 }
 
 /**
- * A participant leaves for good (AGENTS.md §5): forgotten, token and all. In the lobby their
- * seat goes to whoever waits; during a session a bot plays it from now on.
+ * A participant leaves for good (AGENTS.md §5): forgotten, token and all. During a session a
+ * bot plays their seat from now on; otherwise (lobby, session over) the seat is freed for
+ * whoever waits, and must be filled before a new session.
  */
 function leave(room: RoomState, leaving: Participant, env: RoomEnv): RoomState {
   const participants = room.participants.filter((p) => p !== leaving);
   const seat = leaving.seat;
-  if (room.phase === 'lobby' || seat === null) return fillSeats({ ...room, participants });
+  if (room.phase !== 'playing' || seat === null) return fillSeats({ ...room, participants });
   const next: RoomState = {
     ...room,
     participants,

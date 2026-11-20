@@ -14,7 +14,7 @@ export function Lobby({
 }: {
   view: RoomView;
   send: Send;
-  onLeave?: () => void;
+  onLeave?: (() => void) | undefined;
 }) {
   const host = view.you.isHost;
   const [copied, setCopied] = useState(false);

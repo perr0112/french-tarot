@@ -10,7 +10,8 @@ import styles from './ScoreCorner.module.css';
 
 /**
  * The session's scores in a corner of the table (DESIGN.md §5): folded, each player's total,
- * best first; unfolded, the whole score sheet, deal by deal.
+ * best first; unfolded, the whole score sheet, deal by deal, opening above the slip so nothing
+ * around it moves.
  */
 export function ScoreCorner({
   view,
@@ -36,19 +37,22 @@ export function ScoreCorner({
           {open ? fr.table.foldSheet : fr.table.scoreSheet}
         </button>
       </div>
-      {open ? (
-        <div className={`${styles.sheet} ${ui.enter}`}>
+      <ol className={styles.totals} aria-label={fr.table.scores}>
+        {ranking.map(({ seat, total }) => (
+          <li key={seat} className={seat === view.you.seat ? styles.me : ''}>
+            <span className={styles.name}>{seatName(view, seat)}</span>
+            <span className={styles.total}>{formatScore(total)}</span>
+          </li>
+        ))}
+      </ol>
+      {open && (
+        <div
+          className={`${styles.sheet} ${ui.enter}`}
+          role="region"
+          aria-label={fr.table.scoreSheet}
+        >
           <ScoreSheet view={view} />
         </div>
-      ) : (
-        <ol className={styles.totals} aria-label={fr.table.scores}>
-          {ranking.map(({ seat, total }) => (
-            <li key={seat} className={seat === view.you.seat ? styles.me : ''}>
-              <span className={styles.name}>{seatName(view, seat)}</span>
-              <span className={styles.total}>{formatScore(total)}</span>
-            </li>
-          ))}
-        </ol>
       )}
     </section>
   );

@@ -2,6 +2,7 @@ import type { BidChoice, PoigneeLevel } from '@tarot/engine';
 import type { BotSpeed, SeatBotLevel, ServerErrorCode } from '@tarot/protocol';
 
 const poigneeShown = (level: string) => `Poignée ${level.toLowerCase()}`;
+const CALLED = 'Appel';
 
 /** All user-facing strings (French only). Never inline UI copy in components. */
 export const fr = {
@@ -21,7 +22,7 @@ export const fr = {
   },
   leave: {
     button: 'Quitter la table',
-    confirm: 'Quitter la partie ? Un bot prendra votre place.',
+    confirm: 'Quitter la table ? Un bot prendra votre place.',
     yes: 'Quitter',
     stay: 'Rester',
   },
@@ -108,10 +109,9 @@ export const fr = {
     disconnected: 'déconnecté',
     cards: (n: number) => (n > 1 ? `${n} cartes` : `${n} carte`),
     contract: (contract: string, taker: string) => `${contract} — ${taker}`,
-    called: (card: string) => `Appel : ${card}`,
-    calledAlone: 'seul',
-    calledShort: 'Appel',
-    calledAloneShort: 'Appel (seul)',
+    called: (card: string) => `${CALLED} : ${card}`,
+    calledShort: CALLED,
+    calledAloneShort: `${CALLED} (seul)`,
     chien: 'Chien',
     /** On the seats the hidden chien counts for (garde sans, garde contre). */
     withChien: 'avec le chien',

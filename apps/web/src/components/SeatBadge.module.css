@@ -57,7 +57,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* A poignée shown long enough (lib/freshPoignees.ts) fades out, then goes. */
+/* A poignée shown long enough (hooks/useFreshPoignees.ts) fades out, then goes. */
 .fading {
   animation: fade-out var(--duration-base) var(--ease-out) forwards;
 }
@@ -65,5 +65,11 @@
 @keyframes fade-out {
   to {
     opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fading {
+    animation-duration: var(--duration-instant);
   }
 }

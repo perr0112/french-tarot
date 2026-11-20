@@ -23,7 +23,7 @@ export function Final({
 }: {
   view: RoomView;
   send: Send;
-  onLeave?: () => void;
+  onLeave?: (() => void) | undefined;
 }) {
   const ranking = rankSeats(view.session?.totals ?? []);
   const lastRank = ranking.at(-1)?.rank ?? 1;

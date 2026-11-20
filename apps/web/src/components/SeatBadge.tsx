@@ -3,7 +3,7 @@ import type { RoomView } from '@tarot/protocol';
 import ui from '../design/ui.module.css';
 import { cardName, formatScore } from '../lib/cards';
 import { seatName } from '../lib/names';
-import type { PoigneeShowing } from '../lib/freshPoignees';
+import type { PoigneeShowing } from '../hooks/useFreshPoignees';
 import { seatFacts } from '../lib/seatFacts';
 import { fr } from '../strings/fr';
 import { CardStrip } from './CardStrip';
@@ -23,7 +23,7 @@ export function SeatBadge({
   view: RoomView;
   seat: Seat;
   className?: string | undefined;
-  /** Whether its poignée is still shown (lib/freshPoignees.ts). */
+  /** Whether its poignée is still shown (hooks/useFreshPoignees.ts). */
   poigneeShowing?: PoigneeShowing | null | undefined;
 }) {
   const facts = seatFacts(view, seat);
