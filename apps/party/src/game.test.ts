@@ -293,9 +293,8 @@ describe('the host’s code', () => {
   const exceptional = (h: RoomHarness) => {
     const hand = h.view('c0').deal?.hand ?? [];
     return (
-      ['T21', 'T20', 'T19', 'EXC'].every((c) => hand.includes(c as never)) &&
-      hand.filter((c) => c.startsWith('T')).length === 12 &&
-      hand.filter((c) => c.endsWith('14') && !c.startsWith('T')).length === 2
+      ['T21', 'T20', 'T19', 'T18', 'EXC'].every((c) => hand.includes(c as never)) &&
+      hand.filter((c) => c.startsWith('T')).length === 11
     );
   };
   const fiveAtTable = () => {
