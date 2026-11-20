@@ -1,4 +1,8 @@
+import { applyAction, createDeal, createRng, getPlayerView, type PlayerCount } from '@tarot/engine';
 import { describe, expect, it } from 'vitest';
+import { createBot } from '../index';
+import { emptyMemory, type BotMemory } from '../memory';
+import { bestCard } from './index';
 import { SIMULATED_CARDS, samplesFor } from './budget';
 
 describe('samplesFor', () => {
@@ -21,4 +25,50 @@ describe('samplesFor', () => {
       }
     }
   });
+});
+
+describe('a Difficile decision', () => {
+  const medium = createBot('medium');
+
+  it.each([3, 4, 5] as const)(
+    'never plays more simulated cards than the budget (%i players)',
+    (players: PlayerCount) => {
+      let decisions = 0;
+      for (let seed = 1; seed <= 4; seed++) {
+        let state = createDeal({ players, dealer: seed % players, seed });
+        const memories: BotMemory[] = Array.from({ length: players }, emptyMemory);
+        while (state.turn !== null) {
+          const seat = state.turn;
+          const view = getPlayerView(state, seat);
+          const { action, memory } = medium.decide(
+            view,
+            memories[seat] ?? emptyMemory(),
+            createRng(seed),
+          );
+          const [template] = view.legalActions;
+          if (
+            template?.type === 'playCard' &&
+            action.type === 'playCard' &&
+            template.cards.length > 1
+          ) {
+            const { simulatedCards } = bestCard(
+              view,
+              memory,
+              action,
+              template.cards,
+              createRng(seed),
+            );
+            expect(simulatedCards).toBeLessThanOrEqual(SIMULATED_CARDS);
+            if (simulatedCards > 0) decisions++;
+          }
+          memories[seat] = memory;
+          const result = applyAction(state, seat, action);
+          if (!result.ok) throw new Error(result.error.code);
+          state = result.state;
+        }
+      }
+      // Some decisions late in the deals did simulate.
+      expect(decisions).toBeGreaterThan(0);
+    },
+  );
 });

@@ -1,5 +1,5 @@
 /** Most sampled deals per decision: the same ones judge every playable card. */
-export const SAMPLES = 20;
+export const MAX_SAMPLES = 20;
 
 /**
  * Most cards played in the simulations of one decision (ADR-0005). It bounds the decision's CPU
@@ -17,5 +17,5 @@ export function samplesFor(
   cardsLeft: number,
   budget: number = SIMULATED_CARDS,
 ): number {
-  return Math.min(SAMPLES, Math.floor(budget / (playable * cardsLeft)));
+  return Math.min(MAX_SAMPLES, Math.floor(budget / (playable * cardsLeft)));
 }

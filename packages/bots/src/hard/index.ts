@@ -16,10 +16,12 @@ import { sampleDeal } from './sample-deal';
 /** Moyen never draws on randomness; a constant source keeps playouts reproducible. */
 const noRandomness: Rng = () => 0;
 
-/** Plays a deal to its end with Moyen at every seat; returns the finished deal. */
-function rollout(start: DealState): DealState {
+/** Plays a deal to its end with Moyen at every seat; returns the finished deal and its cards. */
+function rollout(start: DealState): { end: DealState; cards: number } {
   let state = start;
+  let cards = 0;
   while (state.turn !== null) {
+    cards++;
     const seat = state.turn;
     const memory = memoryFromTricks(state.players, state.tricks, state.currentTrick);
     const { action } = mediumBot.decide(getPlayerView(state, seat), memory, noRandomness);
@@ -27,39 +29,46 @@ function rollout(start: DealState): DealState {
     if (!result.ok) throw new Error(`Rollout refused ${JSON.stringify(action)}`);
     state = result.state;
   }
-  return state;
+  return { end: state, cards };
 }
 
-/** The playable card with the best average score for this seat over sampled deals, if any. */
-function bestCard(
+/**
+ * The playable card with the best average score for this seat over sampled deals (null when
+ * none was sampled), and how many cards the simulations played, which the budget bounds.
+ */
+export function bestCard(
   view: PlayerView,
   memory: BotMemory,
   move: Action & { type: 'playCard' },
   cards: readonly Card[],
   rng: Rng,
-  budget: number,
-): Card | null {
+  budget: number = SIMULATED_CARDS,
+): { card: Card | null; simulatedCards: number } {
   const cardsLeft = view.handSizes.reduce((a, b) => a + b, 0);
-  const draws = samplesFor(cards.length, cardsLeft, budget);
+  const samples = samplesFor(cards.length, cardsLeft, budget);
   const totals = new Map<Card, number>(cards.map((c) => [c, 0]));
   let sampled = 0;
-  for (let i = 0; i < draws; i++) {
+  let simulatedCards = 0;
+  for (let i = 0; i < samples; i++) {
     const deal = sampleDeal(view, memory, rng);
     if (deal === null) continue;
     sampled++;
     for (const card of cards) {
       const played = applyAction(deal, view.seat, { ...move, card });
       if (!played.ok) throw new Error(`Simulation refused ${card}`);
-      const score = rollout(played.state).result?.perSeat[view.seat] ?? 0;
+      const { end, cards: rolled } = rollout(played.state);
+      simulatedCards += 1 + rolled;
+      const score = end.result?.perSeat[view.seat] ?? 0;
       totals.set(card, (totals.get(card) ?? 0) + score);
     }
   }
-  if (sampled === 0) return null;
+  if (sampled === 0) return { card: null, simulatedCards };
   // Moyen's own choice wins ties: it is listed first.
   const ranked = [move.card, ...cards.filter((c) => c !== move.card)];
-  return ranked.reduce((best, card) =>
-    (totals.get(card) ?? 0) > (totals.get(best) ?? 0) ? card : best,
+  const card = ranked.reduce((best, c) =>
+    (totals.get(c) ?? 0) > (totals.get(best) ?? 0) ? c : best,
   );
+  return { card, simulatedCards };
 }
 
 /**
@@ -80,7 +89,7 @@ export function createHardBot(budget: number = SIMULATED_CARDS): Bot {
       // In 5 players, while the partner is unknown each sampled deal settles it differently and
       // the simulations mislead: the benchmark showed Moyen's play is better until it is known.
       if (view.calledCard !== null && view.knownPartner === null) return decision;
-      const card = bestCard(view, memory, action, template.cards, rng, budget);
+      const { card } = bestCard(view, memory, action, template.cards, rng, budget);
       return card === null ? decision : { action: { ...action, card }, memory };
     },
   };

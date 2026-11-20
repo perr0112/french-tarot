@@ -8,8 +8,19 @@ import { SIMULATED_CARDS } from './hard/budget';
 import { createBot, simulateDeal, type Bot } from './index';
 
 const medium = createBot('medium');
-// BENCH_SIMULATED_CARDS tries another budget than the one Difficile plays with.
-const hard = createHardBot(Number(process.env.BENCH_SIMULATED_CARDS ?? SIMULATED_CARDS));
+
+/** BENCH_SIMULATED_CARDS tries another budget than the one Difficile plays with. */
+function benchBudget(): number {
+  const value = process.env.BENCH_SIMULATED_CARDS;
+  if (value === undefined) return SIMULATED_CARDS;
+  const budget = Number(value);
+  // An empty or invalid value would give no sampled deal at all: Moyen against Moyen.
+  if (!Number.isInteger(budget) || budget <= 0) {
+    throw new Error(`BENCH_SIMULATED_CARDS must be a positive integer, not "${value}"`);
+  }
+  return budget;
+}
+const hard = createHardBot(benchBudget());
 
 /** Wraps a bot to record its slowest and average decision time. */
 function timed(bot: Bot) {
