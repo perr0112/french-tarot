@@ -68,8 +68,8 @@
   z-index: 1;
   width: max-content;
   max-width: min(var(--width-regular), calc(100vw - var(--space-4)));
-  /* Below the top bar, whatever the window's height. */
-  max-height: calc(100vh - var(--space-8) * 4);
+  /* The room above the slip (measured, --room-above), less the top bar. */
+  max-height: calc(var(--room-above, 50dvh) - var(--space-7));
   overflow: auto;
   padding: var(--space-2) var(--space-3);
   background: var(--color-surface);
@@ -99,5 +99,6 @@
     inset: auto var(--space-2) var(--space-2);
     width: auto;
     max-width: none;
+    max-height: calc(100dvh - var(--space-8));
   }
 }

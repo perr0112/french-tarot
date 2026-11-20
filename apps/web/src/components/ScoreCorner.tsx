@@ -1,5 +1,5 @@
 import type { RoomView } from '@tarot/protocol';
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import ui from '../design/ui.module.css';
 import { formatScore } from '../lib/cards';
 import { seatName } from '../lib/names';
@@ -22,11 +22,25 @@ export function ScoreCorner({
   className?: string | undefined;
 }) {
   const [open, setOpen] = useState(false);
+  const corner = useRef<HTMLElement>(null);
+  // The sheet opens above the slip: it may be as tall as the room there, and scrolls inside.
+  useLayoutEffect(() => {
+    const slip = corner.current;
+    if (!open || !slip) return;
+    const measure = () =>
+      slip.style.setProperty('--room-above', `${slip.getBoundingClientRect().top}px`);
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [open]);
   const session = view.session;
   if (!session) return null;
   const ranking = rankSeats(session.totals);
   return (
-    <section className={`${styles.corner} ${open ? styles.open : ''} ${className ?? ''}`}>
+    <section
+      ref={corner}
+      className={`${styles.corner} ${open ? styles.open : ''} ${className ?? ''}`}
+    >
       <div className={styles.head}>
         <h2 className={styles.title}>{fr.table.scores}</h2>
         <button

@@ -6,9 +6,12 @@
   text-align: center;
   max-width: min(var(--width-regular), calc(100vw - var(--space-5)));
   margin-inline: auto;
+  /* Last resort on a low screen: the panel scrolls inside, its shadow whole, the hand in view. */
+  max-height: 45dvh;
+  overflow-y: auto;
 }
 
-/* The poignée panel, the tallest: closer lines, so it stays clear of the trick. */
+/* The poignée panel: closer lines, so it stays clear of the trick. */
 .tight {
   gap: var(--space-2);
   padding-block: var(--space-3);
@@ -132,5 +135,10 @@
 @media (max-width: 600px) {
   .contracts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Eight trumps on one line at 375 px. */
+  .chip {
+    width: var(--card-mini);
   }
 }

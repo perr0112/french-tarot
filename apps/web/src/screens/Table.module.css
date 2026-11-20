@@ -58,9 +58,6 @@
   grid-area: decision;
   display: grid;
   justify-items: center;
-  /* Last resort on a very low screen: the panel scrolls inside, the hand stays in view. */
-  max-height: 45dvh;
-  overflow-y: auto;
 }
 
 .me {
@@ -91,6 +88,17 @@
 .waiting {
   margin: 0;
   color: var(--color-ink-on-table-muted);
+}
+
+/* On a phone, or a screen too low for the felt, the decision panel and the hand together, the
+   table grows and the page scrolls rather than hiding anything (the deal result's button, the
+   trick under a panel). */
+@media (max-width: 600px), (max-height: 600px) {
+  .table {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
 }
 
 /* Compact breakpoint (DESIGN.md §3.4). */

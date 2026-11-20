@@ -150,7 +150,7 @@ export const fr = {
     play: 'À vous de jouer',
     declarePoignee: 'Déclarer une poignée',
     poigneeCards: 'Atouts montrés',
-    poigneeHint: 'Touchez un atout pour le montrer ou le cacher.',
+    poigneeHint: 'Touchez un atout pour le montrer ; la poignée part avec votre carte.',
     poigneeExcuse: "L'Excuse ne se montre que s'il manque des atouts.",
     inEcart: "à l'écart",
     poigneeInvalid: (sizes: readonly number[]) =>

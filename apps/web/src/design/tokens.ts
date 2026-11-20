@@ -65,6 +65,8 @@ export const tokens = {
     'spread-overlap': '0.45',
     /** The winner's card on the final podium. */
     podium: 'clamp(84px, 12vw, 128px)',
+    /** The other players' cards on the final podium (by width alone, like the winner's). */
+    'podium-rest': 'clamp(56px, 7vw, 84px)',
     mini: '32px',
     chip: '36px',
   },
