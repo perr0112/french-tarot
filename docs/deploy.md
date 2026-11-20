@@ -49,15 +49,15 @@ Until step 3 of the Vercel part, `ALLOWED_ORIGINS` is empty and the server refus
 
 Local development is unaffected: `apps/party/.dev.vars` allows any port on `localhost` and `127.0.0.1`.
 
-## Host's code (optional)
+## Host code (optional)
 
 The code that gives you an exceptional hand (AGENTS.md §5) is a Cloudflare secret, set once from your machine and never written in the repository:
 
 ```bash
-pnpm --filter @tarot/party exec wrangler secret put CHEAT_CODE
+pnpm --filter @tarot/party exec wrangler secret put HOST_CODE
 ```
 
-Wrangler asks for the value. Pick something long nobody would guess. To change it, run the same command again; to turn the code off, `wrangler secret delete CHEAT_CODE`. In a game, open the browser console and type `tarot("your code")`.
+Wrangler asks for the value. Pick something long nobody would guess (at most 200 characters, the most a page may send). To change it, run the same command again; to turn the code off, `wrangler secret delete HOST_CODE`. In a game, open the browser console and type `tarot("your code")`.
 
 ## Updating
 

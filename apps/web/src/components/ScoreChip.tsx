@@ -1,17 +1,11 @@
 import ui from '../design/ui.module.css';
 import { formatScore } from '../lib/cards';
+import { scoreTone } from '../lib/score';
 import styles from './ScoreChip.module.css';
 
 /**
- * The colour of a score by its sign (DESIGN.md §3.1), on a light surface: green won, red lost,
- * the surrounding ink for zero.
- */
-export const scoreTone = (value: number) =>
-  value > 0 ? ui.positive : value < 0 ? ui.negative : '';
-
-/**
  * A score set on the felt like a chip (DESIGN.md §5): on its own light ground, so its green or
- * red reads on the table; the sign says it too.
+ * red reads on the table.
  */
 export function ScoreChip({
   value,
@@ -19,16 +13,16 @@ export function ScoreChip({
   className,
 }: {
   value: number;
-  /** What it is, for screen readers (e.g. "Score de la donne : +56"). */
+  /** What it is, read instead of the bare number (e.g. "Score de la donne : +56"). */
   label?: string;
   className?: string;
 }) {
   return (
-    <span
-      className={`${styles.chip} ${value > 0 ? styles.positive : value < 0 ? styles.negative : ''} ${className ?? ''}`}
-      aria-label={label}
-    >
-      {formatScore(value)}
+    <span className={`${styles.chip} ${className ?? ''}`}>
+      <span className={scoreTone(value)} aria-hidden={label ? true : undefined}>
+        {formatScore(value)}
+      </span>
+      {label && <span className={ui.visuallyHidden}>{label}</span>}
     </span>
   );
 }

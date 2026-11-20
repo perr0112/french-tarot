@@ -1,8 +1,8 @@
 import type { RoomView } from '@tarot/protocol';
 import { formatScore } from '../lib/cards';
 import { seatName } from '../lib/names';
+import { madeTone, scoreTone } from '../lib/score';
 import { fr } from '../strings/fr';
-import { scoreTone } from './ScoreChip';
 import styles from './ScoreSheet.module.css';
 
 /** Every deal of the session and the running totals (AGENTS.md §5). */
@@ -36,7 +36,7 @@ export function ScoreSheet({ view }: { view: RoomView }) {
                   {result ? (
                     <>
                       {`${fr.bid[result.contract]} · ${seatName(view, result.taker)} · `}
-                      <span className={scoreTone(result.made ? 1 : -1)}>
+                      <span className={madeTone(result.made)}>
                         {result.made ? fr.sheet.made : fr.sheet.failed}
                       </span>
                     </>

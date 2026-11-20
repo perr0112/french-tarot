@@ -102,7 +102,7 @@ export function useRoomConnection(code: string, request: JoinRequest | null): Ro
     socketRef.current?.close();
     storage.forgetToken(code);
   }, [code]);
-  // The host's code is typed in the browser console: tarot("…") (AGENTS.md §5).
+  // The host code is typed in the browser console: tarot("…") (AGENTS.md §5).
   useEffect(() => {
     const host = window as Window & { tarot?: (code: string) => void };
     host.tarot = (secret: string) => send({ type: 'code', code: String(secret) });

@@ -4,8 +4,8 @@ import ui from '../design/ui.module.css';
 import { formatScore } from '../lib/cards';
 import { seatName } from '../lib/names';
 import { rankSeats } from '../lib/ranking';
+import { scoreTone } from '../lib/score';
 import { fr } from '../strings/fr';
-import { scoreTone } from './ScoreChip';
 import { ScoreSheet } from './ScoreSheet';
 import styles from './ScoreCorner.module.css';
 

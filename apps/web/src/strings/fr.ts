@@ -20,7 +20,7 @@ export const fr = {
     join: 'Rejoindre',
     nicknameRequired: 'Choisissez un pseudo pour vous asseoir.',
   },
-  /** Answers to the host's code, in the browser console. */
+  /** Answers to the host code, in the browser console. */
   code: {
     accepted: 'Code accepté : la prochaine donne vous sera favorable.',
     refused: 'Code refusé.',

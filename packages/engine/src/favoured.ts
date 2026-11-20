@@ -12,10 +12,12 @@ export interface CreateFavouredDealInput extends CreateDealInput {
 }
 
 /**
- * A deal where `seat` holds an exceptional hand (AGENTS.md §5, the host's cheat code): 12
- * trumps including the 21, 20 and 19, the Excuse and two Kings — the whole hand in 5 players,
- * completed with random cards in 3 and 4. The other nine trumps, the Kings' suits, the rest of
- * the hand and every other hand come from `seed`: never twice the same, always reproducible.
+ * A deal where `seat` holds an exceptional hand (AGENTS.md §5, the host code): 12 trumps
+ * including the 21, 20 and 19, the Excuse and two Kings — the whole hand in 5 players,
+ * completed with random cards (perhaps more trumps or Kings) in 3 and 4. The other nine trumps,
+ * the Kings' suits, the rest of the hand and every other hand come from `seed`: never twice the
+ * same, always reproducible. The hands are composed, not dealt packet by packet as createDeal
+ * does; a draw that gives another hand a petit sec is drawn again.
  */
 export function createFavouredDeal({
   players,

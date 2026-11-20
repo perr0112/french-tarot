@@ -2,6 +2,7 @@ import type { RoomView } from '@tarot/protocol';
 import ui from '../design/ui.module.css';
 import { formatPoints, formatScore } from '../lib/cards';
 import { seatName } from '../lib/names';
+import { madeTone, scoreTone } from '../lib/score';
 import type { Send } from '../net/connection';
 import { fr } from '../strings/fr';
 import styles from './DealResult.module.css';
@@ -25,11 +26,7 @@ export function DealResult({ view, send }: { view: RoomView; send: Send }) {
       ? [seatName(view, seat)]
       : [],
   );
-  const signed = (value: number) => (
-    <span className={value > 0 ? ui.positive : value < 0 ? ui.negative : ''}>
-      {formatScore(value)}
-    </span>
-  );
+  const signed = (value: number) => <span className={scoreTone(value)}>{formatScore(value)}</span>;
   return (
     <section className={`${ui.panel} ${ui.enter} ${styles.result}`} aria-label={fr.result.title}>
       <h2 className={ui.title}>{result ? fr.result.title : fr.result.cancelled}</h2>
@@ -37,7 +34,7 @@ export function DealResult({ view, send }: { view: RoomView; send: Send }) {
         <>
           <p className={styles.headline}>
             <span>{fr.table.contract(fr.bid[result.contract], seatName(view, result.taker))}</span>
-            <strong className={result.made ? ui.positive : ui.negative}>
+            <strong className={madeTone(result.made)}>
               {result.made ? fr.result.made(result.gap) : fr.result.failed(result.gap)}
             </strong>
           </p>

@@ -7,11 +7,3 @@
   font-weight: var(--weight-emphasis);
   font-variant-numeric: tabular-nums;
 }
-
-.positive {
-  color: var(--color-positive);
-}
-
-.negative {
-  color: var(--color-negative);
-}

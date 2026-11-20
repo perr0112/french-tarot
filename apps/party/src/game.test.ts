@@ -300,7 +300,7 @@ describe('the host’s code', () => {
   };
   const fiveAtTable = () => {
     const h = table(['Alice'], { players: 5, deals: 3 });
-    h.cheatCode = 'le-code-secret';
+    h.hostCode = 'le-code-secret';
     h.send('c0', { type: 'start' });
     return h;
   };
@@ -326,11 +326,45 @@ describe('the host’s code', () => {
     expect(exceptional(h)).toBe(false);
   });
 
+  it('tells nobody else, accepted or not', () => {
+    const h = table(['Alice', 'Bob'], { players: 5, deals: 3 });
+    h.hostCode = 'le-code-secret';
+    h.send('c0', { type: 'start' });
+    const seen = h.messages('c1').length;
+    h.send('c0', { type: 'code', code: 'le-code-secret' });
+    h.send('c0', { type: 'code', code: 'faux' });
+    expect(h.messages('c1')).toHaveLength(seen);
+  });
+
+  it('refuses every code after five wrong ones', () => {
+    const h = fiveAtTable();
+    for (let i = 0; i < 5; i++) h.send('c0', { type: 'code', code: `faux-${i}` });
+    h.send('c0', { type: 'code', code: 'le-code-secret' });
+    expect(lastCode(h)).toEqual({ type: 'code', accepted: false });
+  });
+
+  it('is refused in the last deal, and forgotten once the session is over', () => {
+    const h = table(['Alice'], { players: 5, deals: 1 });
+    h.hostCode = 'le-code-secret';
+    h.send('c0', { type: 'start' });
+    h.send('c0', { type: 'code', code: 'le-code-secret' });
+    expect(lastCode(h)).toEqual({ type: 'code', accepted: false });
+  });
+
+  it('is not passed on to the bot when the player leaves', () => {
+    const h = table(['Alice', 'Bob'], { players: 5, deals: 3 });
+    h.hostCode = 'le-code-secret';
+    h.send('c0', { type: 'start' });
+    h.send('c1', { type: 'code', code: 'le-code-secret' });
+    h.send('c1', { type: 'leave' });
+    expect(h.room.favoured ?? null).toBeNull();
+  });
+
   it('answers the same refusal to a wrong code, and when no code is set', () => {
     const h = fiveAtTable();
     h.send('c0', { type: 'code', code: 'le-code-secreT' });
     expect(lastCode(h)).toEqual({ type: 'code', accepted: false });
-    h.cheatCode = undefined;
+    h.hostCode = undefined;
     h.send('c0', { type: 'code', code: 'le-code-secret' });
     expect(lastCode(h)).toEqual({ type: 'code', accepted: false });
   });
