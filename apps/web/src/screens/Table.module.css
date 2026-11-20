@@ -86,6 +86,13 @@
   color: var(--color-ink-on-table-muted);
 }
 
+/* Empty most of the time (no height), but always there so its changes are announced. */
+.preselection {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-ink-on-table-muted);
+}
+
 /* Compact breakpoint (DESIGN.md §3.4). */
 @media (max-width: 600px) {
   /* The trick (and the deal result) need the full width: the centre takes its own row under

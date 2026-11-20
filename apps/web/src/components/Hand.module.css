@@ -66,6 +66,13 @@
     var(--shadow-card);
 }
 
+/* Picked ahead of the turn: raised like a pick, its ring dashed, as it is not played yet. */
+.preselected :global(svg) {
+  transform: translateY(calc(var(--space-5) * -1));
+  outline: var(--border-selected) dashed var(--color-accent);
+  outline-offset: 0;
+}
+
 /* The focus ring follows the face, outside the selection ring (DESIGN.md §3.5). */
 .card:focus-visible {
   outline: none;

@@ -1,10 +1,11 @@
-import { ALL_CARDS, createDeal, isTrump, type Card } from '@tarot/engine';
+import { ALL_CARDS, createDeal, getPlayerView, isTrump, type Card } from '@tarot/engine';
 import { fourKingsFifteenTrumps } from '@tarot/engine/testing';
 import { DEFAULT_ROOM_OPTIONS, TRICK_PAUSE_MS } from '@tarot/protocol';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cardName } from '../lib/cards';
 import { POIGNEE_SHOWN_MS } from '../hooks/useFreshPoignees';
+import { PRESELECTION_DROPPED_MS } from '../hooks/usePreselection';
 import { dealWith, playOut, roomView, takes } from '../testing/views';
 import { Table } from './Table';
 
@@ -427,5 +428,94 @@ describe('the called King', () => {
     const taker = document.querySelector('[data-seat="1"]') as HTMLElement;
     expect(within(taker).getByRole('group', { name: 'Appel : Roi de cœur' })).toBeTruthy();
     expect(screen.queryByText('Appel : Roi de cœur')).toBeNull();
+  });
+});
+
+describe('preselecting a card', () => {
+  // Dealer 0: seat 1 leads the first trick, seat 0 (the taker) plays second.
+  const waiting = (hand: readonly Card[]) =>
+    playOut(dealWith(hand, 0), [
+      [1, { type: 'bid', contract: 'pass' }],
+      [2, { type: 'bid', contract: 'pass' }],
+      [3, { type: 'bid', contract: 'pass' }],
+      [0, { type: 'bid', contract: 'gardeSans' }],
+      [0, { type: 'decideChelem', announce: false }],
+    ]);
+  // Seat 1 leads a spade; seat 2 has neither spades nor trumps, seat 3 must trump; then
+  // seat 0's turn, who must follow spades.
+  const spadesLed = (deal: ReturnType<typeof waiting>) => {
+    const hands = [1, 2, 3].map((seat) => getPlayerView(deal, seat).hand);
+    const pick = (seat: number, test: (c: Card) => boolean) => hands[seat - 1]?.find(test) ?? 'EXC';
+    return playOut(deal, [
+      [1, { type: 'playCard', card: pick(1, (c) => c.startsWith('S')) }],
+      [2, { type: 'playCard', card: pick(2, (c) => c.startsWith('D')) }],
+      [3, { type: 'playCard', card: pick(3, (c) => c.startsWith('T') && c !== 'T01') }],
+    ]);
+  };
+  const plain: Card[] = [...suit('S', 1, 9), ...suit('H', 1, 9)];
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it('plays the card at once when the turn comes and it may be played', () => {
+    const send = vi.fn();
+    const before = waiting(plain);
+    const { rerender } = render(<Table view={roomView(before)} send={send} />);
+    fireEvent.click(card('S03'));
+    expect(send).not.toHaveBeenCalled();
+    expect(card('S03').getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByText(/Présélection : 3 de pique/)).toBeTruthy();
+    rerender(<Table view={roomView(spadesLed(before))} send={send} />);
+    act(() => vi.advanceTimersByTime(0));
+    expect(send).toHaveBeenCalledOnce();
+    expect(send).toHaveBeenCalledWith({
+      type: 'action',
+      action: { type: 'playCard', card: 'S03' },
+    });
+  });
+
+  it('is cancelled by clicking the card again, replaced by clicking another', () => {
+    render(<Table view={roomView(waiting(plain))} send={vi.fn()} />);
+    fireEvent.click(card('S03'));
+    fireEvent.click(card('S03'));
+    expect(card('S03').getAttribute('aria-pressed')).not.toBe('true');
+    fireEvent.click(card('S03'));
+    fireEvent.click(card('H05'));
+    expect(card('S03').getAttribute('aria-pressed')).not.toBe('true');
+    expect(card('H05').getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('is dropped, with a word why, when the card may not be played', () => {
+    const send = vi.fn();
+    const before = waiting(plain);
+    const { rerender } = render(<Table view={roomView(before)} send={send} />);
+    fireEvent.click(card('H05'));
+    rerender(<Table view={roomView(spadesLed(before))} send={send} />);
+    act(() => vi.advanceTimersByTime(0));
+    expect(send).not.toHaveBeenCalled();
+    expect(card('H05').getAttribute('aria-pressed')).not.toBe('true');
+    expect(screen.getByText('Présélection retirée : carte non permise')).toBeTruthy();
+    act(() => vi.advanceTimersByTime(PRESELECTION_DROPPED_MS));
+    expect(screen.queryByText('Présélection retirée : carte non permise')).toBeNull();
+  });
+
+  it('waits for a click when a poignée may be declared with it', () => {
+    const send = vi.fn();
+    const before = waiting([...trumps(1, 13), ...suit('S', 1, 5)]);
+    const { rerender } = render(<Table view={roomView(before)} send={send} />);
+    fireEvent.click(card('S03'));
+    rerender(<Table view={roomView(spadesLed(before))} send={send} />);
+    act(() => vi.advanceTimersByTime(0));
+    expect(send).not.toHaveBeenCalled();
+    expect(card('S03').getAttribute('aria-pressed')).toBe('true');
+    fireEvent.click(card('S03'));
+    expect(send).toHaveBeenCalledWith({
+      type: 'action',
+      action: { type: 'playCard', card: 'S03' },
+    });
+  });
+
+  it('is not offered while the players bid', () => {
+    render(<Table view={roomView(dealWith(plain, 0))} send={vi.fn()} />);
+    expect(card('S03')).toHaveProperty('disabled', true);
   });
 });
