@@ -131,6 +131,9 @@ export const fr = {
   },
   panels: {
     bid: 'Votre enchère',
+    contracts: 'Contrats',
+    multiplier: (n: number) => `×${n}`,
+    contract: (name: string, multiplier: number) => `${name} ×${multiplier}`,
     callKing: 'Appelez une carte',
     ecart: (n: number) => `Choisissez ${n} cartes pour l'écart`,
     ecartMissing: (n: number) => (n > 0 ? `Encore ${n}` : `${-n} de trop`),

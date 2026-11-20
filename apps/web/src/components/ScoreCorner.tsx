@@ -32,9 +32,18 @@ export function ScoreCorner({
           type="button"
           className={`${ui.button} ${ui.quiet} ${styles.toggle}`}
           aria-expanded={open}
+          aria-label={open ? fr.table.foldSheet : fr.table.scoreSheet}
           onClick={() => setOpen(!open)}
         >
-          {open ? fr.table.foldSheet : fr.table.scoreSheet}
+          {open ? (
+            fr.table.foldSheet
+          ) : (
+            <>
+              <span className={styles.long}>{fr.table.scoreSheet}</span>
+              {/* On a phone the folded slip is this button alone, beside the badge: short. */}
+              <span className={styles.short}>{fr.table.scores}</span>
+            </>
+          )}
         </button>
       </div>
       <ol className={styles.totals} aria-label={fr.table.scores}>

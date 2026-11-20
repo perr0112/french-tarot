@@ -1,0 +1,13 @@
+.icon {
+  display: block;
+  width: var(--space-7);
+  height: auto;
+  overflow: visible;
+}
+
+.card {
+  fill: var(--color-card-face);
+  stroke: var(--color-ink);
+  stroke-width: var(--border-thick);
+  vector-effect: non-scaling-stroke;
+}

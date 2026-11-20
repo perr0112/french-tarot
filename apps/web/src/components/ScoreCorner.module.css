@@ -77,12 +77,21 @@
   box-shadow: var(--shadow-panel);
 }
 
-/* Compact breakpoint (DESIGN.md §3.4): folded, only the button; unfolded, the sheet across the
-   screen. */
+.short {
+  display: none;
+}
+
+/* Compact breakpoint (DESIGN.md §3.4): folded, only the button, short; unfolded, the sheet
+   across the screen. */
 @media (max-width: 600px) {
   .totals,
-  .title {
+  .title,
+  .long {
     display: none;
+  }
+
+  .short {
+    display: inline;
   }
 
   .sheet {

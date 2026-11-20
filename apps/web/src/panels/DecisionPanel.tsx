@@ -1,6 +1,15 @@
-import type { Card, LegalAction, PoigneeLevel, PoigneeTemplate } from '@tarot/engine';
+import {
+  CONTRACT_RULES,
+  CONTRACTS,
+  type BidChoice,
+  type Card,
+  type LegalAction,
+  type PoigneeLevel,
+  type PoigneeTemplate,
+} from '@tarot/engine';
 import type { RoomView } from '@tarot/protocol';
 import ui from '../design/ui.module.css';
+import { BidIcon } from '../components/BidIcon';
 import { CardFace } from '../components/Card';
 import { cardName } from '../lib/cards';
 import { defaultPoignee, ecartStatus, poigneeStatus } from '../lib/selection';
@@ -23,24 +32,42 @@ export function DecisionPanel({ view, send, ecart, poignee, onPoigneeChange }: D
   const template: LegalAction | undefined = view.deal?.legalActions[0];
   if (!template) return null;
   switch (template.type) {
-    case 'bid':
+    case 'bid': {
+      const bid = (contract: BidChoice) =>
+        send({ type: 'action', action: { type: 'bid', contract } });
       return (
         <section className={styles.panel} aria-label={fr.panels.bid}>
           <p className={styles.title}>{fr.panels.bid}</p>
-          <div className={ui.row}>
-            {template.choices.map((choice) => (
+          {/* Always the four contracts, rising, in the same places: one outbid stays, disabled. */}
+          <div className={styles.contracts} role="group" aria-label={fr.panels.contracts}>
+            {CONTRACTS.map((contract, i) => (
               <button
-                key={choice}
+                key={contract}
                 type="button"
-                className={ui.button}
-                onClick={() => send({ type: 'action', action: { type: 'bid', contract: choice } })}
+                className={`${ui.button} ${styles.contract}`}
+                // The name and the multiplier, as shown.
+                aria-label={fr.panels.contract(
+                  fr.bid[contract],
+                  CONTRACT_RULES[contract].multiplier,
+                )}
+                disabled={!template.choices.includes(contract)}
+                onClick={() => bid(contract)}
               >
-                {fr.bid[choice]}
+                <BidIcon cards={i + 1} />
+                <span>{fr.bid[contract]}</span>
+                <span className={styles.multiplier}>
+                  {fr.panels.multiplier(CONTRACT_RULES[contract].multiplier)}
+                </span>
               </button>
             ))}
           </div>
+          {/* Apart, below every contract, and drawn differently: never mistaken for one. */}
+          <button type="button" className={styles.pass} onClick={() => bid('pass')}>
+            {fr.bid.pass}
+          </button>
         </section>
       );
+    }
     case 'callKing':
       return (
         <section className={styles.panel} aria-label={fr.panels.callKing}>

@@ -103,7 +103,7 @@ CSS variables: `--width-*`, `--card-*` (card values are widths; height = width �
 - **Selection and turn** use the accent: selected card = `border-selected` accent outline; current seat = accent.
 - **Keyboard focus never uses the accent**: `:focus-visible` draws a `border-thick` ring with `focus-offset`, in `ink-on-table` on the table and in `ink` inside light surfaces (`.panel` sets `--focus-ring-color`). A focused-and-selected card therefore shows both, distinctly.
 - Native checkboxes / radios: `accent-color: accent` (checked = selected state).
-- **`.primary` (gold) is reserved for the single main action of a screen or panel** ("Valider l'écart", "Lancer la partie", "Continuer"). Choice lists — bids, king call, chelem announce/decline — use the neutral `.button`. Never more than one `.primary` visible per panel.
+- **`.primary` (gold) is reserved for the single main action of a screen or panel** ("Valider l'écart", "Lancer la partie", "Continuer"). Choice lists — bids, king call, chelem announce/decline — use the neutral `.button`. **Bidding**: the four contracts always in the same places, rising left to right (2 × 2 at the compact breakpoint), each a tile with its drawn mark (a fan of one to four cards), its name and its multiplier; one already outbid stays, disabled. « Passer » is apart, alone on the last line, outlined and never filled, so it is never mistaken for a contract. Never more than one `.primary` visible per panel.
 
 ### 3.6 Motion
 
@@ -182,3 +182,4 @@ Record design decisions here (date — decision — reason).
 - 2026-11-19 — Chien, poignées and écart trumps moved from the info bar to the table (centre, under the seats); deal scores under each seat; final screen as a card podium; `card-podium` token. Reason: user request — information was scattered with no link to the table or the players.
 - 2026-11-19 — Review: `motion-turn-stagger` and `card-spread-overlap` tokens; chien cards get `shadow-card` so the backs can be counted; score colours `.positive` / `.negative` shared in `ui.module.css`; the deal slip's total in bold without a rule.
 - 2026-11-20 — Scores moved from the top bar and drawer to a foldable slip in the felt's bottom-right corner; the called King moved under the taker's badge; poignées shown 5 s; a leave button. Reason: user request.
+- 2026-11-20 — Bid panel: contract tiles with drawn marks and multipliers in fixed places; « Passer » apart, outlined, last. Reason: user request — « Passer » was clicked by reflex at the bottom, where « Garde contre » had wrapped.

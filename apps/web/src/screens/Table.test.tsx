@@ -19,10 +19,42 @@ const card = (c: Card) => screen.getByRole('button', { name: cardName(c) });
 const click = (name: string) => fireEvent.click(screen.getByRole('button', { name }));
 
 describe('bidding', () => {
+  it('lays out the four contracts in order, with their multiplier, and Passer apart below', () => {
+    render(
+      <Table view={roomView(dealWith([...suit('S', 1, 14), ...trumps(2, 5)]))} send={vi.fn()} />,
+    );
+    const contracts = within(screen.getByRole('group', { name: 'Contrats' }));
+    expect(
+      contracts.getAllByRole('button').map((b) => [b.getAttribute('aria-label'), b.textContent]),
+    ).toEqual([
+      ['Petite ×1', 'Petite×1'],
+      ['Garde ×2', 'Garde×2'],
+      ['Garde sans ×4', 'Garde sans×4'],
+      ['Garde contre ×6', 'Garde contre×6'],
+    ]);
+    const pass = screen.getByRole('button', { name: 'Passer' });
+    expect(contracts.queryByRole('button', { name: 'Passer' })).toBeNull();
+    // Passer comes after every contract in the panel.
+    const panel = screen.getByRole('region', { name: 'Votre enchère' });
+    expect([...panel.querySelectorAll('button')].at(-1)).toBe(pass);
+  });
+
+  it('keeps the contracts already outbid in place, disabled', () => {
+    // Seat 0 opened with a garde; seat 1 speaks next.
+    const view = roomView(
+      playOut(dealWith(trumps(1, 18)), [[0, { type: 'bid', contract: 'garde' }]]),
+      1,
+    );
+    render(<Table view={view} send={vi.fn()} />);
+    expect(screen.getByRole('button', { name: 'Petite ×1' })).toHaveProperty('disabled', true);
+    expect(screen.getByRole('button', { name: 'Garde ×2' })).toHaveProperty('disabled', true);
+    expect(screen.getByRole('button', { name: 'Garde sans ×4' })).toHaveProperty('disabled', false);
+  });
+
   it('sends the chosen bid', () => {
     const send = vi.fn();
     render(<Table view={roomView(dealWith([...suit('S', 1, 14), ...trumps(2, 5)]))} send={send} />);
-    click('Garde');
+    click('Garde ×2');
     expect(send).toHaveBeenCalledWith({
       type: 'action',
       action: { type: 'bid', contract: 'garde' },
