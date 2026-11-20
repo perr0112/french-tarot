@@ -75,15 +75,6 @@
   overflow-wrap: anywhere;
 }
 
-.total {
-  font-variant-numeric: tabular-nums;
-}
-
-/* Losses in the table's muted ink: red would not read on the felt. */
-.negative {
-  color: var(--color-ink-on-table-muted);
-}
-
 .actions {
   justify-content: center;
 }

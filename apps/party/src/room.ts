@@ -39,6 +39,8 @@ export const BOT_DELAY_MS: Readonly<Record<BotSpeed, number>> = {
 export const REPLACE_AFTER_MS = 10_000;
 /** A room nobody is connected to is deleted after this long without activity. */
 export const EXPIRE_AFTER_MS = 24 * 60 * 60 * 1000;
+/** Wrong host codes a participant may send before every code is refused. */
+export const MAX_CODE_TRIES = 5;
 /** Level of the bot that plays for a disconnected player, or for one who left. */
 const REPLACEMENT_LEVEL: SeatBotLevel = 'medium';
 
@@ -50,6 +52,8 @@ export interface Participant {
   /** The socket connection currently attached, or null while disconnected. */
   readonly connection: string | null;
   readonly disconnectedAt: number | null;
+  /** Wrong host codes sent so far (absent in old rooms); past MAX_CODE_TRIES, all are refused. */
+  readonly codeTries?: number;
 }
 
 /** The whole state of a room: plain JSON, persisted after every command. */
@@ -70,6 +74,8 @@ export interface RoomState {
   readonly continued: readonly Seat[];
   /** When the seat to act may act at the earliest (later after a completed trick). */
   readonly turnSince: number;
+  /** The seat the next deal gives an exceptional hand (the host code); absent in old rooms. */
+  readonly favoured?: Seat | null;
   readonly lastActivity: number;
 }
 
@@ -86,6 +92,8 @@ export interface RoomEnv {
   readonly seed: number;
   /** Fresh random token, used if a new participant joins. */
   readonly token: string;
+  /** The host code (the HOST_CODE Cloudflare secret); unset, codes are always refused. */
+  readonly hostCode?: string | undefined;
 }
 
 export type RoomEffect =
@@ -122,6 +130,8 @@ interface Outcome {
   readonly room: RoomState | 'destroy';
   /** Direct replies (welcome, errors, closes), sent before the new views. */
   readonly replies: readonly RoomEffect[];
+  /** Nothing anyone can see changed: no views are sent (the host code tells nobody else). */
+  readonly quiet?: boolean;
 }
 
 const reply = (connection: string, message: ServerMessage): RoomEffect => ({
@@ -139,7 +149,7 @@ export function applyRoomCommand(room: RoomState, command: RoomCommand, env: Roo
   const outcome = handle(room, command, env);
   if (outcome.room === 'destroy') return { room, effects: [{ type: 'destroy' }] };
   let next = outcome.room;
-  const changed = next !== room || command.type === 'wake';
+  const changed = (next !== room && !outcome.quiet) || command.type === 'wake';
   if (next !== room && command.type !== 'wake') next = { ...next, lastActivity: env.now };
   const effects: RoomEffect[] = [...outcome.replies];
   if (changed) effects.push(...broadcast(next, env.now));
@@ -193,6 +203,7 @@ function handleMessage(
           session: null,
           currentDeal: null,
           continued: [],
+          favoured: null,
         },
       );
     case 'action':
@@ -204,6 +215,8 @@ function handleMessage(
       return done(continueToNextDeal(room, me.seat, env));
     case 'leave':
       return { room: leave(room, me, env), replies: [{ type: 'close', connection }] };
+    case 'code':
+      return hostCode(room, me, connection, message.code, env);
   }
 }
 
@@ -301,6 +314,8 @@ function disconnect(room: RoomState, connection: string, now: number, env: RoomE
 function leave(room: RoomState, leaving: Participant, env: RoomEnv): RoomState {
   const participants = room.participants.filter((p) => p !== leaving);
   const seat = leaving.seat;
+  // A host code was for the player, not for the bot taking the seat.
+  if (seat !== null && room.favoured === seat) room = { ...room, favoured: null };
   if (room.phase !== 'playing' || seat === null) return fillSeats({ ...room, participants });
   const next: RoomState = {
     ...room,
@@ -362,12 +377,53 @@ function start(room: RoomState, env: RoomEnv): RoomState | ServerErrorCode {
 function beginSession(room: RoomState, dealer: Seat, env: RoomEnv): RoomState {
   const { players, deals, chelemAnnouncements } = room.options;
   const session = createSession({ players, deals, dealer, options: { chelemAnnouncements } });
-  return dealNext({ ...room, phase: 'playing', session }, env);
+  // A host code is for the session it was typed in.
+  return dealNext({ ...room, phase: 'playing', session, favoured: null }, env);
+}
+
+/**
+ * The host code (AGENTS.md §5): the sender's seat gets an exceptional hand in the next deal of
+ * this session. Answered to the sender only, the same way whatever was wrong, and nobody else
+ * hears of it; past MAX_CODE_TRIES wrong codes, every code is refused.
+ */
+function hostCode(
+  room: RoomState,
+  me: Participant,
+  connection: string,
+  code: string,
+  env: RoomEnv,
+): Outcome {
+  const session = room.session;
+  const tries = me.codeTries ?? 0;
+  const nextDealComing =
+    room.phase === 'playing' && session !== null && session.played + 1 < session.deals;
+  const right = env.hostCode !== undefined && env.hostCode !== '' && sameSecret(code, env.hostCode);
+  const accepted = right && tries < MAX_CODE_TRIES && nextDealComing && me.seat !== null;
+  const counted = right ? room : replace(room, me, { ...me, codeTries: tries + 1 });
+  return {
+    room: accepted ? { ...counted, favoured: me.seat } : counted,
+    replies: [reply(connection, { type: 'code', accepted })],
+    quiet: true,
+  };
+}
+
+/** Compares a code with the secret in a time that does not depend on where they differ. */
+export function sameSecret(given: string, secret: string): boolean {
+  const a = new TextEncoder().encode(given);
+  const b = new TextEncoder().encode(secret);
+  let diff = a.length ^ b.length;
+  for (let i = 0; i < b.length; i++) diff |= (a[i] ?? 0) ^ (b[i] ?? 0);
+  return diff === 0;
 }
 
 function dealNext(room: RoomState, env: RoomEnv): RoomState {
   if (room.session === null) return room;
-  const result = applySessionAction(room.session, { type: 'deal', seed: env.seed });
+  const favoured = room.favoured ?? null;
+  const result = applySessionAction(room.session, {
+    type: 'deal',
+    seed: env.seed,
+    ...(favoured !== null ? { favoured } : {}),
+  });
   if (!result.ok) return room;
   return {
     ...room,
@@ -376,6 +432,8 @@ function dealNext(room: RoomState, env: RoomEnv): RoomState {
     memories: Array.from({ length: room.options.players }, emptyMemory),
     continued: [],
     turnSince: env.now,
+    // Used once: the code has to be typed again for another one.
+    favoured: null,
   };
 }
 

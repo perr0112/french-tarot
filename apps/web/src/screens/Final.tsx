@@ -3,8 +3,8 @@ import ui from '../design/ui.module.css';
 import { CardFace } from '../components/Card';
 import { DealResult } from '../components/DealResult';
 import { LeaveButton } from '../components/LeaveButton';
+import { ScoreChip } from '../components/ScoreChip';
 import { ScoreSheet } from '../components/ScoreSheet';
-import { formatScore } from '../lib/cards';
 import { seatName } from '../lib/names';
 import { podiumCard, rankSeats } from '../lib/ranking';
 import type { Send } from '../net/connection';
@@ -44,9 +44,7 @@ export function Final({
             </span>
             <span className={styles.rank}>{fr.final.rank(rank)}</span>
             <span className={styles.name}>{seatName(view, seat)}</span>
-            <span className={`${styles.total} ${total < 0 ? styles.negative : ''}`}>
-              {formatScore(total)}
-            </span>
+            <ScoreChip value={total} />
           </li>
         ))}
       </ol>

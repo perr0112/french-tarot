@@ -4,6 +4,7 @@ import ui from '../design/ui.module.css';
 import { formatScore } from '../lib/cards';
 import { seatName } from '../lib/names';
 import { rankSeats } from '../lib/ranking';
+import { scoreTone } from '../lib/score';
 import { fr } from '../strings/fr';
 import { ScoreSheet } from './ScoreSheet';
 import styles from './ScoreCorner.module.css';
@@ -50,7 +51,7 @@ export function ScoreCorner({
         {ranking.map(({ seat, total }) => (
           <li key={seat} className={seat === view.you.seat ? styles.me : ''}>
             <span className={styles.name}>{seatName(view, seat)}</span>
-            <span className={styles.total}>{formatScore(total)}</span>
+            <span className={`${styles.total} ${scoreTone(total)}`}>{formatScore(total)}</span>
           </li>
         ))}
       </ol>

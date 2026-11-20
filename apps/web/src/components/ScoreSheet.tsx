@@ -1,6 +1,7 @@
 import type { RoomView } from '@tarot/protocol';
 import { formatScore } from '../lib/cards';
 import { seatName } from '../lib/names';
+import { madeTone, scoreTone } from '../lib/score';
 import { fr } from '../strings/fr';
 import styles from './ScoreSheet.module.css';
 
@@ -32,12 +33,22 @@ export function ScoreSheet({ view }: { view: RoomView }) {
               <tr key={i} className={result ? '' : styles.cancelled}>
                 <th scope="row">{result ? played : '—'}</th>
                 <td>
-                  {result
-                    ? `${fr.bid[result.contract]} · ${seatName(view, result.taker)} · ${result.made ? fr.sheet.made : fr.sheet.failed}`
-                    : fr.sheet.cancelled}
+                  {result ? (
+                    <>
+                      {`${fr.bid[result.contract]} · ${seatName(view, result.taker)} · `}
+                      <span className={madeTone(result.made)}>
+                        {result.made ? fr.sheet.made : fr.sheet.failed}
+                      </span>
+                    </>
+                  ) : (
+                    fr.sheet.cancelled
+                  )}
                 </td>
                 {seats.map((seat) => (
-                  <td key={seat} className={styles.number}>
+                  <td
+                    key={seat}
+                    className={`${styles.number} ${result ? scoreTone(result.perSeat[seat] ?? 0) : ''}`}
+                  >
                     {result ? formatScore(result.perSeat[seat] ?? 0) : ''}
                   </td>
                 ))}
@@ -51,7 +62,7 @@ export function ScoreSheet({ view }: { view: RoomView }) {
               {fr.sheet.total}
             </th>
             {seats.map((seat) => (
-              <td key={seat} className={styles.number}>
+              <td key={seat} className={`${styles.number} ${scoreTone(session.totals[seat] ?? 0)}`}>
                 {formatScore(session.totals[seat] ?? 0)}
               </td>
             ))}

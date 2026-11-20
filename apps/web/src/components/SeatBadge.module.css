@@ -50,11 +50,6 @@
 /* The seat's score in the deal just over, set before it like a chip on the felt. */
 .score {
   margin-top: var(--space-1);
-  padding: 0 var(--space-2);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface);
-  font-weight: var(--weight-emphasis);
-  font-variant-numeric: tabular-nums;
 }
 
 /* A poignée shown long enough (hooks/useFreshPoignees.ts) fades out, then goes. */
