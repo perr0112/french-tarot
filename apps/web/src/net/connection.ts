@@ -28,6 +28,8 @@ export interface RoomConnection {
   readonly error: ServerErrorCode | null;
   readonly send: Send;
   readonly dismissError: () => void;
+  /** Leaves the table for good: a bot takes the seat; the stored token is forgotten. */
+  readonly leave: () => void;
 }
 
 /** One attempt to sit at the table; a new object retries, even with the same nickname. */
@@ -41,13 +43,15 @@ export function useRoomConnection(code: string, request: JoinRequest | null): Ro
   const [view, setView] = useState<RoomView | null>(null);
   const [error, setError] = useState<ServerErrorCode | null>(null);
   const socketRef = useRef<PartySocket | null>(null);
+  /** Set once the socket must not reconnect (refused, left, unmounted). */
+  const finalRef = useRef(false);
 
   useEffect(() => {
     if (request === null) return;
     const { nickname } = request;
     const socket = new PartySocket({ host: PARTY_HOST, party: 'room', room: code });
     socketRef.current = socket;
-    let final = false;
+    finalRef.current = false;
 
     socket.addEventListener('open', () => {
       setStatus('open');
@@ -55,27 +59,27 @@ export function useRoomConnection(code: string, request: JoinRequest | null): Ro
       socket.send(JSON.stringify({ type: 'join', nickname, ...(token ? { token } : {}) }));
     });
     socket.addEventListener('close', () => {
-      if (!final) setStatus('reconnecting');
+      if (!finalRef.current) setStatus('reconnecting');
     });
     socket.addEventListener('message', (event: MessageEvent<string>) => {
       const message = JSON.parse(event.data) as ServerMessage;
       if (message.type === 'welcome') storage.saveToken(code, message.token);
       else if (message.type === 'state') setView(message.view);
       else if (message.code === 'NICKNAME_TAKEN') {
-        final = true;
+        finalRef.current = true;
         setStatus('nicknameTaken');
         socket.close();
       } else {
         setError(message.code);
         if (FINAL_ERRORS.has(message.code)) {
-          final = true;
+          finalRef.current = true;
           setStatus('refused');
           socket.close();
         }
       }
     });
     return () => {
-      final = true;
+      finalRef.current = true;
       socket.close();
       socketRef.current = null;
     };
@@ -85,5 +89,11 @@ export function useRoomConnection(code: string, request: JoinRequest | null): Ro
     socketRef.current?.send(JSON.stringify(message));
   }, []);
   const dismissError = useCallback(() => setError(null), []);
-  return { status, view, error, send, dismissError };
+  const leave = useCallback(() => {
+    finalRef.current = true;
+    socketRef.current?.send(JSON.stringify({ type: 'leave' } satisfies ClientMessage));
+    socketRef.current?.close();
+    storage.forgetToken(code);
+  }, [code]);
+  return { status, view, error, send, dismissError, leave };
 }

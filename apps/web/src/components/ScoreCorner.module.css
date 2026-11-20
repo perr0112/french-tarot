@@ -1,0 +1,83 @@
+/* A small slip of the score sheet laid in the corner of the table. */
+.corner {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  --focus-ring-color: var(--color-ink);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-panel);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-line);
+  min-width: calc(var(--space-8) * 2.5);
+  max-width: min(var(--width-regular), calc(100vw - var(--space-4)));
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.title {
+  margin: 0;
+  font-size: inherit;
+  font-weight: var(--weight-emphasis);
+}
+
+/* A quiet button inked for the light slip, not for the felt. */
+.corner .toggle {
+  color: var(--color-ink-muted);
+  padding: 0;
+  font-size: var(--text-xs-size);
+  line-height: var(--text-xs-line);
+}
+
+.totals {
+  list-style: none;
+  margin: var(--space-1) 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+}
+
+.totals li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  color: var(--color-ink-muted);
+}
+
+.totals .me {
+  color: var(--color-ink);
+  font-weight: var(--weight-emphasis);
+}
+
+.name {
+  overflow-wrap: anywhere;
+}
+
+.total {
+  font-variant-numeric: tabular-nums;
+}
+
+.sheet {
+  margin-top: var(--space-2);
+  max-height: 60vh;
+  overflow: auto;
+}
+
+/* Compact breakpoint (DESIGN.md §3.4): folded, only the button; unfolded, over the table. */
+@media (max-width: 600px) {
+  .corner:not(.open) .totals,
+  .corner:not(.open) .title {
+    display: none;
+  }
+
+  .open {
+    position: fixed;
+    inset: auto var(--space-2) var(--space-2);
+    max-width: none;
+    z-index: 1;
+  }
+}

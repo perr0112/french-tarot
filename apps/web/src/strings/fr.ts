@@ -19,6 +19,12 @@ export const fr = {
     join: 'Rejoindre',
     nicknameRequired: 'Choisissez un pseudo pour vous asseoir.',
   },
+  leave: {
+    button: 'Quitter la table',
+    confirm: 'Quitter la partie ? Un bot prendra votre place.',
+    yes: 'Quitter',
+    stay: 'Rester',
+  },
   connection: {
     connecting: 'Connexion à la table…',
     reconnecting: 'Connexion perdue, reconnexion…',
@@ -104,6 +110,8 @@ export const fr = {
     contract: (contract: string, taker: string) => `${contract} — ${taker}`,
     called: (card: string) => `Appel : ${card}`,
     calledAlone: 'seul',
+    calledShort: 'Appel',
+    calledAloneShort: 'Appel (seul)',
     chien: 'Chien',
     /** On the seats the hidden chien counts for (garde sans, garde contre). */
     withChien: 'avec le chien',
@@ -116,7 +124,8 @@ export const fr = {
     trick: 'Pli en cours',
     hideLastTrick: 'Revenir au pli',
     scoreSheet: 'Feuille de marque',
-    close: 'Fermer',
+    scores: 'Scores',
+    foldSheet: 'Replier',
     tricks: (n: number) => (n > 1 ? `${n} plis` : `${n} pli`),
     chelemAnnounced: 'Chelem annoncé',
   },

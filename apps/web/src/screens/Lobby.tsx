@@ -3,10 +3,19 @@ import { useState } from 'react';
 import ui from '../design/ui.module.css';
 import type { Send } from '../net/connection';
 import { fr } from '../strings/fr';
+import { LeaveButton } from '../components/LeaveButton';
 import styles from './Lobby.module.css';
 
 /** Seats and options before a session; only the host may change them (AGENTS.md §5). */
-export function Lobby({ view, send }: { view: RoomView; send: Send }) {
+export function Lobby({
+  view,
+  send,
+  onLeave,
+}: {
+  view: RoomView;
+  send: Send;
+  onLeave?: () => void;
+}) {
   const host = view.you.isHost;
   const [copied, setCopied] = useState(false);
   const filled = view.seats.every((occupant) => occupant.kind !== 'empty');
@@ -22,6 +31,7 @@ export function Lobby({ view, send }: { view: RoomView; send: Send }) {
         <button type="button" className={ui.button} onClick={copy}>
           {copied ? fr.lobby.copied : fr.lobby.copyLink}
         </button>
+        {onLeave && <LeaveButton confirm={false} onLeave={onLeave} />}
       </header>
 
       <section className={ui.panel} aria-labelledby="seats">

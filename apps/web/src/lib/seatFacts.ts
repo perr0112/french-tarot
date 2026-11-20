@@ -24,6 +24,10 @@ export interface SeatFacts {
   readonly poignee: Poignee | null;
   /** The trumps the taker had to show in the écart. */
   readonly ecartTrumps: readonly Card[];
+  /** The card the taker called (5 players), shown at the taker's seat. */
+  readonly calledCard: Card | null;
+  /** The taker is known to play alone (they called their own card, or one in the chien). */
+  readonly alone: boolean;
 }
 
 /**
@@ -81,5 +85,7 @@ export function seatFacts(view: RoomView, seat: Seat): SeatFacts {
     dealScore: lastResult?.perSeat[seat] ?? null,
     poignee: deal?.poignees.find((p) => p.seat === seat) ?? null,
     ecartTrumps: deal?.taker === seat ? deal.shownEcartTrumps : [],
+    calledCard: deal?.taker === seat ? deal.calledCard : null,
+    alone: deal?.taker === seat && deal.knownPartner === 'alone',
   };
 }

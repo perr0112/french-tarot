@@ -29,6 +29,8 @@ describe('seatFacts', () => {
       dealScore: null,
       poignee: null,
       ecartTrumps: [],
+      calledCard: null,
+      alone: false,
     });
     expect(seatFacts(view, 0)).toMatchObject({ you: true, bid: 'Garde', cards: null });
   });

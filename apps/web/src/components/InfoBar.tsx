@@ -1,63 +1,42 @@
 import type { RoomView } from '@tarot/protocol';
-import { cardName, formatScore } from '../lib/cards';
 import { seatName } from '../lib/names';
 import { fr } from '../strings/fr';
 import ui from '../design/ui.module.css';
+import { LeaveButton } from './LeaveButton';
 import styles from './InfoBar.module.css';
 
 /**
- * Quiet, persistent game state: contract, called card, chelem, scores (DESIGN.md §5). The chien
- * lies in the centre; poignées and écart trumps are shown at their seat.
+ * Quiet, persistent game state: the contract and a chelem announced (DESIGN.md §5), the last
+ * trick to look back at, and the way out. The chien lies in the centre; what a player shows or
+ * calls is at their seat; the scores are in a corner of the table.
  */
 export function InfoBar({
   view,
   showingLastTrick,
   onToggleLastTrick,
-  onOpenSheet,
+  onLeave,
 }: {
   view: RoomView;
   showingLastTrick: boolean;
   onToggleLastTrick: () => void;
-  onOpenSheet: () => void;
+  onLeave?: (() => void) | undefined;
 }) {
   const deal = view.deal;
-  const partner = deal?.knownPartner;
   return (
     <header className={styles.bar}>
       <div className={styles.facts}>
         {deal?.contract && deal.taker !== null && (
           <strong>{fr.table.contract(fr.bid[deal.contract], seatName(view, deal.taker))}</strong>
         )}
-        {deal?.calledCard && (
-          <span>
-            {fr.table.called(cardName(deal.calledCard))}
-            {partner === 'alone'
-              ? ` (${fr.table.calledAlone})`
-              : typeof partner === 'number'
-                ? ` (${seatName(view, partner)})`
-                : ''}
-          </span>
-        )}
         {deal?.chelemAnnounced && <span>{fr.table.chelemAnnounced}</span>}
       </div>
       <div className={styles.actions}>
-        {view.session && (
-          <span className={styles.scores}>
-            {view.session.totals.map((total, seat) => (
-              <span key={seat}>
-                {seatName(view, seat)} {formatScore(total)}
-              </span>
-            ))}
-          </span>
-        )}
         {deal?.lastTrick && (
           <button type="button" className={`${ui.button} ${ui.quiet}`} onClick={onToggleLastTrick}>
             {showingLastTrick ? fr.table.hideLastTrick : fr.table.lastTrick}
           </button>
         )}
-        <button type="button" className={`${ui.button} ${ui.quiet}`} onClick={onOpenSheet}>
-          {fr.table.scoreSheet}
-        </button>
+        {onLeave && <LeaveButton confirm onLeave={onLeave} />}
       </div>
     </header>
   );

@@ -4,6 +4,7 @@ import { DEFAULT_ROOM_OPTIONS, TRICK_PAUSE_MS } from '@tarot/protocol';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { cardName } from '../lib/cards';
+import { POIGNEE_SHOWN_MS } from '../lib/freshPoignees';
 import { dealWith, playOut, roomView, takes } from '../testing/views';
 import { Table } from './Table';
 
@@ -123,14 +124,34 @@ describe('the first card', () => {
     });
   });
 
-  it('shows the trumps of a declared poignée to the table', () => {
-    const played = playOut(takes(dealWith(hand), 'gardeSans'), [
-      [0, { type: 'decideChelem', announce: false }],
-      [0, { type: 'playCard', card: 'S03', poignee: trumps(1, 10) }],
-    ]);
-    render(<Table view={roomView(played, 1)} send={vi.fn()} />);
-    const shown = screen.getByRole('group', { name: 'Poignée simple de Alice' });
-    expect(within(shown).getAllByRole('img')).toHaveLength(10);
+  describe('a declared poignée', () => {
+    const before = () =>
+      playOut(takes(dealWith(hand), 'gardeSans'), [[0, { type: 'decideChelem', announce: false }]]);
+    const after = () =>
+      playOut(before(), [[0, { type: 'playCard', card: 'S03', poignee: trumps(1, 10) }]]);
+    const shown = () => screen.queryByRole('group', { name: 'Poignée simple de Alice' });
+
+    it('shows its trumps to the table for 5 s, then takes them away', () => {
+      vi.useFakeTimers();
+      try {
+        const { rerender } = render(<Table view={roomView(before(), 1)} send={vi.fn()} />);
+        rerender(<Table view={roomView(after(), 1)} send={vi.fn()} />);
+        expect(within(shown() as HTMLElement).getAllByRole('img')).toHaveLength(10);
+        act(() => vi.advanceTimersByTime(POIGNEE_SHOWN_MS - 1));
+        expect(shown()).not.toBeNull();
+        // It fades out, then goes.
+        act(() => vi.advanceTimersByTime(1));
+        act(() => vi.advanceTimersByTime(1000));
+        expect(shown()).toBeNull();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('is not shown again when the page opens after it', () => {
+      render(<Table view={roomView(after(), 1)} send={vi.fn()} />);
+      expect(shown()).toBeNull();
+    });
   });
 
   it('switches to a double poignée of all thirteen trumps', () => {
@@ -303,5 +324,76 @@ describe('a poignée with the trumps the taker had to discard', () => {
     const fromEcart = chips.getByRole('button', { name: cardName(ecartTrump) });
     expect(fromEcart.getAttribute('aria-description')).toBe("à l'écart");
     expect(chips.getAllByRole('button', { pressed: true })).toHaveLength(15);
+  });
+});
+
+describe('leaving the table', () => {
+  it('asks first, then leaves; staying keeps the game', () => {
+    const onLeave = vi.fn();
+    render(<Table view={roomView(dealWith(trumps(1, 18)))} send={vi.fn()} onLeave={onLeave} />);
+    click('Quitter la table');
+    expect(screen.getByText('Quitter la partie ? Un bot prendra votre place.')).toBeTruthy();
+    click('Rester');
+    expect(onLeave).not.toHaveBeenCalled();
+    click('Quitter la table');
+    click('Quitter');
+    expect(onLeave).toHaveBeenCalledOnce();
+  });
+});
+
+describe('the scores', () => {
+  const scored = () =>
+    roomView(dealWith(trumps(1, 18)), 0, {
+      session: {
+        deals: 8,
+        played: 1,
+        dealer: 0,
+        totals: [-60, 90, 30, -60],
+        history: [{ dealer: 3, result: null, cancelled: { reason: 'allPassed' } }],
+        continued: null,
+      },
+    });
+
+  it('lie folded in a corner, best total first', () => {
+    render(<Table view={scored()} send={vi.fn()} />);
+    const totals = within(screen.getByRole('list', { name: 'Scores' }));
+    expect(totals.getAllByRole('listitem').map((li) => li.textContent)).toEqual([
+      'Bot 2+90',
+      'Bob+30',
+      'Alice−60',
+      'Bot 4−60',
+    ]);
+  });
+
+  it('unfold into the whole score sheet', () => {
+    render(<Table view={scored()} send={vi.fn()} />);
+    click('Feuille de marque');
+    expect(screen.queryByRole('list', { name: 'Scores' })).toBeNull();
+    expect(screen.getByRole('table')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Replier' }).getAttribute('aria-expanded')).toBe(
+      'true',
+    );
+  });
+});
+
+describe('the called King', () => {
+  it('is shown at the taker’s seat', () => {
+    const deal = playOut(createDeal({ players: 5, dealer: 0, seed: 11 }), [
+      [1, { type: 'bid', contract: 'gardeSans' }],
+      [2, { type: 'bid', contract: 'pass' }],
+      [3, { type: 'bid', contract: 'pass' }],
+      [4, { type: 'bid', contract: 'pass' }],
+      [0, { type: 'bid', contract: 'pass' }],
+      [1, { type: 'callKing', card: 'H14' }],
+    ]);
+    const seats = Array.from({ length: 5 }, () => ({
+      kind: 'bot' as const,
+      level: 'medium' as const,
+    }));
+    const options = { ...DEFAULT_ROOM_OPTIONS, players: 5 as const };
+    render(<Table view={roomView(deal, 0, { seats, options })} send={vi.fn()} />);
+    const taker = document.querySelector('[data-seat="1"]') as HTMLElement;
+    expect(within(taker).getByRole('group', { name: 'Appel : Roi de cœur' })).toBeTruthy();
+    expect(screen.queryByText('Appel : Roi de cœur')).toBeNull();
   });
 });

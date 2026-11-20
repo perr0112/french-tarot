@@ -14,6 +14,7 @@ export const storage = {
   token: (code: string) => safe(() => localStorage.getItem(tokenKey(code)), null),
   saveToken: (code: string, token: string) =>
     safe(() => localStorage.setItem(tokenKey(code), token), undefined),
+  forgetToken: (code: string) => safe(() => localStorage.removeItem(tokenKey(code)), undefined),
   nickname: () => safe(() => localStorage.getItem(NICKNAME_KEY), null),
   saveNickname: (nickname: string) =>
     safe(() => localStorage.setItem(NICKNAME_KEY, nickname), undefined),
