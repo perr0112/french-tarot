@@ -6,6 +6,7 @@ import {
   type Card,
   type DealState,
 } from '@tarot/engine';
+import { fourKingsFifteenTrumps } from '@tarot/engine/testing';
 import { describe, expect, it } from 'vitest';
 import { createBot, emptyMemory, simulateDeal } from './index';
 import { arrange, playOut, takeWith, turnView } from './testing/arrange';
@@ -70,5 +71,15 @@ describe('Difficile', () => {
       }
     }
     expect(checked).toBeGreaterThan(20);
+  });
+
+  it('shows again the trump its écart forced out, for a triple poignée (FFT p. 6)', () => {
+    const { deal } = fourKingsFifteenTrumps();
+    const { action } = hard.decide(getPlayerView(deal, 0), emptyMemory(), createRng(1));
+    expect(action.type === 'playCard' && action.poignee).toHaveLength(15);
+    expect(applyAction(deal, 0, action)).toMatchObject({
+      ok: true,
+      state: { poignees: [{ seat: 0, level: 'triple' }] },
+    });
   });
 });

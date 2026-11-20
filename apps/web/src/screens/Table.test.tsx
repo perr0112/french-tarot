@@ -1,4 +1,5 @@
 import { ALL_CARDS, createDeal, isTrump, type Card } from '@tarot/engine';
+import { fourKingsFifteenTrumps } from '@tarot/engine/testing';
 import { DEFAULT_ROOM_OPTIONS, TRICK_PAUSE_MS } from '@tarot/protocol';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
@@ -289,5 +290,18 @@ describe('the chien', () => {
     const deal = view.deal && { ...view.deal, phase: 'finished' as const };
     render(<Table view={{ ...view, deal }} send={vi.fn()} />);
     expect(screen.queryByRole('group', { name: 'Chien' })).toBeNull();
+  });
+});
+
+describe('a poignée with the trumps the taker had to discard', () => {
+  it('offers them again, marked as lying in the écart', () => {
+    const { deal, ecartTrump } = fourKingsFifteenTrumps();
+    render(<Table view={roomView(deal)} send={vi.fn()} />);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Déclarer une poignée' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Triple (15)' }));
+    const chips = within(screen.getByRole('group', { name: 'Atouts montrés' }));
+    const fromEcart = chips.getByRole('button', { name: cardName(ecartTrump) });
+    expect(fromEcart.getAttribute('aria-description')).toBe("à l'écart");
+    expect(chips.getAllByRole('button', { pressed: true })).toHaveLength(15);
   });
 });

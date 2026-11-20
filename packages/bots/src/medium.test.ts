@@ -1,4 +1,5 @@
-import { createRng, type Action, type Card } from '@tarot/engine';
+import { createRng, isTrump, type Action, type Card } from '@tarot/engine';
+import { fourKingsFifteenTrumps } from '@tarot/engine/testing';
 import { describe, expect, it } from 'vitest';
 import { createBot, emptyMemory } from './index';
 import { arrange, playOut, takeWith, turnView } from './testing/arrange';
@@ -135,5 +136,18 @@ describe('Moyen declarations', () => {
       type: 'playCard',
       poignee: ['T01', 'T02', 'T03', 'T04', 'T16', 'T17', 'T18', 'T19', 'T20', 'T21'],
     });
+  });
+
+  it('shows again the trump its écart forced out, for a triple poignée (FFT p. 6)', () => {
+    const { hands, chien } = fourKingsFifteenTrumps();
+    const deal = takeWith(arrange({ players: 4, hands: { 0: hands[0] ?? [] }, chien }), 0, {
+      type: 'bid',
+      contract: 'garde',
+    });
+    let state = playOut(deal, [[0, decide(deal)]]);
+    expect(state.ecart.filter(isTrump)).toHaveLength(1);
+    if (state.phase === 'chelemDecision') state = playOut(state, [[0, decide(state)]]);
+    const action = decide(state);
+    expect(action.type === 'playCard' && action.poignee).toHaveLength(15);
   });
 });

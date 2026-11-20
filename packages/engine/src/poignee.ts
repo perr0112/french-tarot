@@ -11,6 +11,8 @@ export interface Poignee {
 export interface PoigneeTemplate {
   /** Cards that may be shown, sorted. */
   readonly eligible: readonly Card[];
+  /** Those of them lying in the taker's écart, shown again (FFT p. 6), sorted. */
+  readonly fromEcart: readonly Card[];
   readonly levels: readonly { readonly level: PoigneeLevel; readonly size: number }[];
 }
 
@@ -18,15 +20,30 @@ export function hasPlayedACard(state: DealState, seat: Seat): boolean {
   return playedCards(state).some((p) => p.seat === seat);
 }
 
+/**
+ * The trumps a seat may show in a poignée: those in hand and, for the taker, those the écart
+ * forced out, already shown and shown again (FFT p. 6; they stay in the écart).
+ */
+function showableTrumps(state: DealState, seat: Seat): Card[] {
+  return [...handOf(state, seat).filter(isTrump), ...ecartTrumps(state, seat)];
+}
+
+const ecartTrumps = (state: DealState, seat: Seat): Card[] =>
+  seat === state.taker ? state.ecart.filter(isTrump) : [];
+
 /** Poignée levels a seat may still declare with its first card, or null. */
 export function poigneeTemplate(state: DealState, seat: Seat): PoigneeTemplate | null {
   if (hasPlayedACard(state, seat)) return null;
   const hand = handOf(state, seat);
-  const trumps = hand.filter(isTrump);
+  const trumps = showableTrumps(state, seat);
   const excuse = hand.includes(EXCUSE) ? 1 : 0;
   const levels = poigneeLevels(state.players).filter(({ size }) => size <= trumps.length + excuse);
   if (levels.length === 0) return null;
-  return { eligible: [...trumps, ...(excuse ? [EXCUSE] : [])].sort(), levels };
+  return {
+    eligible: [...trumps, ...(excuse ? [EXCUSE] : [])].sort(),
+    fromEcart: ecartTrumps(state, seat).sort(),
+    levels,
+  };
 }
 
 /** Validates shown cards (AGENTS.md §3.6); returns the level, or null if invalid. */
@@ -35,12 +52,13 @@ export function poigneeLevel(
   seat: Seat,
   cards: readonly Card[],
 ): PoigneeLevel | null {
-  const hand = handOf(state, seat);
+  const trumps = showableTrumps(state, seat);
+  const excuse = handOf(state, seat).includes(EXCUSE);
   const level = poigneeLevels(state.players).find(({ size }) => size === cards.length)?.level;
   if (level === undefined) return null;
   if (new Set(cards).size !== cards.length) return null;
-  if (cards.some((c) => !hand.includes(c) || (!isTrump(c) && c !== EXCUSE))) return null;
-  // The Excuse stands in for a trump only when the hand has no further trump to show.
-  if (cards.includes(EXCUSE) && hand.filter(isTrump).length >= cards.length) return null;
+  if (cards.some((c) => !trumps.includes(c) && !(c === EXCUSE && excuse))) return null;
+  // The Excuse stands in for a trump only when no further trump can be shown.
+  if (cards.includes(EXCUSE) && trumps.length >= cards.length) return null;
   return level;
 }

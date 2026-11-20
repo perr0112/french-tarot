@@ -172,7 +172,7 @@ Primary source and page references: `docs/research/fft-rules.md`.
 - **Poignée** (showing trumps): optional, open to **any player** (taker or defender), at most one per player, shown when playing one's **first card**.
   - The player shows **exactly** the threshold number of trumps and hides any extra ones.
   - The Excuse may stand in for a trump **only if the player has no other trump** to show instead.
-  - Known edge case, not handled yet: a taker with four Kings and 15 trumps who had to discard trumps must re-show them with a triple poignée.
+  - The taker may show again, in their poignée, the trumps the écart forced out (FFT p. 6: four Kings and 15 trumps; the p. 5 mention of taking the écart back for the poignée is read as the same case, not as redoing the écart). They count towards the poignée and stay in the écart. Generalised to any trump the écart forced out (our reading). House rule, not in the FFT text: the Excuse may stand in only if these trumps and the hand's together fall short.
 
   | Players | Simple | Double | Triple |
   | ------- | ------ | ------ | ------ |

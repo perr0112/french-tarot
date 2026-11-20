@@ -176,7 +176,9 @@ function PoigneeChooser({
                 type="button"
                 aria-pressed={poignee.includes(card)}
                 aria-label={cardName(card)}
-                className={`${styles.chip} ${poignee.includes(card) ? styles.chipOn : ''}`}
+                // A trump shown again from the écart (FFT p. 6).
+                aria-description={template.fromEcart.includes(card) ? fr.panels.inEcart : undefined}
+                className={`${styles.chip} ${poignee.includes(card) ? styles.chipOn : ''} ${template.fromEcart.includes(card) ? styles.fromEcart : ''}`}
                 onClick={() => toggle(card)}
               >
                 <CardFace card={card} />

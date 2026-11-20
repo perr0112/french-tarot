@@ -12,6 +12,7 @@ import {
   type PlayerCount,
   type PlayerView,
 } from '@tarot/engine';
+import { fourKingsFifteenTrumps } from '@tarot/engine/testing';
 import { describe, expect, it } from 'vitest';
 import { createBot } from '../index';
 import { colourOf, emptyMemory, type BotMemory } from '../memory';
@@ -33,9 +34,13 @@ function checkSample(real: DealState, view: PlayerView, memory: BotMemory, sampl
     const lacks = memory.voids[seat] ?? [];
     for (const card of hand) expect(lacks).not.toContain(colourOf(card));
   });
-  // Shown poignée trumps not yet played stay with their owner.
+  // Shown poignée trumps not yet played stay with their owner, but for the taker's écart trumps.
   for (const p of view.poignees) {
-    for (const card of p.cards.filter((c) => !memory.played.includes(c))) {
+    const inHand = p.cards.filter(
+      (c) =>
+        !memory.played.includes(c) && !(p.seat === view.taker && view.shownEcartTrumps.includes(c)),
+    );
+    for (const card of inHand) {
       expect(sample.hands[p.seat]).toContain(card);
     }
   }
@@ -107,5 +112,20 @@ describe('sampleDeal', () => {
     const view = getPlayerView(state, seat);
     const partial = medium.decide(view, emptyMemory(), createRng(1)).memory;
     expect(sampleDeal(view, partial, createRng(1))).toBeNull();
+  });
+
+  it('leaves in the écart the discarded trumps the taker showed again in a poignée', () => {
+    const fft = fourKingsFifteenTrumps();
+    const shown = applyAction(fft.deal, 0, { type: 'playCard', card: 'S14', poignee: fft.fifteen });
+    if (!shown.ok) throw new Error(shown.error.code);
+    const state = shown.state;
+    const view = getPlayerView(state, 1);
+    const { memory } = medium.decide(view, emptyMemory(), createRng(1));
+    const sample = sampleDeal(view, memory, createRng(1));
+    expect(sample).not.toBeNull();
+    if (sample) {
+      checkSample(state, view, memory, sample);
+      expect(sample.hands[0]).not.toContain(fft.ecartTrump);
+    }
   });
 });
