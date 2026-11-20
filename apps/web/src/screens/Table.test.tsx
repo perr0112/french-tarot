@@ -27,10 +27,10 @@ describe('bidding', () => {
     expect(
       contracts.getAllByRole('button').map((b) => [b.getAttribute('aria-label'), b.textContent]),
     ).toEqual([
-      ['Petite', 'Petite×1'],
-      ['Garde', 'Garde×2'],
-      ['Garde sans', 'Garde sans×4'],
-      ['Garde contre', 'Garde contre×6'],
+      ['Petite ×1', 'Petite×1'],
+      ['Garde ×2', 'Garde×2'],
+      ['Garde sans ×4', 'Garde sans×4'],
+      ['Garde contre ×6', 'Garde contre×6'],
     ]);
     const pass = screen.getByRole('button', { name: 'Passer' });
     expect(contracts.queryByRole('button', { name: 'Passer' })).toBeNull();
@@ -46,15 +46,15 @@ describe('bidding', () => {
       1,
     );
     render(<Table view={view} send={vi.fn()} />);
-    expect(screen.getByRole('button', { name: 'Petite' })).toHaveProperty('disabled', true);
-    expect(screen.getByRole('button', { name: 'Garde' })).toHaveProperty('disabled', true);
-    expect(screen.getByRole('button', { name: 'Garde sans' })).toHaveProperty('disabled', false);
+    expect(screen.getByRole('button', { name: 'Petite ×1' })).toHaveProperty('disabled', true);
+    expect(screen.getByRole('button', { name: 'Garde ×2' })).toHaveProperty('disabled', true);
+    expect(screen.getByRole('button', { name: 'Garde sans ×4' })).toHaveProperty('disabled', false);
   });
 
   it('sends the chosen bid', () => {
     const send = vi.fn();
     render(<Table view={roomView(dealWith([...suit('S', 1, 14), ...trumps(2, 5)]))} send={send} />);
-    click('Garde');
+    click('Garde ×2');
     expect(send).toHaveBeenCalledWith({
       type: 'action',
       action: { type: 'bid', contract: 'garde' },

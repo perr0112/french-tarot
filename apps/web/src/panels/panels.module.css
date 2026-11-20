@@ -107,19 +107,11 @@
 
 /* Passer: alone on the last line, outlined, never filled like a contract. */
 .pass {
+  composes: button from '../design/ui.module.css';
   width: 100%;
-  padding: var(--space-2) var(--space-4);
   border: var(--border-thin) solid var(--color-ink-muted);
-  border-radius: var(--radius-md);
   background: transparent;
-  color: var(--color-ink);
-  font: inherit;
-  cursor: pointer;
-  transition: transform var(--duration-instant) var(--ease-out);
-}
-
-.pass:active {
-  transform: scale(0.97);
+  font-weight: var(--weight-regular);
 }
 
 /* Compact breakpoint (DESIGN.md §3.4). */

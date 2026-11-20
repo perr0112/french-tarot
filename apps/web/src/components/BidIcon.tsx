@@ -3,7 +3,9 @@ import styles from './BidIcon.module.css';
 /** Width and height of the drawing, in its own units. */
 const W = 40;
 const H = 30;
-const CARD = { width: 14, height: 21 } as const;
+const CARD = { width: 14, height: 21, corner: 2 } as const;
+/** How far above the fan's pivot the cards stand. */
+const LIFT = 3;
 /** Angle between two cards of the fan, in degrees. */
 const SPREAD = 14;
 
@@ -21,10 +23,10 @@ export function BidIcon({ cards }: { cards: number }) {
           <rect
             key={i}
             x={pivot.x - CARD.width / 2}
-            y={pivot.y - CARD.height - 3}
+            y={pivot.y - CARD.height - LIFT}
             width={CARD.width}
             height={CARD.height}
-            rx={2}
+            rx={CARD.corner}
             transform={`rotate(${angle} ${pivot.x} ${pivot.y})`}
             className={styles.card}
           />

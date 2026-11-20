@@ -45,7 +45,11 @@ export function DecisionPanel({ view, send, ecart, poignee, onPoigneeChange }: D
                 key={contract}
                 type="button"
                 className={`${ui.button} ${styles.contract}`}
-                aria-label={fr.bid[contract]}
+                // The name and the multiplier, as shown.
+                aria-label={fr.panels.contract(
+                  fr.bid[contract],
+                  CONTRACT_RULES[contract].multiplier,
+                )}
                 disabled={!template.choices.includes(contract)}
                 onClick={() => bid(contract)}
               >
