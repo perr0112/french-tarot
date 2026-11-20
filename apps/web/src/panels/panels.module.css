@@ -56,6 +56,15 @@
     var(--shadow-card);
 }
 
+/* A trump shown again from the écart (FFT p. 6): named under its chip. */
+.chipNote {
+  display: block;
+  font-size: var(--text-xs-size);
+  line-height: var(--text-xs-line);
+  color: var(--color-ink-muted);
+  white-space: nowrap;
+}
+
 .levelOn {
   box-shadow: inset 0 0 0 var(--border-selected) var(--color-accent);
 }

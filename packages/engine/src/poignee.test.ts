@@ -238,3 +238,57 @@ describe('poignée thresholds in 3 and 5 players', () => {
     });
   });
 });
+
+describe('poignée with the trumps the taker had to discard (FFT p. 6)', () => {
+  // Seat 0 holds the four Kings and 14 trumps; the chien brings a 15th trump and five low
+  // spades. Six cards must go, Kings and oudlers never: one trump has to go to the écart.
+  const kings: Card[] = ['S14', 'H14', 'D14', 'C14'];
+  const handTrumps = ALL_CARDS.filter((c) => c >= 'T02' && c <= 'T15');
+  const chien: Card[] = ['T16', 'S01', 'S02', 'S03', 'S04', 'S05'];
+  const rest = ALL_CARDS.filter(
+    (c) => !kings.includes(c) && !handTrumps.includes(c) && !chien.includes(c),
+  );
+  const hands = [[...kings, ...handTrumps], rest.slice(0, 18), rest.slice(18, 36), rest.slice(36)];
+  const discarded = play(
+    takeWith(
+      createDealFromHands({ hands, chien, dealer: 3, options: { chelemAnnouncements: false } }),
+      0,
+      'garde',
+    ),
+    [[0, { type: 'ecart', cards: ['S01', 'S02', 'S03', 'S04', 'S05', 'T02'] }]],
+  );
+  const fifteen = [...ALL_CARDS.filter((c) => c >= 'T02' && c <= 'T16')];
+
+  it('offers the triple poignée, the discarded trump shown again', () => {
+    expect(playCardTemplate(discarded, 0)).toMatchObject({
+      poignee: {
+        eligible: fifteen,
+        levels: [
+          { level: 'simple', size: 10 },
+          { level: 'double', size: 13 },
+          { level: 'triple', size: 15 },
+        ],
+      },
+    });
+  });
+
+  it('records it, the trump staying in the écart', () => {
+    const result = applyAction(discarded, 0, { type: 'playCard', card: 'S14', poignee: fifteen });
+    expect(result).toMatchObject({
+      ok: true,
+      state: { poignees: [{ seat: 0, level: 'triple', cards: fifteen }] },
+    });
+    expect(result.ok && result.state.ecart).toContain('T02');
+  });
+
+  it('does not lend those trumps to anyone else', () => {
+    const led = play(discarded, [[0, card('S14')]]);
+    const shown = [...fifteen.slice(0, 9), 'T02'] as Card[];
+    expect(
+      applyAction(led, 1, { type: 'playCard', card: rest[0] ?? 'H01', poignee: shown }),
+    ).toEqual({
+      ok: false,
+      error: { code: 'POIGNEE_INVALID' },
+    });
+  });
+});

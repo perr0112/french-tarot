@@ -1,4 +1,4 @@
-import { ALL_CARDS, createDeal, isTrump, type Card } from '@tarot/engine';
+import { ALL_CARDS, createDeal, createDealFromHands, isTrump, type Card } from '@tarot/engine';
 import { DEFAULT_ROOM_OPTIONS, TRICK_PAUSE_MS } from '@tarot/protocol';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
@@ -289,5 +289,41 @@ describe('the chien', () => {
     const deal = view.deal && { ...view.deal, phase: 'finished' as const };
     render(<Table view={{ ...view, deal }} send={vi.fn()} />);
     expect(screen.queryByRole('group', { name: 'Chien' })).toBeNull();
+  });
+});
+
+describe('a poignée with the trumps the taker had to discard', () => {
+  it('offers them again, marked as lying in the écart', () => {
+    // FFT p. 6: four Kings and 15 trumps, one trump forced into the écart.
+    const kings: Card[] = ['S14', 'H14', 'D14', 'C14'];
+    const chien: Card[] = ['T16', 'S01', 'S02', 'S03', 'S04', 'S05'];
+    const rest = ALL_CARDS.filter(
+      (c) => !kings.includes(c) && !trumps(2, 15).includes(c) && !chien.includes(c),
+    );
+    const deal = playOut(
+      takes(
+        createDealFromHands({
+          hands: [
+            [...kings, ...trumps(2, 15)],
+            rest.slice(0, 18),
+            rest.slice(18, 36),
+            rest.slice(36),
+          ],
+          chien,
+          dealer: 3,
+          options: { chelemAnnouncements: false },
+        }),
+        'garde',
+      ),
+      [[0, { type: 'ecart', cards: ['S01', 'S02', 'S03', 'S04', 'S05', 'T02'] }]],
+    );
+    render(<Table view={roomView(deal)} send={vi.fn()} />);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Déclarer une poignée' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Triple (15)' }));
+    const chips = within(screen.getByRole('group', { name: 'Atouts montrés' }));
+    expect(
+      chips.getByRole('button', { name: cardName('T02') }).getAttribute('aria-description'),
+    ).toBe("à l'écart");
+    expect(chips.getAllByRole('button', { pressed: true })).toHaveLength(15);
   });
 });

@@ -40,7 +40,11 @@ export function sampleDeal(view: PlayerView, memory: BotMemory, rng: Rng): DealS
   // Cards whose place is known.
   const hands: Card[][] = view.handSizes.map((_, seat) => (seat === me ? [...view.hand] : []));
   const aside: Card[] = [...(view.ownEcart ?? (takesChien ? view.shownEcartTrumps : []))];
-  for (const p of view.poignees) if (p.seat !== me) hands[p.seat]?.push(...unplayed(p.cards));
+  // A shown poignée stays in its owner's hand, but for the trumps a taker shows again from the
+  // écart (FFT p. 6), which stay aside.
+  for (const p of view.poignees) {
+    if (p.seat !== me) hands[p.seat]?.push(...unplayed(p.cards).filter((c) => !aside.includes(c)));
+  }
   const called = view.calledCard;
   const calledHidden = called !== null && !played.has(called) && !view.hand.includes(called);
   if (calledHidden && typeof view.knownPartner === 'number') hands[view.knownPartner]?.push(called);

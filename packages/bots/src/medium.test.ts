@@ -1,4 +1,4 @@
-import { createRng, type Action, type Card } from '@tarot/engine';
+import { ALL_CARDS, createRng, isTrump, type Action, type Card } from '@tarot/engine';
 import { describe, expect, it } from 'vitest';
 import { createBot, emptyMemory } from './index';
 import { arrange, playOut, takeWith, turnView } from './testing/arrange';
@@ -135,5 +135,24 @@ describe('Moyen declarations', () => {
       type: 'playCard',
       poignee: ['T01', 'T02', 'T03', 'T04', 'T16', 'T17', 'T18', 'T19', 'T20', 'T21'],
     });
+  });
+
+  it('shows again the trump its écart forced out, for a triple poignée (FFT p. 6)', () => {
+    const trumps = ALL_CARDS.filter((c) => c >= 'T02' && c <= 'T15');
+    const deal = takeWith(
+      arrange({
+        players: 4,
+        hands: { 0: ['S14', 'H14', 'D14', 'C14', ...trumps] },
+        chien: ['T16', 'S01', 'S02', 'S03', 'S04', 'S05'],
+      }),
+      0,
+      { type: 'bid', contract: 'garde' },
+    );
+    let state = playOut(deal, [[0, decide(deal)]]);
+    expect(state.ecart.filter(isTrump)).toHaveLength(1);
+    if (state.phase === 'chelemDecision') state = playOut(state, [[0, decide(state)]]);
+    const action = decide(state);
+    expect(action).toMatchObject({ type: 'playCard' });
+    expect(action.type === 'playCard' && action.poignee).toHaveLength(15);
   });
 });
