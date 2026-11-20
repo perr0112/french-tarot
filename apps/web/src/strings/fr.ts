@@ -136,7 +136,6 @@ export const fr = {
     poigneeHint: 'Touchez un atout pour le montrer ou le cacher. La poignée part avec votre carte.',
     poigneeExcuse: "L'Excuse ne se montre que s'il manque des atouts.",
     inEcart: "à l'écart",
-    inEcartShort: 'écart',
     poigneeInvalid: (sizes: readonly number[]) =>
       `Montrez exactement ${sizes.join(' ou ')} atouts.`,
   },

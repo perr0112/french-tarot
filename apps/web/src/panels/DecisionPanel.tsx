@@ -113,10 +113,6 @@ export function DecisionPanel({ view, send, ecart, poignee, onPoigneeChange }: D
           <p className={styles.title}>{fr.panels.play}</p>
           <PoigneeChooser
             template={template.poignee}
-            // The taker's écart trumps, shown again with the poignée (FFT p. 6).
-            fromEcart={
-              view.deal?.taker === view.you.seat ? (view.deal?.shownEcartTrumps ?? []) : []
-            }
             poignee={poignee}
             onChange={onPoigneeChange}
           />
@@ -127,13 +123,10 @@ export function DecisionPanel({ view, send, ecart, poignee, onPoigneeChange }: D
 
 function PoigneeChooser({
   template,
-  fromEcart,
   poignee,
   onChange,
 }: {
   template: PoigneeTemplate;
-  /** Eligible trumps that lie in the écart, not in the hand. */
-  fromEcart: readonly Card[];
   poignee: readonly Card[] | null;
   onChange: (cards: readonly Card[] | null) => void;
 }) {
@@ -183,16 +176,12 @@ function PoigneeChooser({
                 type="button"
                 aria-pressed={poignee.includes(card)}
                 aria-label={cardName(card)}
-                aria-description={fromEcart.includes(card) ? fr.panels.inEcart : undefined}
-                className={`${styles.chip} ${poignee.includes(card) ? styles.chipOn : ''}`}
+                // A trump shown again from the écart (FFT p. 6).
+                aria-description={template.fromEcart.includes(card) ? fr.panels.inEcart : undefined}
+                className={`${styles.chip} ${poignee.includes(card) ? styles.chipOn : ''} ${template.fromEcart.includes(card) ? styles.fromEcart : ''}`}
                 onClick={() => toggle(card)}
               >
                 <CardFace card={card} />
-                {fromEcart.includes(card) && (
-                  <span className={styles.chipNote} aria-hidden>
-                    {fr.panels.inEcartShort}
-                  </span>
-                )}
               </button>
             ))}
           </div>

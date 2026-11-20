@@ -37,6 +37,7 @@ describe('ecartStatus', () => {
 
 const poignee = (eligible: Card[]) => ({
   eligible,
+  fromEcart: [],
   levels: [
     { level: 'simple' as const, size: 3 },
     { level: 'double' as const, size: 4 },

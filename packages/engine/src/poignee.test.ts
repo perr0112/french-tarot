@@ -7,6 +7,7 @@ import {
   type Card,
   type DealState,
 } from './index';
+import { fourKingsFifteenTrumps } from './testing/fft-cases';
 import { card, play, takeWith } from './testing/fixtures';
 
 const TRUMPS_2_TO_13: Card[] = [
@@ -240,29 +241,13 @@ describe('poignée thresholds in 3 and 5 players', () => {
 });
 
 describe('poignée with the trumps the taker had to discard (FFT p. 6)', () => {
-  // Seat 0 holds the four Kings and 14 trumps; the chien brings a 15th trump and five low
-  // spades. Six cards must go, Kings and oudlers never: one trump has to go to the écart.
-  const kings: Card[] = ['S14', 'H14', 'D14', 'C14'];
-  const handTrumps = ALL_CARDS.filter((c) => c >= 'T02' && c <= 'T15');
-  const chien: Card[] = ['T16', 'S01', 'S02', 'S03', 'S04', 'S05'];
-  const rest = ALL_CARDS.filter(
-    (c) => !kings.includes(c) && !handTrumps.includes(c) && !chien.includes(c),
-  );
-  const hands = [[...kings, ...handTrumps], rest.slice(0, 18), rest.slice(18, 36), rest.slice(36)];
-  const discarded = play(
-    takeWith(
-      createDealFromHands({ hands, chien, dealer: 3, options: { chelemAnnouncements: false } }),
-      0,
-      'garde',
-    ),
-    [[0, { type: 'ecart', cards: ['S01', 'S02', 'S03', 'S04', 'S05', 'T02'] }]],
-  );
-  const fifteen = [...ALL_CARDS.filter((c) => c >= 'T02' && c <= 'T16')];
+  const { deal: discarded, ecartTrump, fifteen } = fourKingsFifteenTrumps();
 
   it('offers the triple poignée, the discarded trump shown again', () => {
     expect(playCardTemplate(discarded, 0)).toMatchObject({
       poignee: {
         eligible: fifteen,
+        fromEcart: [ecartTrump],
         levels: [
           { level: 'simple', size: 10 },
           { level: 'double', size: 13 },
@@ -278,17 +263,50 @@ describe('poignée with the trumps the taker had to discard (FFT p. 6)', () => {
       ok: true,
       state: { poignees: [{ seat: 0, level: 'triple', cards: fifteen }] },
     });
-    expect(result.ok && result.state.ecart).toContain('T02');
+    expect(result.ok && result.state.ecart).toContain(ecartTrump);
   });
 
-  it('does not lend those trumps to anyone else', () => {
-    const led = play(discarded, [[0, card('S14')]]);
-    const shown = [...fifteen.slice(0, 9), 'T02'] as Card[];
+  it('does not lend those trumps to a defender', () => {
+    // 5 players (threshold 8): seat 0 holds the four Kings, the three oudlers and T02–T09;
+    // the chien brings T10 and two spades, so a trump goes to the écart. Seat 1 holds T11–T18.
+    const taker: Card[] = ['S14', 'H14', 'D14', 'C14', 'T01', 'T21', 'EXC'];
+    const takerTrumps = ALL_CARDS.filter((c) => c >= 'T02' && c <= 'T09');
+    const defenderTrumps = ALL_CARDS.filter((c) => c >= 'T11' && c <= 'T18');
+    const chien: Card[] = ['T10', 'S01', 'S02'];
+    const fixed = [...taker, ...takerTrumps, ...defenderTrumps, ...chien];
+    const rest = ALL_CARDS.filter((c) => !fixed.includes(c) && !c.startsWith('H'));
+    const hearts = ALL_CARDS.filter((c) => c.startsWith('H') && c !== 'H14');
+    const others = [...rest, ...hearts];
+    const hands = [
+      [...taker, ...takerTrumps],
+      [...defenderTrumps, ...others.slice(0, 7)],
+      others.slice(7, 22),
+      others.slice(22, 37),
+      others.slice(37, 52),
+    ];
+    const led = play(createDealFromHands({ hands, chien, dealer: 4 }), [
+      [0, { type: 'bid', contract: 'garde' }],
+      [1, { type: 'bid', contract: 'pass' }],
+      [2, { type: 'bid', contract: 'pass' }],
+      [3, { type: 'bid', contract: 'pass' }],
+      [4, { type: 'bid', contract: 'pass' }],
+      [0, { type: 'callKing', card: 'S13' }],
+      [0, { type: 'ecart', cards: ['S01', 'S02', 'T02'] }],
+      [0, { type: 'decideChelem', announce: false }],
+      [0, card('H14')],
+    ]);
+    const legal = playCardTemplate(led, 1);
+    const first = legal?.cards[0] ?? 'EXC';
+    expect(legal?.poignee?.eligible).not.toContain('T02');
     expect(
-      applyAction(led, 1, { type: 'playCard', card: rest[0] ?? 'H01', poignee: shown }),
-    ).toEqual({
-      ok: false,
-      error: { code: 'POIGNEE_INVALID' },
-    });
+      applyAction(led, 1, {
+        type: 'playCard',
+        card: first,
+        poignee: [...defenderTrumps.slice(0, 7), 'T02'],
+      }),
+    ).toEqual({ ok: false, error: { code: 'POIGNEE_INVALID' } });
+    expect(
+      applyAction(led, 1, { type: 'playCard', card: first, poignee: defenderTrumps }),
+    ).toMatchObject({ ok: true });
   });
 });

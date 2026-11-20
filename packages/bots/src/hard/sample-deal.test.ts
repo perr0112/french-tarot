@@ -1,9 +1,7 @@
 import {
   KING,
-  ALL_CARDS,
   applyAction,
   createDeal,
-  createDealFromHands,
   createRng,
   getPlayerView,
   isOudler,
@@ -14,6 +12,7 @@ import {
   type PlayerCount,
   type PlayerView,
 } from '@tarot/engine';
+import { fourKingsFifteenTrumps } from '@tarot/engine/testing';
 import { describe, expect, it } from 'vitest';
 import { createBot } from '../index';
 import { colourOf, emptyMemory, type BotMemory } from '../memory';
@@ -116,45 +115,17 @@ describe('sampleDeal', () => {
   });
 
   it('leaves in the écart the discarded trumps the taker showed again in a poignée', () => {
-    // The FFT p. 6 case: four Kings and 15 trumps, one trump forced into the écart.
-    const kings: Card[] = ['S14', 'H14', 'D14', 'C14'];
-    const handTrumps = ALL_CARDS.filter((c) => c >= 'T02' && c <= 'T15');
-    const chien: Card[] = ['T16', 'S01', 'S02', 'S03', 'S04', 'S05'];
-    const rest = ALL_CARDS.filter(
-      (c) => !kings.includes(c) && !handTrumps.includes(c) && !chien.includes(c),
-    );
-    const hands = [
-      [...kings, ...handTrumps],
-      rest.slice(0, 18),
-      rest.slice(18, 36),
-      rest.slice(36),
-    ];
-    const fifteen = ALL_CARDS.filter((c) => c >= 'T02' && c <= 'T16');
-    let state = createDealFromHands({
-      hands,
-      chien,
-      dealer: 3,
-      options: { chelemAnnouncements: false },
-    });
-    for (const [seat, action] of [
-      [0, { type: 'bid', contract: 'garde' }],
-      [1, { type: 'bid', contract: 'pass' }],
-      [2, { type: 'bid', contract: 'pass' }],
-      [3, { type: 'bid', contract: 'pass' }],
-      [0, { type: 'ecart', cards: ['S01', 'S02', 'S03', 'S04', 'S05', 'T02'] }],
-      [0, { type: 'playCard', card: 'S14', poignee: fifteen }],
-    ] as const) {
-      const result = applyAction(state, seat, action);
-      if (!result.ok) throw new Error(result.error.code);
-      state = result.state;
-    }
+    const fft = fourKingsFifteenTrumps();
+    const shown = applyAction(fft.deal, 0, { type: 'playCard', card: 'S14', poignee: fft.fifteen });
+    if (!shown.ok) throw new Error(shown.error.code);
+    const state = shown.state;
     const view = getPlayerView(state, 1);
     const { memory } = medium.decide(view, emptyMemory(), createRng(1));
     const sample = sampleDeal(view, memory, createRng(1));
     expect(sample).not.toBeNull();
     if (sample) {
       checkSample(state, view, memory, sample);
-      expect(sample.hands[0]).not.toContain('T02');
+      expect(sample.hands[0]).not.toContain(fft.ecartTrump);
     }
   });
 });

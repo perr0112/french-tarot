@@ -56,13 +56,21 @@
     var(--shadow-card);
 }
 
-/* A trump shown again from the écart (FFT p. 6): named under its chip. */
-.chipNote {
-  display: block;
-  font-size: var(--text-xs-size);
-  line-height: var(--text-xs-line);
-  color: var(--color-ink-muted);
-  white-space: nowrap;
+/* A trump shown again from the écart (FFT p. 6): a short neutral rule under its chip, like the
+   chien's cards in the hand, so every chip keeps its size. */
+.fromEcart {
+  position: relative;
+}
+
+.fromEcart::after {
+  content: '';
+  position: absolute;
+  left: 20%;
+  right: 20%;
+  bottom: calc(var(--space-1) * -1);
+  height: var(--border-thick);
+  border-radius: var(--border-thick);
+  background: var(--color-ink-muted);
 }
 
 .levelOn {

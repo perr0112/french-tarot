@@ -11,6 +11,8 @@ export interface Poignee {
 export interface PoigneeTemplate {
   /** Cards that may be shown, sorted. */
   readonly eligible: readonly Card[];
+  /** Those of them lying in the taker's écart, shown again (FFT p. 6), sorted. */
+  readonly fromEcart: readonly Card[];
   readonly levels: readonly { readonly level: PoigneeLevel; readonly size: number }[];
 }
 
@@ -23,9 +25,11 @@ export function hasPlayedACard(state: DealState, seat: Seat): boolean {
  * forced out, already shown and shown again (FFT p. 6; they stay in the écart).
  */
 function showableTrumps(state: DealState, seat: Seat): Card[] {
-  const ecart = seat === state.taker ? state.ecart.filter(isTrump) : [];
-  return [...handOf(state, seat).filter(isTrump), ...ecart];
+  return [...handOf(state, seat).filter(isTrump), ...ecartTrumps(state, seat)];
 }
+
+const ecartTrumps = (state: DealState, seat: Seat): Card[] =>
+  seat === state.taker ? state.ecart.filter(isTrump) : [];
 
 /** Poignée levels a seat may still declare with its first card, or null. */
 export function poigneeTemplate(state: DealState, seat: Seat): PoigneeTemplate | null {
@@ -35,7 +39,11 @@ export function poigneeTemplate(state: DealState, seat: Seat): PoigneeTemplate |
   const excuse = hand.includes(EXCUSE) ? 1 : 0;
   const levels = poigneeLevels(state.players).filter(({ size }) => size <= trumps.length + excuse);
   if (levels.length === 0) return null;
-  return { eligible: [...trumps, ...(excuse ? [EXCUSE] : [])].sort(), levels };
+  return {
+    eligible: [...trumps, ...(excuse ? [EXCUSE] : [])].sort(),
+    fromEcart: ecartTrumps(state, seat).sort(),
+    levels,
+  };
 }
 
 /** Validates shown cards (AGENTS.md §3.6); returns the level, or null if invalid. */
