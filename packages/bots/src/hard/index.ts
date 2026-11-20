@@ -10,12 +10,8 @@ import {
 import type { Bot } from '../bot';
 import { memoryFromTricks, type BotMemory } from '../memory';
 import { mediumBot } from '../medium';
+import { SIMULATED_CARDS, samplesFor } from './budget';
 import { sampleDeal } from './sample-deal';
-
-/** Sampled deals per decision: the same ones judge every playable card. */
-export const SAMPLES = 20;
-/** Most deals played out per decision, which bounds its time; fewer samples when many cards. */
-export const ROLLOUTS = 200;
 
 /** Moyen never draws on randomness; a constant source keeps playouts reproducible. */
 const noRandomness: Rng = () => 0;
@@ -41,10 +37,12 @@ function bestCard(
   move: Action & { type: 'playCard' },
   cards: readonly Card[],
   rng: Rng,
+  budget: number,
 ): Card | null {
+  const cardsLeft = view.handSizes.reduce((a, b) => a + b, 0);
+  const draws = samplesFor(cards.length, cardsLeft, budget);
   const totals = new Map<Card, number>(cards.map((c) => [c, 0]));
   let sampled = 0;
-  const draws = Math.max(1, Math.min(SAMPLES, Math.floor(ROLLOUTS / cards.length)));
   for (let i = 0; i < draws; i++) {
     const deal = sampleDeal(view, memory, rng);
     if (deal === null) continue;
@@ -68,19 +66,24 @@ function bestCard(
  * Difficile (AGENTS.md §4, ADR-0005): Moyen's bidding, king call, écart and poignée; card play
  * by Monte-Carlo determinisation. Each playable card is played in sampled deals consistent with
  * what this seat knows, the rest played out by Moyen, and the best average score wins.
+ * `budget`: most cards simulated per decision (budget.ts); the benchmark tries others.
  */
-export const hardBot: Bot = {
-  level: 'hard',
-  decide(view, previous, rng) {
-    const decision = mediumBot.decide(view, previous, rng);
-    const [template] = view.legalActions;
-    const { action, memory } = decision;
-    if (template?.type !== 'playCard' || action.type !== 'playCard') return decision;
-    if (template.cards.length === 1) return decision;
-    // In 5 players, while the partner is unknown each sampled deal settles it differently and
-    // the simulations mislead: the benchmark showed Moyen's play is better until it is known.
-    if (view.calledCard !== null && view.knownPartner === null) return decision;
-    const card = bestCard(view, memory, action, template.cards, rng);
-    return card === null ? decision : { action: { ...action, card }, memory };
-  },
-};
+export function createHardBot(budget: number = SIMULATED_CARDS): Bot {
+  return {
+    level: 'hard',
+    decide(view, previous, rng) {
+      const decision = mediumBot.decide(view, previous, rng);
+      const [template] = view.legalActions;
+      const { action, memory } = decision;
+      if (template?.type !== 'playCard' || action.type !== 'playCard') return decision;
+      if (template.cards.length === 1) return decision;
+      // In 5 players, while the partner is unknown each sampled deal settles it differently and
+      // the simulations mislead: the benchmark showed Moyen's play is better until it is known.
+      if (view.calledCard !== null && view.knownPartner === null) return decision;
+      const card = bestCard(view, memory, action, template.cards, rng, budget);
+      return card === null ? decision : { action: { ...action, card }, memory };
+    },
+  };
+}
+
+export const hardBot = createHardBot();
