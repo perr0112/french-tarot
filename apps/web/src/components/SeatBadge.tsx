@@ -7,6 +7,7 @@ import type { PoigneeShowing } from '../hooks/useFreshPoignees';
 import { seatFacts } from '../lib/seatFacts';
 import { fr } from '../strings/fr';
 import { CardStrip } from './CardStrip';
+import { ScoreChip } from './ScoreChip';
 import styles from './SeatBadge.module.css';
 
 /**
@@ -65,12 +66,11 @@ export function SeatBadge({
       )}
       {ecartTrumps.length > 0 && <CardStrip label={fr.table.ecartTrumps} cards={ecartTrumps} />}
       {facts.dealScore !== null && (
-        <span
-          className={`${styles.score} ${facts.dealScore < 0 ? ui.negative : ui.positive} ${ui.enter}`}
-          aria-label={fr.table.dealScore(formatScore(facts.dealScore))}
-        >
-          {formatScore(facts.dealScore)}
-        </span>
+        <ScoreChip
+          value={facts.dealScore}
+          label={fr.table.dealScore(formatScore(facts.dealScore))}
+          className={`${styles.score} ${ui.enter}`}
+        />
       )}
     </div>
   );
