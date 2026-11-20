@@ -85,7 +85,7 @@ export function Table({
 
   // Only cards that can be picked now are lit; the hand stays plain during other decisions.
   // While another player is to play, any card may be preselected.
-  const active = preselection.open
+  const active = preselection.available
     ? (deal?.hand ?? [])
     : template?.type === 'playCard'
       ? poigneeReady
@@ -96,7 +96,7 @@ export function Table({
         : null;
 
   const pick = (card: Card) => {
-    if (preselection.open) {
+    if (preselection.available) {
       preselection.toggle(card);
     } else if (template?.type === 'ecart') {
       update({ ecart: ecart.includes(card) ? ecart.filter((c) => c !== card) : [...ecart, card] });
@@ -200,7 +200,7 @@ export function Table({
             <p className={styles.waiting}>{fr.table.waitingFor(turnName)}</p>
           )}
           <p className={styles.preselection} role="status">
-            {preselection.card && !template
+            {preselection.card
               ? fr.table.preselected(cardName(preselection.card))
               : preselection.dropped
                 ? fr.table.preselectionDropped
@@ -222,6 +222,7 @@ export function Table({
               active={betweenDeals ? null : active}
               selected={ecart}
               preselected={preselection.card}
+              toggles={preselection.available || template?.type === 'ecart'}
               onPick={pick}
               marked={fromChien}
               dealing={dealing}

@@ -71,6 +71,7 @@
   transform: translateY(calc(var(--space-5) * -1));
   outline: var(--border-selected) dashed var(--color-accent);
   outline-offset: 0;
+  box-shadow: var(--shadow-raised);
 }
 
 /* The focus ring follows the face, outside the selection ring (DESIGN.md §3.5). */
@@ -81,6 +82,16 @@
 .card:focus-visible :global(svg) {
   outline: var(--border-thick) solid var(--focus-ring-color);
   outline-offset: calc(var(--border-selected) + var(--focus-offset));
+}
+
+/* A preselected card keeps its dashed outline when focused; the focus ring goes around it. */
+.card.preselected:focus-visible :global(svg) {
+  outline: var(--border-selected) dashed var(--color-accent);
+  outline-offset: 0;
+  box-shadow:
+    0 0 0 calc(var(--border-selected) + var(--focus-offset) + var(--border-thick))
+      var(--focus-ring-color),
+    var(--shadow-raised);
 }
 
 /* Compact breakpoint (DESIGN.md §3.4). */

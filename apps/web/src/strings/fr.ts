@@ -107,7 +107,7 @@ export const fr = {
     bot: (n: number) => `Bot ${n}`,
     lastTrickWonBy: (name: string) => `Dernier pli — remporté par ${name}`,
     waitingFor: (name: string) => `${name} réfléchit…`,
-    preselected: (card: string) => `Présélection : ${card}, jouée à votre tour si elle est permise`,
+    preselected: (card: string) => `Présélection : ${card}`,
     preselectionDropped: 'Présélection retirée : carte non permise',
     dealer: 'Donneur',
     taker: 'Preneur',

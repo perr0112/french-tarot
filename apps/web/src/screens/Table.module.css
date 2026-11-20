@@ -86,10 +86,14 @@
   color: var(--color-ink-on-table-muted);
 }
 
-/* Empty most of the time (no height), but always there so its changes are announced. */
+/* Always there, one line high even empty: its changes are announced and nothing moves. */
 .preselection {
   margin: 0;
-  font-size: var(--text-sm);
+  min-height: var(--text-sm-line);
+  padding-inline: var(--space-4);
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-line);
+  text-align: center;
   color: var(--color-ink-on-table-muted);
 }
 

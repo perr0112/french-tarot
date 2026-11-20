@@ -506,12 +506,50 @@ describe('preselecting a card', () => {
     rerender(<Table view={roomView(spadesLed(before))} send={send} />);
     act(() => vi.advanceTimersByTime(0));
     expect(send).not.toHaveBeenCalled();
-    expect(card('S03').getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByText('Présélection : 3 de pique')).toBeTruthy();
     fireEvent.click(card('S03'));
     expect(send).toHaveBeenCalledWith({
       type: 'action',
       action: { type: 'playCard', card: 'S03' },
     });
+  });
+
+  it('is forgotten once another card is played instead', () => {
+    const send = vi.fn();
+    const before = spadesLed(waiting([...trumps(1, 13), ...suit('S', 1, 5)]));
+    const { rerender } = render(
+      <Table view={roomView(waiting([...trumps(1, 13), ...suit('S', 1, 5)]))} send={send} />,
+    );
+    fireEvent.click(card('S03'));
+    rerender(<Table view={roomView(before)} send={send} />);
+    fireEvent.click(card('S04'));
+    // Seat 3 trumped and wins: it leads the second trick, seat 0 plays next.
+    const nextTrick = playOut(before, [[0, { type: 'playCard', card: 'S04' }]]);
+    rerender(<Table view={roomView(nextTrick)} send={send} />);
+    expect(screen.queryByText(/Présélection/)).toBeNull();
+    const lead = getPlayerView(nextTrick, 3).hand.find((c) => c.startsWith('C')) ?? 'EXC';
+    rerender(
+      <Table
+        view={roomView(playOut(nextTrick, [[3, { type: 'playCard', card: lead }]]))}
+        send={send}
+      />,
+    );
+    act(() => vi.advanceTimersByTime(0));
+    expect(send).toHaveBeenCalledOnce();
+    expect(screen.queryByText(/Présélection/)).toBeNull();
+  });
+
+  it('is not offered once the card of this trick is played', () => {
+    const first = spadesLed(waiting(plain));
+    const second = playOut(first, [[0, { type: 'playCard', card: 'S03' }]]);
+    // Seat 3 trumped and wins: it leads, seat 0 plays, seats 1 and 2 are still to play.
+    const lead = getPlayerView(second, 3).hand.find((c) => c.startsWith('C')) ?? 'EXC';
+    const played = playOut(second, [
+      [3, { type: 'playCard', card: lead }],
+      [0, { type: 'playCard', card: 'S04' }],
+    ]);
+    render(<Table view={roomView(played)} send={vi.fn()} />);
+    expect(card('S05')).toHaveProperty('disabled', true);
   });
 
   it('is not offered while the players bid', () => {
