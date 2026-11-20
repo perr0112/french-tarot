@@ -7,6 +7,8 @@ interface Env extends Cloudflare.Env {
   readonly Room: DurableObjectNamespace<Room>;
   /** Pages allowed to connect (syntax: isAllowedOrigin in origin.ts). */
   readonly ALLOWED_ORIGINS?: string;
+  /** The host's code (`wrangler secret put CHEAT_CODE`, never in the repository). */
+  readonly CHEAT_CODE?: string;
 }
 
 const STORAGE_KEY = 'room';
@@ -46,6 +48,7 @@ export class Room extends Server<Env> {
       now: Date.now(),
       seed: crypto.getRandomValues(new Uint32Array(1))[0] ?? 0,
       token: crypto.randomUUID(),
+      cheatCode: this.env.CHEAT_CODE,
     };
     const { room, effects } = applyRoomCommand(
       this.state ?? createRoom(this.name, env.now),

@@ -4,6 +4,7 @@ import {
   BOT_LEVELS,
   BOT_SPEEDS,
   MAX_DEALS,
+  MAX_CODE_LENGTH,
   MAX_NICKNAME_LENGTH,
   type RoomOptions,
 } from './options';
@@ -58,6 +59,8 @@ const clientMessage = z.union([
   z.object({ type: z.literal('backToLobby') }),
   /** Leaves the table for good: a bot takes the seat during a session. */
   z.object({ type: z.literal('leave') }),
+  /** The host's code (typed in the browser console): an exceptional hand next deal. */
+  z.object({ type: z.literal('code'), code: z.string().min(1).max(MAX_CODE_LENGTH) }),
 ]);
 
 /** Messages a client may send to its room: what the schema accepts, once validated. */

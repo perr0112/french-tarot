@@ -25,3 +25,5 @@ export const DEFAULT_ROOM_OPTIONS: RoomOptions = {
 
 export const MAX_DEALS = 99;
 export const MAX_NICKNAME_LENGTH = 20;
+/** Longest code a client may send (the host's code, AGENTS.md §5). */
+export const MAX_CODE_LENGTH = 200;

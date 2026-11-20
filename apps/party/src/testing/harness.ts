@@ -17,6 +17,8 @@ export class RoomHarness {
   readonly closed = new Set<string>();
   wakeAt: number | null = null;
   destroyed = false;
+  /** The host's code, as the CHEAT_CODE secret would supply it. */
+  cheatCode: string | undefined = undefined;
 
   constructor(code = 'ABCDEF') {
     this.room = createRoom(code, this.now);
@@ -24,7 +26,12 @@ export class RoomHarness {
 
   run(command: RoomCommand): readonly RoomEffect[] {
     this.counter++;
-    const env = { now: this.now, seed: this.counter * 7919, token: `token-${this.counter}` };
+    const env = {
+      now: this.now,
+      seed: this.counter * 7919,
+      token: `token-${this.counter}`,
+      cheatCode: this.cheatCode,
+    };
     const { room, effects } = applyRoomCommand(this.room, command, env);
     this.room = room;
     for (const effect of effects) {

@@ -288,3 +288,50 @@ describe('a whole session', () => {
     expect(h.view('c0')).toMatchObject({ phase: 'lobby', session: null, deal: null });
   });
 });
+
+describe('the host’s code', () => {
+  const exceptional = (h: RoomHarness) => {
+    const hand = h.view('c0').deal?.hand ?? [];
+    return (
+      ['T21', 'T20', 'T19', 'EXC'].every((c) => hand.includes(c as never)) &&
+      hand.filter((c) => c.startsWith('T')).length === 12 &&
+      hand.filter((c) => c.endsWith('14') && !c.startsWith('T')).length === 2
+    );
+  };
+  const fiveAtTable = () => {
+    const h = table(['Alice'], { players: 5, deals: 3 });
+    h.cheatCode = 'le-code-secret';
+    h.send('c0', { type: 'start' });
+    return h;
+  };
+  const lastCode = (h: RoomHarness) =>
+    h
+      .messages('c0')
+      .filter((m) => m.type === 'code')
+      .at(-1);
+  const nextDeal = (h: RoomHarness) => {
+    const before = h.view('c0').session?.history.length ?? 0;
+    runUntil(h, ['c0'], () => (h.view('c0').session?.history.length ?? 0) > before);
+    // Asked for, the next deal is dealt.
+    runUntil(h, ['c0'], () => h.view('c0').session?.continued === null);
+  };
+
+  it('gives the sender an exceptional hand in the next deal only', () => {
+    const h = fiveAtTable();
+    h.send('c0', { type: 'code', code: 'le-code-secret' });
+    expect(lastCode(h)).toEqual({ type: 'code', accepted: true });
+    nextDeal(h);
+    expect(exceptional(h)).toBe(true);
+    nextDeal(h);
+    expect(exceptional(h)).toBe(false);
+  });
+
+  it('answers the same refusal to a wrong code, and when no code is set', () => {
+    const h = fiveAtTable();
+    h.send('c0', { type: 'code', code: 'le-code-secreT' });
+    expect(lastCode(h)).toEqual({ type: 'code', accepted: false });
+    h.cheatCode = undefined;
+    h.send('c0', { type: 'code', code: 'le-code-secret' });
+    expect(lastCode(h)).toEqual({ type: 'code', accepted: false });
+  });
+});

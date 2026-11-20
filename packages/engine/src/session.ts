@@ -1,3 +1,4 @@
+import { createFavouredDeal } from './favoured';
 import { applyAction, type Action } from './actions';
 import {
   DEFAULT_DEAL_OPTIONS,
@@ -34,7 +35,8 @@ export interface SessionState {
 }
 
 export type SessionAction =
-  | { readonly type: 'deal'; readonly seed: number }
+  /** `favoured`: the seat dealt an exceptional hand (createFavouredDeal), if any. */
+  | { readonly type: 'deal'; readonly seed: number; readonly favoured?: Seat }
   | { readonly type: 'play'; readonly seat: Seat; readonly action: Action };
 
 export type SessionErrorCode = 'NO_DEAL_IN_PROGRESS' | 'DEAL_IN_PROGRESS' | 'SESSION_OVER';
@@ -76,12 +78,16 @@ export function applySessionAction(session: SessionState, action: SessionAction)
   switch (action.type) {
     case 'deal': {
       if (session.deal !== null) return failWith('DEAL_IN_PROGRESS');
-      const deal = createDeal({
+      const input = {
         players: session.players,
         dealer: session.dealer,
         seed: action.seed,
         options: session.options,
-      });
+      };
+      const deal =
+        action.favoured === undefined
+          ? createDeal(input)
+          : createFavouredDeal({ ...input, seat: action.favoured });
       return { ok: true, session: settle({ ...session, phase: 'dealing', deal }) };
     }
     case 'play': {

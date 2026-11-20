@@ -1,6 +1,7 @@
 import type { ClientMessage, RoomView, ServerErrorCode, ServerMessage } from '@tarot/protocol';
 import PartySocket from 'partysocket';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { fr } from '../strings/fr';
 import { storage } from './storage';
 
 /** Sends one message to the room; panels get it injected so tests need no network. */
@@ -69,6 +70,8 @@ export function useRoomConnection(code: string, request: JoinRequest | null): Ro
       const message = JSON.parse(event.data) as ServerMessage;
       if (message.type === 'welcome') storage.saveToken(code, message.token);
       else if (message.type === 'state') setView(message.view);
+      else if (message.type === 'code')
+        console.info(fr.code[message.accepted ? 'accepted' : 'refused']);
       else if (message.code === 'NICKNAME_TAKEN') {
         end.final = true;
         setStatus('nicknameTaken');
@@ -99,5 +102,14 @@ export function useRoomConnection(code: string, request: JoinRequest | null): Ro
     socketRef.current?.close();
     storage.forgetToken(code);
   }, [code]);
+  // The host's code is typed in the browser console: tarot("…") (AGENTS.md §5).
+  useEffect(() => {
+    const host = window as Window & { tarot?: (code: string) => void };
+    host.tarot = (secret: string) => send({ type: 'code', code: String(secret) });
+    return () => {
+      delete host.tarot;
+    };
+  }, [send]);
+
   return { status, view, error, send, dismissError, leave };
 }

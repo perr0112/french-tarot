@@ -65,4 +65,6 @@ export interface RoomView {
 export type ServerMessage =
   | { readonly type: 'welcome'; readonly token: string }
   | { readonly type: 'state'; readonly view: RoomView }
-  | { readonly type: 'error'; readonly code: ServerErrorCode };
+  | { readonly type: 'error'; readonly code: ServerErrorCode }
+  /** Only to the sender of a code: whether it armed the next deal. */
+  | { readonly type: 'code'; readonly accepted: boolean };

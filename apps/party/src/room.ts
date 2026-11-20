@@ -70,6 +70,8 @@ export interface RoomState {
   readonly continued: readonly Seat[];
   /** When the seat to act may act at the earliest (later after a completed trick). */
   readonly turnSince: number;
+  /** The seat the next deal gives an exceptional hand (the host's code); absent in old rooms. */
+  readonly favoured?: Seat | null;
   readonly lastActivity: number;
 }
 
@@ -86,6 +88,8 @@ export interface RoomEnv {
   readonly seed: number;
   /** Fresh random token, used if a new participant joins. */
   readonly token: string;
+  /** The host's secret code (a Cloudflare secret); unset, codes are always refused. */
+  readonly cheatCode?: string | undefined;
 }
 
 export type RoomEffect =
@@ -204,6 +208,19 @@ function handleMessage(
       return done(continueToNextDeal(room, me.seat, env));
     case 'leave':
       return { room: leave(room, me, env), replies: [{ type: 'close', connection }] };
+    case 'code': {
+      // Answered to the sender only, and the same way whatever was wrong: nothing to probe.
+      const accepted =
+        room.phase === 'playing' &&
+        me.seat !== null &&
+        env.cheatCode !== undefined &&
+        env.cheatCode !== '' &&
+        sameSecret(message.code, env.cheatCode);
+      return {
+        room: accepted ? { ...room, favoured: me.seat } : room,
+        replies: [reply(connection, { type: 'code', accepted })],
+      };
+    }
   }
 }
 
@@ -365,9 +382,23 @@ function beginSession(room: RoomState, dealer: Seat, env: RoomEnv): RoomState {
   return dealNext({ ...room, phase: 'playing', session }, env);
 }
 
+/** Compares a code with the secret in a time that does not depend on where they differ. */
+export function sameSecret(given: string, secret: string): boolean {
+  const a = new TextEncoder().encode(given);
+  const b = new TextEncoder().encode(secret);
+  let diff = a.length ^ b.length;
+  for (let i = 0; i < b.length; i++) diff |= (a[i] ?? 0) ^ (b[i] ?? 0);
+  return diff === 0;
+}
+
 function dealNext(room: RoomState, env: RoomEnv): RoomState {
   if (room.session === null) return room;
-  const result = applySessionAction(room.session, { type: 'deal', seed: env.seed });
+  const favoured = room.favoured ?? null;
+  const result = applySessionAction(room.session, {
+    type: 'deal',
+    seed: env.seed,
+    ...(favoured !== null ? { favoured } : {}),
+  });
   if (!result.ok) return room;
   return {
     ...room,
@@ -376,6 +407,8 @@ function dealNext(room: RoomState, env: RoomEnv): RoomState {
     memories: Array.from({ length: room.options.players }, emptyMemory),
     continued: [],
     turnSince: env.now,
+    // Used once: the code has to be typed again for another one.
+    favoured: null,
   };
 }
 
