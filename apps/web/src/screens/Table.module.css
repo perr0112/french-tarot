@@ -1,7 +1,11 @@
 .table {
-  min-height: 100%;
+  /* Exactly the visible height, never more: when a panel grows, the felt's empty space below
+     the trick gives way, and the hand stays in view. */
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   background: var(--color-table);
 }
 
@@ -95,6 +99,22 @@
   line-height: var(--text-sm-line);
   text-align: center;
   color: var(--color-ink-on-table-muted);
+}
+
+/* Under a decision panel, empty, it takes no room: the panel keeps clear of the trick. */
+.underPanel:empty {
+  min-height: 0;
+}
+
+/* On a phone, or a screen too low for the felt, the decision panel and the hand together, the
+   table grows and the page scrolls rather than hiding anything (the deal result's button, the
+   trick under a panel). */
+@media (max-width: 600px), (max-height: 600px) {
+  .table {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
 }
 
 /* Compact breakpoint (DESIGN.md §3.4). */

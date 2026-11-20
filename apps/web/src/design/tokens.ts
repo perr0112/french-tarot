@@ -59,12 +59,14 @@ export const tokens = {
   card: {
     /** Height / width of every card (the scans' proportions, geometry.ts). */
     ratio: String(CARD_H / CARD_W),
-    hand: 'clamp(56px, 7vw, 84px)',
-    trick: 'clamp(48px, 7vw, 80px)',
+    hand: 'clamp(56px, min(7vw, 9vh), 84px)',
+    trick: 'clamp(48px, min(7vw, 8vh), 80px)',
     /** Share of a card hidden by the next one in a spread (the chien). */
     'spread-overlap': '0.45',
     /** The winner's card on the final podium. */
     podium: 'clamp(84px, 12vw, 128px)',
+    /** The other players' cards on the final podium (by width alone, like the winner's). */
+    'podium-rest': 'clamp(56px, 7vw, 84px)',
     mini: '32px',
     chip: '36px',
   },

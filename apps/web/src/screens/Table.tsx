@@ -199,7 +199,10 @@ export function Table({
           {!betweenDeals && !template && turnName && (
             <p className={styles.waiting}>{fr.table.waitingFor(turnName)}</p>
           )}
-          <p className={styles.preselection} role="status">
+          <p
+            className={`${styles.preselection} ${template ? styles.underPanel : ''}`}
+            role="status"
+          >
             {preselection.card
               ? fr.table.preselected(cardName(preselection.card))
               : preselection.dropped

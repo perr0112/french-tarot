@@ -40,7 +40,7 @@
   display: grid;
   justify-items: center;
   text-align: center;
-  --podium-card: var(--card-hand);
+  --podium-card: var(--card-podium-rest);
 }
 
 .podium .first {

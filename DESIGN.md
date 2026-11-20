@@ -83,18 +83,19 @@ Contrast: all text ≥ 4.5:1 against its background (≥ 3:1 for text ≥ 24 px)
 
 CSS variables: `--width-*`, `--card-*` (card values are widths; height = width × `card-ratio`).
 
-| Token                 | Value                      | Use                                                        |
-| --------------------- | -------------------------- | ---------------------------------------------------------- |
-| `width-narrow`        | 420 px                     | Home, nickname form                                        |
-| `width-regular`       | 560 px                     | Decision panels, score sheet drawer                        |
-| `width-wide`          | 720 px                     | Lobby, final ranking                                       |
-| `card-ratio`          | 1.77                       | Card height / width (from geometry.ts)                     |
-| `card-hand`           | `clamp(56px, 7vw, 84px)`   | Cards in the player's hand                                 |
-| `card-trick`          | `clamp(48px, 7vw, 80px)`   | Cards in the current / previous trick                      |
-| `card-spread-overlap` | 0.45                       | Share of a card hidden by the next in a spread (the chien) |
-| `card-podium`         | `clamp(84px, 12vw, 128px)` | The winner's card on the final podium                      |
-| `card-mini`           | 32 px                      | Mini cards under a seat (poignée, écart trumps)            |
-| `card-chip`           | 36 px                      | Poignée chooser chips                                      |
+| Token                 | Value                              | Use                                                        |
+| --------------------- | ---------------------------------- | ---------------------------------------------------------- |
+| `width-narrow`        | 420 px                             | Home, nickname form                                        |
+| `width-regular`       | 560 px                             | Decision panels, score sheet drawer                        |
+| `width-wide`          | 720 px                             | Lobby, final ranking                                       |
+| `card-ratio`          | 1.77                               | Card height / width (from geometry.ts)                     |
+| `card-hand`           | `clamp(56px, min(7vw, 9vh), 84px)` | Cards in the player's hand                                 |
+| `card-trick`          | `clamp(48px, min(7vw, 8vh), 80px)` | Cards in the current / previous trick                      |
+| `card-spread-overlap` | 0.45                               | Share of a card hidden by the next in a spread (the chien) |
+| `card-podium`         | `clamp(84px, 12vw, 128px)`         | The winner's card on the final podium                      |
+| `card-podium-rest`    | `clamp(56px, 7vw, 84px)`           | The other players' cards on the final podium               |
+| `card-mini`           | 32 px                              | Mini cards under a seat (poignée, écart trumps)            |
+| `card-chip`           | 36 px                              | Poignée chooser chips                                      |
 
 - **Breakpoint**: one only, `compact` = 600 px (`@media (max-width: 600px)`). Media queries cannot read CSS variables, so the value is exported once as `breakpoints.compact` in `tokens.ts`; CSS repeats the literal 600px and nothing else.
 
@@ -183,6 +184,7 @@ Record design decisions here (date — decision — reason).
 - 2026-11-19 — Chien, poignées and écart trumps moved from the info bar to the table (centre, under the seats); deal scores under each seat; final screen as a card podium; `card-podium` token. Reason: user request — information was scattered with no link to the table or the players.
 - 2026-11-19 — Review: `motion-turn-stagger` and `card-spread-overlap` tokens; chien cards get `shadow-card` so the backs can be counted; score colours `.positive` / `.negative` shared in `ui.module.css`; the deal slip's total in bold without a rule.
 - 2026-11-20 — Scores moved from the top bar and drawer to a foldable slip in the felt's bottom-right corner; the called King moved under the taker's badge; poignées shown 5 s; a leave button. Reason: user request.
+- 2026-11-20 — The table is exactly the screen's height (`100dvh`), never scrolled: the felt's empty space gives way to a growing panel, which scrolls inside only as a last resort; on a phone or below 600 px high the page scrolls instead, so nothing is hidden. The score sheet is as tall as the room above its slip. `card-hand` and `card-trick` also follow the height (`9vh`, `8vh`; the podium keeps width-only sizes, `card-podium-rest`), and the poignée panel is tighter (no title, box and levels on one line, one-line hint), so it clears the trick down to 768 px high. Reason: user report — declaring a poignée pushed the hand off screen.
 - 2026-11-20 — Preselected card: dashed accent outline and `shadow-raised`, apart from the solid selection ring; its one-line notice under the decision keeps its height when empty, so nothing moves. Reason: user request (preselect a card ahead of one's turn).
 - 2026-11-20 — Bid panel: contract tiles with drawn marks and multipliers in fixed places; « Passer » apart, outlined, last. Reason: user request — « Passer » was clicked by reflex at the bottom, where « Garde contre » had wrapped.
 - 2026-11-20 — Scores coloured by sign everywhere: `positive` / `negative` text on light surfaces (score slip, score sheet totals and deal columns, « réussi » / « chuté »), and on the felt a chip on `surface` (deal scores under the seats, final podium totals); zero stays in ink. Reason: user request.
