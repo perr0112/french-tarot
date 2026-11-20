@@ -31,6 +31,10 @@ export interface HandProps {
   readonly active: readonly Card[] | null;
   /** Cards picked (écart); shown raised. */
   readonly selected?: readonly Card[];
+  /** The card picked ahead of the player's turn; shown raised, outlined apart from a pick. */
+  readonly preselected?: Card | null;
+  /** Whether a click picks or unpicks a card (écart, preselection) rather than plays it. */
+  readonly toggles?: boolean;
   readonly onPick?: (card: Card) => void;
   /** Cards marked as having come from the chien (the taker's écart). */
   readonly marked?: readonly Card[];
@@ -83,6 +87,8 @@ export function Hand({
   cards,
   active,
   selected = [],
+  preselected = null,
+  toggles = false,
   onPick,
   marked = [],
   dealing = null,
@@ -130,6 +136,7 @@ export function Hand({
       {sorted.map((card) => {
         const enabled = active?.includes(card) ?? false;
         const picked = selected.includes(card);
+        const isPreselected = preselected === card;
         const fromChien = marked.includes(card);
         return (
           <li
@@ -139,9 +146,9 @@ export function Hand({
           >
             <button
               type="button"
-              className={`${styles.card} ${active && !enabled ? styles.dimmed : ''} ${enabled ? styles.enabled : ''} ${picked ? styles.picked : ''}`}
+              className={`${styles.card} ${active && !enabled ? styles.dimmed : ''} ${enabled ? styles.enabled : ''} ${picked ? styles.picked : ''} ${isPreselected ? styles.preselected : ''}`}
               disabled={!enabled}
-              aria-pressed={selected.length > 0 || picked ? picked : undefined}
+              aria-pressed={toggles ? picked || isPreselected : undefined}
               aria-label={cardName(card)}
               aria-description={fromChien ? fr.table.fromChien : undefined}
               onClick={(event) => {

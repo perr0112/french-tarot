@@ -86,6 +86,17 @@
   color: var(--color-ink-on-table-muted);
 }
 
+/* Always there, one line high even empty: its changes are announced and nothing moves. */
+.preselection {
+  margin: 0;
+  min-height: var(--text-sm-line);
+  padding-inline: var(--space-4);
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-line);
+  text-align: center;
+  color: var(--color-ink-on-table-muted);
+}
+
 /* Compact breakpoint (DESIGN.md §3.4). */
 @media (max-width: 600px) {
   /* The trick (and the deal result) need the full width: the centre takes its own row under
