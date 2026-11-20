@@ -147,3 +147,24 @@ describe('lobby settings', () => {
     expect(h.closed.has('c2')).toBe(true);
   });
 });
+
+describe('leaving', () => {
+  it('frees the seat in the lobby, for whoever waits, and hands over the host', () => {
+    const h = new RoomHarness();
+    h.join('c1', 'Alice');
+    h.join('c2', 'Bob');
+    h.send('c1', { type: 'leave' });
+    expect(h.closed.has('c1')).toBe(true);
+    expect(h.view('c2').seats[0]).toEqual({ kind: 'empty' });
+    expect(h.view('c2').you).toMatchObject({ nickname: 'Bob', isHost: true });
+  });
+
+  it('forgets the player: their token no longer gives a seat back', () => {
+    const h = new RoomHarness();
+    const token = h.join('c1', 'Alice') ?? '';
+    h.join('c2', 'Bob');
+    h.send('c1', { type: 'leave' });
+    h.join('c3', 'Carl', token);
+    expect(h.view('c3').you).toMatchObject({ nickname: 'Carl' });
+  });
+});

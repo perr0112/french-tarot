@@ -36,7 +36,8 @@
 }
 
 /* What the seat has shown (a poignée, écart trumps): small cards under its name. */
-.badge > [role='group'] {
+.badge > [role='group'],
+.badge > span > [role='group'] {
   margin-top: var(--space-1);
   /* At most five small cards a row: a poignée wraps under its seat instead of widening it. */
   max-width: calc(5 * var(--card-mini) + 4 * var(--space-1));
@@ -54,4 +55,21 @@
   background: var(--color-surface);
   font-weight: var(--weight-emphasis);
   font-variant-numeric: tabular-nums;
+}
+
+/* A poignée shown long enough (hooks/useFreshPoignees.ts) fades out, then goes. */
+.fading {
+  animation: fade-out var(--duration-base) var(--ease-out) forwards;
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fading {
+    animation-duration: var(--duration-instant);
+  }
 }

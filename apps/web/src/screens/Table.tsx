@@ -2,15 +2,15 @@ import type { Card } from '@tarot/engine';
 import type { RoomView } from '@tarot/protocol';
 import { TRICK_PAUSE_MS } from '@tarot/protocol';
 import { useEffect, useState } from 'react';
-import ui from '../design/ui.module.css';
 import { Chien } from '../components/Chien';
 import { DealResult } from '../components/DealResult';
 import { Hand } from '../components/Hand';
 import { InfoBar } from '../components/InfoBar';
-import { ScoreSheet } from '../components/ScoreSheet';
+import { ScoreCorner } from '../components/ScoreCorner';
 import { SeatBadge } from '../components/SeatBadge';
 import { Trick } from '../components/Trick';
 import { chienLeavesTo, chienOnTable } from '../lib/chien';
+import { useFreshPoignees } from '../hooks/useFreshPoignees';
 import { seatName } from '../lib/names';
 import { poigneeStatus } from '../lib/selection';
 import { seatPositions } from '../lib/seats';
@@ -32,17 +32,19 @@ export function Table({
   view,
   send,
   dealtBeforeJoining = null,
+  onLeave,
 }: {
   view: RoomView;
   send: Send;
   /** The deal already dealt when this page joined the table: it is shown, not dealt in again. */
   dealtBeforeJoining?: number | null;
+  /** Leaves the table for good (a bot takes the seat). */
+  onLeave?: (() => void) | undefined;
 }) {
   const deal = view.deal;
   const me = view.you.seat ?? 0;
   const positions = seatPositions(view.options.players, me);
   const template = deal?.legalActions[0];
-  const [sheetOpen, setSheetOpen] = useState(false);
 
   // Selections belong to one decision of one deal: a new deal, decision or hand starts afresh.
   const dealNumber = view.session?.history.length ?? 0;
@@ -117,6 +119,7 @@ export function Table({
   const trick = showsLastTrick ? deal?.lastTrick : deal?.currentTrick;
   // The taker's own chien cards stay marked in the hand while the écart is chosen.
   const fromChien = deal?.phase === 'ecart' && deal.taker === me ? (deal.chien ?? []) : [];
+  const poigneesShown = useFreshPoignees(deal ?? null, dealNumber);
   const turnName = deal?.turn != null && deal.turn !== me ? seatName(view, deal.turn) : null;
 
   return (
@@ -125,7 +128,7 @@ export function Table({
         view={view}
         showingLastTrick={reviewLastTrick}
         onToggleLastTrick={() => setReviewingAt(reviewLastTrick ? null : cardsPlayed)}
-        onOpenSheet={() => setSheetOpen(true)}
+        onLeave={onLeave}
       />
       <div className={styles.felt}>
         {view.seats.map((_, seat) =>
@@ -135,6 +138,7 @@ export function Table({
               view={view}
               seat={seat}
               className={styles[positions[seat] ?? 'top']}
+              poigneeShowing={poigneesShown.get(seat)}
             />
           ),
         )}
@@ -165,45 +169,43 @@ export function Table({
         </div>
       </div>
       <div className={styles.bottom}>
-        {!betweenDeals && template && (
-          <DecisionPanel
-            // Each decision enters afresh (DESIGN.md §3.6: panel open).
-            key={template.type}
-            view={view}
-            send={send}
-            ecart={ecart}
-            poignee={poignee}
-            onPoigneeChange={(cards) => update({ poignee: cards })}
-          />
-        )}
-        {!betweenDeals && !template && turnName && (
-          <p className={styles.waiting}>{fr.table.waitingFor(turnName)}</p>
-        )}
-        <SeatBadge view={view} seat={me} />
+        <div className={styles.decision}>
+          {!betweenDeals && template && (
+            <DecisionPanel
+              // Each decision enters afresh (DESIGN.md §3.6: panel open).
+              key={template.type}
+              view={view}
+              send={send}
+              ecart={ecart}
+              poignee={poignee}
+              onPoigneeChange={(cards) => update({ poignee: cards })}
+            />
+          )}
+          {!betweenDeals && !template && turnName && (
+            <p className={styles.waiting}>{fr.table.waitingFor(turnName)}</p>
+          )}
+        </div>
+        <SeatBadge
+          view={view}
+          seat={me}
+          className={styles.me}
+          poigneeShowing={poigneesShown.get(me)}
+        />
+        {/* By the local player's right hand: it takes no room from the seats, trick or hand. */}
+        <ScoreCorner view={view} className={styles.scores} />
         {deal && deal.phase !== 'finished' && (
-          <Hand
-            cards={deal.hand}
-            active={betweenDeals ? null : active}
-            selected={ecart}
-            onPick={pick}
-            marked={fromChien}
-            dealing={dealing}
-          />
+          <div className={styles.hand}>
+            <Hand
+              cards={deal.hand}
+              active={betweenDeals ? null : active}
+              selected={ecart}
+              onPick={pick}
+              marked={fromChien}
+              dealing={dealing}
+            />
+          </div>
         )}
       </div>
-      {sheetOpen && (
-        <aside className={`${styles.drawer} ${ui.slideIn}`} aria-label={fr.table.scoreSheet}>
-          <div className={ui.panel}>
-            <div className={styles.drawerHead}>
-              <h2 className={ui.title}>{fr.table.scoreSheet}</h2>
-              <button type="button" className={ui.button} onClick={() => setSheetOpen(false)}>
-                {fr.table.close}
-              </button>
-            </div>
-            <ScoreSheet view={view} />
-          </div>
-        </aside>
-      )}
     </div>
   );
 }

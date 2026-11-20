@@ -38,9 +38,38 @@
 }
 .bottom {
   display: grid;
+  /* The local player's decision and badge in the middle; the scores in the right-hand corner,
+     beside them; the hand across the whole width under all three. */
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-areas:
+    '. decision scores'
+    '. me scores'
+    'hand hand hand';
   justify-items: center;
   gap: var(--space-2);
   padding-bottom: var(--space-2);
+}
+
+.decision {
+  grid-area: decision;
+  display: grid;
+  justify-items: center;
+}
+
+.me {
+  grid-area: me;
+}
+
+.scores {
+  grid-area: scores;
+  justify-self: end;
+  align-self: end;
+  margin-right: var(--space-4);
+}
+
+.hand {
+  grid-area: hand;
+  width: 100%;
 }
 
 .centre {
@@ -55,21 +84,6 @@
 .waiting {
   margin: 0;
   color: var(--color-ink-on-table-muted);
-}
-
-.drawer {
-  position: fixed;
-  inset: 0 0 0 auto;
-  width: min(var(--width-regular), 100vw);
-  padding: var(--space-4);
-  overflow-y: auto;
-}
-
-.drawerHead {
-  display: flex;
-  justify-content: space-between;
-  align-items: start;
-  gap: var(--space-3);
 }
 
 /* Compact breakpoint (DESIGN.md §3.4). */
@@ -90,9 +104,15 @@
     align-self: start;
   }
 
-  /* Room for every player's column of the score sheet. */
-  .drawer {
-    padding: var(--space-2);
+  .bottom {
+    grid-template-areas:
+      'decision decision decision'
+      '. me scores'
+      'hand hand hand';
+  }
+
+  .scores {
+    margin-right: var(--space-2);
   }
 }
 

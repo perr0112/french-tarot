@@ -19,7 +19,16 @@ export function Room({ code }: { code: string }) {
     const nickname = storage.nickname();
     return nickname === null ? null : { nickname };
   });
-  const { status, view, error, send, dismissError } = useRoomConnection(code, request);
+  const { status, view, error, send, dismissError, leave } = useRoomConnection(code, request);
+  // Only while connected: a message sent while reconnecting would be lost, and the room would
+  // keep the seat waiting (the banner says why the button is gone).
+  const onLeave =
+    status === 'open'
+      ? () => {
+          leave();
+          navigate('/');
+        }
+      : undefined;
 
   // The deal in play when this page first saw the table (a reload, a link opened mid-deal): it
   // is shown as it is, not dealt in again. undefined until the first view.
@@ -72,11 +81,16 @@ export function Room({ code }: { code: string }) {
           {errorMessage(error)}
         </p>
       )}
-      {view?.phase === 'lobby' && <Lobby view={view} send={send} />}
+      {view?.phase === 'lobby' && <Lobby view={view} send={send} onLeave={onLeave} />}
       {view?.phase === 'playing' && (
-        <Table view={view} send={send} dealtBeforeJoining={dealtBeforeJoining ?? null} />
+        <Table
+          view={view}
+          send={send}
+          dealtBeforeJoining={dealtBeforeJoining ?? null}
+          onLeave={onLeave}
+        />
       )}
-      {view?.phase === 'finished' && <Final view={view} send={send} />}
+      {view?.phase === 'finished' && <Final view={view} send={send} onLeave={onLeave} />}
     </>
   );
 }

@@ -2,6 +2,7 @@ import type { RoomView } from '@tarot/protocol';
 import ui from '../design/ui.module.css';
 import { CardFace } from '../components/Card';
 import { DealResult } from '../components/DealResult';
+import { LeaveButton } from '../components/LeaveButton';
 import { ScoreSheet } from '../components/ScoreSheet';
 import { formatScore } from '../lib/cards';
 import { seatName } from '../lib/names';
@@ -15,7 +16,15 @@ import styles from './Final.module.css';
  * to the winner, down to the Excuse for the last — then the score sheet, and the last deal
  * folded away. The host may start again.
  */
-export function Final({ view, send }: { view: RoomView; send: Send }) {
+export function Final({
+  view,
+  send,
+  onLeave,
+}: {
+  view: RoomView;
+  send: Send;
+  onLeave?: (() => void) | undefined;
+}) {
   const ranking = rankSeats(view.session?.totals ?? []);
   const lastRank = ranking.at(-1)?.rank ?? 1;
   const winners = ranking.filter((r) => r.rank === 1).map((r) => seatName(view, r.seat));
@@ -53,9 +62,13 @@ export function Final({ view, send }: { view: RoomView; send: Send }) {
           <button type="button" className={ui.button} onClick={() => send({ type: 'backToLobby' })}>
             {fr.final.backToLobby}
           </button>
+          {onLeave && <LeaveButton confirm={false} onLeave={onLeave} />}
         </div>
       ) : (
-        <p className={styles.hint}>{fr.final.hostDecides}</p>
+        <div className={`${ui.row} ${styles.actions}`}>
+          <p className={styles.hint}>{fr.final.hostDecides}</p>
+          {onLeave && <LeaveButton confirm={false} onLeave={onLeave} />}
+        </div>
       )}
       <div className={ui.panel}>
         <ScoreSheet view={view} />

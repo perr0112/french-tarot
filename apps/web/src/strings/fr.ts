@@ -2,6 +2,7 @@ import type { BidChoice, PoigneeLevel } from '@tarot/engine';
 import type { BotSpeed, SeatBotLevel, ServerErrorCode } from '@tarot/protocol';
 
 const poigneeShown = (level: string) => `Poignée ${level.toLowerCase()}`;
+const CALLED = 'Appel';
 
 /** All user-facing strings (French only). Never inline UI copy in components. */
 export const fr = {
@@ -18,6 +19,12 @@ export const fr = {
     code: 'Code de la table',
     join: 'Rejoindre',
     nicknameRequired: 'Choisissez un pseudo pour vous asseoir.',
+  },
+  leave: {
+    button: 'Quitter la table',
+    confirm: 'Quitter la table ? Un bot prendra votre place.',
+    yes: 'Quitter',
+    stay: 'Rester',
   },
   connection: {
     connecting: 'Connexion à la table…',
@@ -102,8 +109,9 @@ export const fr = {
     disconnected: 'déconnecté',
     cards: (n: number) => (n > 1 ? `${n} cartes` : `${n} carte`),
     contract: (contract: string, taker: string) => `${contract} — ${taker}`,
-    called: (card: string) => `Appel : ${card}`,
-    calledAlone: 'seul',
+    called: (card: string) => `${CALLED} : ${card}`,
+    calledShort: CALLED,
+    calledAloneShort: `${CALLED} (seul)`,
     chien: 'Chien',
     /** On the seats the hidden chien counts for (garde sans, garde contre). */
     withChien: 'avec le chien',
@@ -116,7 +124,8 @@ export const fr = {
     trick: 'Pli en cours',
     hideLastTrick: 'Revenir au pli',
     scoreSheet: 'Feuille de marque',
-    close: 'Fermer',
+    scores: 'Scores',
+    foldSheet: 'Replier',
     tricks: (n: number) => (n > 1 ? `${n} plis` : `${n} pli`),
     chelemAnnounced: 'Chelem annoncé',
   },

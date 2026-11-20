@@ -153,7 +153,9 @@ Under `prefers-reduced-motion`, flights become `duration-instant` fades, the dea
 ## 5. Layout
 
 - Local player at the bottom, hand as a fan; opponents around the table; current trick in the centre.
-- Persistent but quiet info: contract + taker, dealer marker, called king (5p, once revealed), score summary.
+- Persistent but quiet info: contract + taker and a chelem announced in the top bar, with the last trick and « Quitter la table » (it asks first during a session); dealer, taker and partner on the seats; the called King as a mini card under the taker's badge (« Appel », « Appel (seul) »).
+- **Scores**: a light slip in the bottom row, to the right of the local player's decision and badge, above the hand (it takes no room from the seats or the trick, and does not move when a panel opens): folded, each total best first with the local player in bold; unfolded, the whole score sheet opens above the slip, over the felt. At the compact breakpoint, folded, only its button shows; unfolded, the sheet spans the bottom of the screen.
+- A poignée shows under its seat for 5 s once declared, then fades out (`duration-base`; `duration-instant` under reduced motion); one declared before the page opened is not shown again. Écart trumps stay under the taker's badge.
 - **Things lie where they are at a real table.** The chien lies in the centre: face down from the deal, turned face up for all in a petite or garde (the taker has it in hand, its cards marked by a short neutral rule until the écart is made). A poignée and the taker's shown écart trumps sit under that seat's badge. Between deals, each seat's score of the deal sits under its badge as a chip (`surface`, `positive` / `negative`); the centre holds the breakdown as a narrow slip of the score sheet.
 - **Final screen**: on the felt, the ranking as cards — the 21 to the winner (larger, raised), then 20, 19… and the Excuse to the last place; equal totals share a rank and a card. Then the actions, the score sheet, and the last deal folded away.
 - Whose turn: the accent colour on that seat, nothing else competing.
@@ -179,3 +181,4 @@ Record design decisions here (date — decision — reason).
 - 2026-11-19 — Motion tokens `motion-deal`, `motion-from-seat`, `motion-collected` (table animations, §3.6).
 - 2026-11-19 — Chien, poignées and écart trumps moved from the info bar to the table (centre, under the seats); deal scores under each seat; final screen as a card podium; `card-podium` token. Reason: user request — information was scattered with no link to the table or the players.
 - 2026-11-19 — Review: `motion-turn-stagger` and `card-spread-overlap` tokens; chien cards get `shadow-card` so the backs can be counted; score colours `.positive` / `.negative` shared in `ui.module.css`; the deal slip's total in bold without a rule.
+- 2026-11-20 — Scores moved from the top bar and drawer to a foldable slip in the felt's bottom-right corner; the called King moved under the taker's badge; poignées shown 5 s; a leave button. Reason: user request.

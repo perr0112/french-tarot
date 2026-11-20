@@ -39,7 +39,7 @@ export const BOT_DELAY_MS: Readonly<Record<BotSpeed, number>> = {
 export const REPLACE_AFTER_MS = 10_000;
 /** A room nobody is connected to is deleted after this long without activity. */
 export const EXPIRE_AFTER_MS = 24 * 60 * 60 * 1000;
-/** Level of the bot that plays for a disconnected player. */
+/** Level of the bot that plays for a disconnected player, or for one who left. */
 const REPLACEMENT_LEVEL: SeatBotLevel = 'medium';
 
 export interface Participant {
@@ -180,7 +180,10 @@ function handleMessage(
       return done(asHostIn(room, me, 'lobby') ?? start(room, env));
     case 'newSession':
       return done(
-        asHostIn(room, me, 'finished') ?? beginSession(room, room.session?.dealer ?? 0, env),
+        asHostIn(room, me, 'finished') ??
+          (seatsOf(room).some((seat) => isFree(room, seat))
+            ? 'SEATS_NOT_FILLED'
+            : beginSession(room, room.session?.dealer ?? 0, env)),
       );
     case 'backToLobby':
       return done(
@@ -199,6 +202,8 @@ function handleMessage(
     case 'continue':
       if (me.seat === null) return done('NOT_SEATED');
       return done(continueToNextDeal(room, me.seat, env));
+    case 'leave':
+      return { room: leave(room, me, env), replies: [{ type: 'close', connection }] };
   }
 }
 
@@ -284,6 +289,24 @@ function disconnect(room: RoomState, connection: string, now: number, env: RoomE
     return fillSeats(replace(room, leaving, gone));
   }
   const next = replace(room, leaving, { ...leaving, connection: null, disconnectedAt: now });
+  // The deal may only have been waiting for this player to continue.
+  return room.session?.phase === 'waitingForDeal' ? dealIfAllContinued(next, env) : next;
+}
+
+/**
+ * A participant leaves for good (AGENTS.md §5): forgotten, token and all. During a session a
+ * bot plays their seat from now on; otherwise (lobby, session over) the seat is freed for
+ * whoever waits, and must be filled before a new session.
+ */
+function leave(room: RoomState, leaving: Participant, env: RoomEnv): RoomState {
+  const participants = room.participants.filter((p) => p !== leaving);
+  const seat = leaving.seat;
+  if (room.phase !== 'playing' || seat === null) return fillSeats({ ...room, participants });
+  const next: RoomState = {
+    ...room,
+    participants,
+    bots: room.bots.map((b, s) => (s === seat ? REPLACEMENT_LEVEL : b)),
+  };
   // The deal may only have been waiting for this player to continue.
   return room.session?.phase === 'waitingForDeal' ? dealIfAllContinued(next, env) : next;
 }

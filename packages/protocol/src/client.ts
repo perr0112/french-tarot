@@ -56,6 +56,8 @@ const clientMessage = z.union([
   z.object({ type: z.literal('continue') }),
   z.object({ type: z.literal('newSession') }),
   z.object({ type: z.literal('backToLobby') }),
+  /** Leaves the table for good: a bot takes the seat during a session. */
+  z.object({ type: z.literal('leave') }),
 ]);
 
 /** Messages a client may send to its room: what the schema accepts, once validated. */

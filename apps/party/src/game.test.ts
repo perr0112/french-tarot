@@ -148,6 +148,48 @@ describe('bots', () => {
   });
 });
 
+describe('leaving a session', () => {
+  it('gives the seat to a bot at once, which plays it', () => {
+    const h = table(['Alice', 'Bob']);
+    h.send('c0', { type: 'start' });
+    h.send('c1', { type: 'leave' });
+    expect(h.closed.has('c1')).toBe(true);
+    expect(h.view('c0').seats[1]).toMatchObject({ kind: 'bot' });
+    runUntil(h, ['c0'], () => h.view('c0').deal?.bids.some((b) => b.seat === 1) ?? false);
+    expect(h.view('c0').deal?.bids.some((b) => b.seat === 1)).toBe(true);
+  });
+
+  it('does not keep the next deal waiting for the player who left', () => {
+    const h = table(['Alice', 'Bob'], { deals: 3 });
+    h.send('c0', { type: 'start' });
+    // Both play the first deal, without asking for the next one.
+    for (let step = 0; step < 5000 && h.view('c0').session?.continued == null; step++) {
+      if (!playIfMyTurn(h, 'c0') && !playIfMyTurn(h, 'c1')) h.advance(1000);
+    }
+    // Alice asks for the next deal; Bob leaves instead.
+    h.send('c0', { type: 'continue' });
+    expect(h.view('c0').session?.continued).toEqual([0]);
+    h.send('c1', { type: 'leave' });
+    // The next deal is dealt: the first one is in the history, nobody is awaited.
+    expect(h.view('c0').session?.history).toHaveLength(1);
+    expect(h.view('c0').session?.continued).toBeNull();
+  });
+});
+
+describe('leaving after a session', () => {
+  it('frees the seat: the next session waits for it to be filled', () => {
+    const h = table(['Alice', 'Bob'], { deals: 1 });
+    h.send('c0', { type: 'start' });
+    runUntil(h, ['c0', 'c1'], () => h.view('c0').phase === 'finished');
+    h.send('c1', { type: 'leave' });
+    expect(h.view('c0').seats[1]).toEqual({ kind: 'empty' });
+    h.send('c0', { type: 'newSession' });
+    expect(h.lastError('c0')).toBe('SEATS_NOT_FILLED');
+    h.send('c0', { type: 'backToLobby' });
+    expect(h.view('c0').seats[1]).toEqual({ kind: 'empty' });
+  });
+});
+
 describe('disconnection', () => {
   it('lets a bot play for a player gone for 10 s, until they come back', () => {
     const h = table(['Alice', 'Bob']);
