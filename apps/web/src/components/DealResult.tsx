@@ -6,7 +6,10 @@ import type { Send } from '../net/connection';
 import { fr } from '../strings/fr';
 import styles from './DealResult.module.css';
 
-/** The last deal explained, term by term (AGENTS.md §3.8, §6), and the way to the next one. */
+/**
+ * The last deal explained, term by term, like a line of the score sheet (AGENTS.md §3.8, §6),
+ * and the way to the next one. What each seat scored is shown at its seat (SeatBadge).
+ */
 export function DealResult({ view, send }: { view: RoomView; send: Send }) {
   const session = view.session;
   const record = session?.history.at(-1);
@@ -14,27 +17,31 @@ export function DealResult({ view, send }: { view: RoomView; send: Send }) {
   const result = record.result;
   const me = view.you.seat;
   const waiting = view.seats.flatMap((occupant, seat) =>
-    occupant.kind === 'human' && occupant.connected && !session.continued?.includes(seat)
+    // The local player has their own button.
+    seat !== me &&
+    occupant.kind === 'human' &&
+    occupant.connected &&
+    !session.continued?.includes(seat)
       ? [seatName(view, seat)]
       : [],
   );
   const signed = (value: number) => (
-    <span className={value > 0 ? styles.positive : value < 0 ? styles.negative : ''}>
+    <span className={value > 0 ? ui.positive : value < 0 ? ui.negative : ''}>
       {formatScore(value)}
     </span>
   );
   return (
-    <section className={ui.panel} aria-label={fr.result.title}>
+    <section className={`${ui.panel} ${ui.enter} ${styles.result}`} aria-label={fr.result.title}>
       <h2 className={ui.title}>{result ? fr.result.title : fr.result.cancelled}</h2>
       {result ? (
         <>
           <p className={styles.headline}>
-            {fr.table.contract(fr.bid[result.contract], seatName(view, result.taker))} —{' '}
-            <strong className={result.made ? styles.positive : styles.negative}>
+            <span>{fr.table.contract(fr.bid[result.contract], seatName(view, result.taker))}</span>
+            <strong className={result.made ? ui.positive : ui.negative}>
               {result.made ? fr.result.made(result.gap) : fr.result.failed(result.gap)}
             </strong>
           </p>
-          <p className={ui.label}>
+          <p className={`${ui.label} ${styles.points}`}>
             {fr.result.points(formatPoints(result.points), result.needed, result.oudlers)}
           </p>
           <dl className={styles.terms}>
@@ -66,13 +73,6 @@ export function DealResult({ view, send }: { view: RoomView; send: Send }) {
             <dt className={styles.total}>{fr.result.dealScore}</dt>
             <dd className={styles.total}>{signed(result.dealScore)}</dd>
           </dl>
-          <ul className={styles.seats}>
-            {result.perSeat.map((score, seat) => (
-              <li key={seat}>
-                <span>{seatName(view, seat)}</span> {signed(score)}
-              </li>
-            ))}
-          </ul>
         </>
       ) : (
         <p>

@@ -61,6 +61,7 @@
   flex-wrap: wrap;
   gap: var(--space-2);
   align-items: center;
+  justify-content: center;
 }
 
 .title {
@@ -68,4 +69,51 @@
   line-height: var(--text-lg-line);
   font-weight: var(--weight-emphasis);
   margin: 0 0 var(--space-3);
+}
+
+/*
+ * Entering the table's panels (DESIGN.md §3.6): decisions and the deal result fade and rise, the
+ * score sheet slides in from the right. Nothing waits for them, and closing is instant.
+ */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-2));
+  }
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.enter {
+  animation: rise-in var(--duration-fast) var(--ease-out);
+}
+
+.slideIn {
+  animation: slide-in var(--duration-base) var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .enter,
+  .slideIn {
+    animation: fade-in var(--duration-instant) var(--ease-out);
+  }
+}
+
+/* A score's sign, also carried by its + or − (DESIGN.md §2: never colour alone). */
+.positive {
+  color: var(--color-positive);
+}
+
+.negative {
+  color: var(--color-negative);
 }

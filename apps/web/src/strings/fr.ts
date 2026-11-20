@@ -1,6 +1,8 @@
 import type { BidChoice, PoigneeLevel } from '@tarot/engine';
 import type { BotSpeed, SeatBotLevel, ServerErrorCode } from '@tarot/protocol';
 
+const poigneeShown = (level: string) => `Poignée ${level.toLowerCase()}`;
+
 /** All user-facing strings (French only). Never inline UI copy in components. */
 export const fr = {
   app: {
@@ -103,8 +105,13 @@ export const fr = {
     called: (card: string) => `Appel : ${card}`,
     calledAlone: 'seul',
     chien: 'Chien',
+    /** On the seats the hidden chien counts for (garde sans, garde contre). */
+    withChien: 'avec le chien',
+    fromChien: 'Vient du chien',
     ecartTrumps: "Atouts à l'écart",
-    poignee: (name: string, level: string) => `Poignée ${level.toLowerCase()} de ${name}`,
+    poigneeShown,
+    dealScore: (score: string) => `Score de la donne : ${score}`,
+    poignee: (name: string, level: string) => `${poigneeShown(level)} de ${name}`,
     lastTrick: 'Dernier pli',
     trick: 'Pli en cours',
     hideLastTrick: 'Revenir au pli',
@@ -159,6 +166,11 @@ export const fr = {
   },
   final: {
     title: 'Partie terminée',
+    winner: (name: string) => `${name} remporte la partie`,
+    tie: (names: readonly string[]) =>
+      `Égalité entre ${names.slice(0, -1).join(', ')} et ${names.at(-1) ?? ''}`,
+    ranking: 'Classement',
+    lastDeal: 'Détail de la dernière donne',
     rank: (n: number) => (n === 1 ? '1er' : `${n}e`),
     newSession: 'Nouvelle partie',
     backToLobby: 'Retour au salon',

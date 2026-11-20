@@ -32,3 +32,11 @@
 .cancelled {
   color: var(--color-ink-muted);
 }
+
+/* Compact breakpoint (DESIGN.md §3.4): tighter cells, so every player's column fits at 375 px. */
+@media (max-width: 600px) {
+  .sheet th,
+  .sheet td {
+    padding-inline: var(--space-1);
+  }
+}

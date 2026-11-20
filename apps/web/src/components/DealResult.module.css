@@ -1,5 +1,19 @@
+/* A slip of the score sheet: narrow, the figures in one column, the total in bold. */
+.result {
+  width: min(var(--width-narrow), 100%);
+  margin-inline: auto;
+}
+
 .headline {
-  margin: 0 0 var(--space-1);
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0 var(--space-3);
+}
+
+.points {
+  margin: 0;
 }
 
 .terms {
@@ -17,22 +31,4 @@
 
 .total {
   font-weight: var(--weight-emphasis);
-}
-
-.seats {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 var(--space-3);
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2) var(--space-4);
-  font-variant-numeric: tabular-nums;
-}
-
-.positive {
-  color: var(--color-positive);
-}
-
-.negative {
-  color: var(--color-negative);
 }

@@ -23,7 +23,11 @@ import {
   type SeatOccupant,
   type ServerErrorCode,
   type ServerMessage,
+  CHIEN_PAUSE_MS,
+  TRICK_PAUSE_MS,
 } from '@tarot/protocol';
+
+export { CHIEN_PAUSE_MS, TRICK_PAUSE_MS };
 
 /** Delay before each bot move, by room option (AGENTS.md §5). */
 export const BOT_DELAY_MS: Readonly<Record<BotSpeed, number>> = {
@@ -31,8 +35,6 @@ export const BOT_DELAY_MS: Readonly<Record<BotSpeed, number>> = {
   normal: 800,
   slow: 1500,
 };
-/** Pause after a completed trick, so everyone sees it before the next card. */
-export const TRICK_PAUSE_MS = 1500;
 /** How long a disconnected player keeps their seat before a bot plays it. */
 export const REPLACE_AFTER_MS = 10_000;
 /** A room nobody is connected to is deleted after this long without activity. */
@@ -371,12 +373,15 @@ function play(
   if (!sessionResult.ok) return sessionResult.error.code;
   const after = dealResult.state;
   const trickDone = after.tricks.length > deal.tricks.length;
+  const chienShown = after.phase === 'ecart' && deal.phase !== 'ecart';
+  // Everyone sees a completed trick, or the chien turned over, before the next move.
+  const pauseAfter = trickDone ? TRICK_PAUSE_MS : chienShown ? CHIEN_PAUSE_MS : 0;
   return {
     ...room,
     phase: sessionResult.session.phase === 'finished' ? 'finished' : 'playing',
     session: sessionResult.session,
     currentDeal: after,
-    turnSince: now + (trickDone ? TRICK_PAUSE_MS : 0),
+    turnSince: now + pauseAfter,
   };
 }
 

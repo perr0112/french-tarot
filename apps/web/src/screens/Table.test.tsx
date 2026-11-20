@@ -1,6 +1,6 @@
 import { ALL_CARDS, createDeal, isTrump, type Card } from '@tarot/engine';
-import { DEFAULT_ROOM_OPTIONS } from '@tarot/protocol';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { DEFAULT_ROOM_OPTIONS, TRICK_PAUSE_MS } from '@tarot/protocol';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { cardName } from '../lib/cards';
 import { dealWith, playOut, roomView, takes } from '../testing/views';
@@ -158,8 +158,61 @@ describe('chelem decision', () => {
   });
 });
 
+describe('the end of a deal', () => {
+  const lastTrick = {
+    leader: 1,
+    winner: 1,
+    cards: [
+      { seat: 1, card: 'S14' },
+      { seat: 2, card: 'S02' },
+      { seat: 3, card: 'S03' },
+      { seat: 0, card: 'S04' },
+    ],
+  } as const;
+  const finished = () => {
+    const view = roomView(takes(dealWith([...trumps(1, 13), ...suit('S', 1, 5)]), 'garde'), 0, {
+      session: {
+        deals: 8,
+        played: 1,
+        dealer: 0,
+        totals: [0, 0, 0, 0],
+        history: [{ dealer: 3, result: null, cancelled: { reason: 'allPassed' } }],
+        continued: [],
+      },
+    });
+    const deal = view.deal && {
+      ...view.deal,
+      phase: 'finished' as const,
+      currentTrick: null,
+      lastTrick,
+    };
+    return { ...view, deal };
+  };
+  const result = () => screen.queryByText('Tout le monde a passé.');
+
+  it('keeps the last trick shown for the usual pause, then shows the result', () => {
+    vi.useFakeTimers();
+    try {
+      const playing = roomView(dealWith([...trumps(1, 13), ...suit('S', 1, 5)]));
+      const { rerender } = render(<Table view={playing} send={vi.fn()} />);
+      rerender(<Table view={finished()} send={vi.fn()} />);
+      expect(result()).toBeNull();
+      expect(screen.getByRole('img', { name: cardName('S04') })).toBeTruthy();
+      act(() => vi.advanceTimersByTime(TRICK_PAUSE_MS));
+      expect(result()).toBeTruthy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('shows the result at once when the page opens on it', () => {
+    render(<Table view={finished()} send={vi.fn()} />);
+    expect(result()).toBeTruthy();
+  });
+});
+
 describe('between deals', () => {
-  it('asks for the next deal and names who is still awaited', () => {
+  it('asks for the next deal and names who else is still awaited', () => {
     const send = vi.fn();
     const view = roomView(null, 0, {
       session: {
@@ -173,7 +226,7 @@ describe('between deals', () => {
     });
     render(<Table view={view} send={send} />);
     expect(screen.getByText('Tout le monde a passé.')).toBeTruthy();
-    expect(screen.getByText('En attente de : Alice, Bob')).toBeTruthy();
+    expect(screen.getByText('En attente de : Bob')).toBeTruthy();
     click('Continuer');
     expect(send).toHaveBeenCalledWith({ type: 'continue' });
   });
@@ -186,9 +239,15 @@ describe('the chien', () => {
       name: 'Carte cachée',
     });
 
-  it.each(['gardeSans', 'gardeContre'] as const)('shows face down in a %s', (contract) => {
-    render(<Table view={roomView(takes(dealWith(hand), contract), 1)} send={vi.fn()} />);
+  it('lies face down in the centre while the players bid', () => {
+    render(<Table view={roomView(dealWith(hand), 1)} send={vi.fn()} />);
     expect(backs()).toHaveLength(6);
+  });
+
+  it.each(['gardeSans', 'gardeContre'] as const)('leaves the centre unseen in a %s', (contract) => {
+    render(<Table view={roomView(takes(dealWith(hand), contract), 1)} send={vi.fn()} />);
+    expect(screen.queryByRole('group', { name: 'Chien' })).toBeNull();
+    expect(screen.queryAllByRole('img', { name: 'Carte cachée' })).toHaveLength(0);
   });
 
   it('shows its three cards face down in 5 players', () => {
@@ -208,9 +267,21 @@ describe('the chien', () => {
     expect(backs()).toHaveLength(3);
   });
 
-  it.each(['petite', 'garde'] as const)('is never face down in a %s', (contract) => {
-    render(<Table view={roomView(takes(dealWith(hand), contract), 1)} send={vi.fn()} />);
-    expect(screen.queryAllByRole('img', { name: 'Carte cachée' })).toHaveLength(0);
+  it.each(['petite', 'garde'] as const)('is shown face up to the others in a %s', (contract) => {
+    const deal = takes(dealWith(hand), contract);
+    render(<Table view={roomView(deal, 1)} send={vi.fn()} />);
+    const shown = within(screen.getByRole('group', { name: 'Chien' })).getAllByRole('img');
+    expect(shown.map((img) => img.getAttribute('aria-label'))).toEqual(deal.chien.map(cardName));
+  });
+
+  it('is in the taker’s hand, its cards marked, during the écart', () => {
+    const deal = takes(dealWith(hand), 'garde');
+    render(<Table view={roomView(deal)} send={vi.fn()} />);
+    expect(screen.queryByRole('group', { name: 'Chien' })).toBeNull();
+    for (const c of deal.chien) {
+      expect(card(c).getAttribute('aria-description')).toBe('Vient du chien');
+    }
+    expect(card('S01').getAttribute('aria-description')).toBeNull();
   });
 
   it('is no longer shown once the deal is over', () => {

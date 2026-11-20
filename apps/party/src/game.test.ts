@@ -1,6 +1,12 @@
 import type { Action, LegalAction } from '@tarot/engine';
 import { describe, expect, it } from 'vitest';
-import { BOT_DELAY_MS, EXPIRE_AFTER_MS, REPLACE_AFTER_MS, TRICK_PAUSE_MS } from './room';
+import {
+  BOT_DELAY_MS,
+  CHIEN_PAUSE_MS,
+  EXPIRE_AFTER_MS,
+  REPLACE_AFTER_MS,
+  TRICK_PAUSE_MS,
+} from './room';
 import { RoomHarness } from './testing/harness';
 
 /** A legal, simple choice for a human seat. */
@@ -123,6 +129,20 @@ describe('bots', () => {
         seenPause ||= h.wakeAt - h.now === TRICK_PAUSE_MS + BOT_DELAY_MS.normal;
       }
       return seenPause || (h.view('c0').session?.played ?? 0) >= 2;
+    });
+    expect(seenPause).toBe(true);
+  });
+
+  it('leave the chien shown a while before a bot taker makes its écart', () => {
+    const h = table(['Alice']);
+    h.send('c0', { type: 'start' });
+    let seenPause = false;
+    runUntil(h, ['c0'], () => {
+      const deal = h.view('c0').deal;
+      if (deal?.phase === 'ecart' && deal.taker !== 0 && h.wakeAt !== null) {
+        seenPause ||= h.wakeAt - h.now === CHIEN_PAUSE_MS + BOT_DELAY_MS.normal;
+      }
+      return seenPause || (h.view('c0').session?.played ?? 0) >= 4;
     });
     expect(seenPause).toBe(true);
   });

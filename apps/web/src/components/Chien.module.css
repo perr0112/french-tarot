@@ -1,0 +1,41 @@
+.chien {
+  margin: 0;
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  --chien-card: var(--card-trick);
+}
+
+/* The chien lies as one small spread: the cards overlap, each still readable by its index. */
+.cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  /* A chien leaving and the cards replacing it stack in the same place. */
+  grid-area: 1 / 1;
+}
+
+.card {
+  width: var(--chien-card);
+}
+
+.card {
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+.card + .card {
+  margin-left: calc(var(--chien-card) * var(--card-spread-overlap) * -1);
+}
+
+[data-leaving] {
+  pointer-events: none;
+}
+
+.caption {
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-line);
+  color: var(--color-ink-on-table-muted);
+}
