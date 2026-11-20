@@ -11,13 +11,13 @@ import {
 } from '@tarot/engine';
 import { DEFAULT_ROOM_OPTIONS, type RoomView } from '@tarot/protocol';
 
-/** A 4-player deal where seat 0 holds `hand`, the rest dealt in card order, dealer 3. */
-export function dealWith(hand: readonly Card[]): DealState {
+/** A 4-player deal where seat 0 holds `hand`, the rest dealt in card order (dealer 3 by default). */
+export function dealWith(hand: readonly Card[], dealer: Seat = 3): DealState {
   const rest = ALL_CARDS.filter((c) => !hand.includes(c));
   return createDealFromHands({
     hands: [hand, rest.slice(0, 18), rest.slice(18, 36), rest.slice(36, 54)],
     chien: rest.slice(54),
-    dealer: 3,
+    dealer,
   });
 }
 

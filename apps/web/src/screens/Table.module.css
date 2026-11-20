@@ -90,6 +90,22 @@
   color: var(--color-ink-on-table-muted);
 }
 
+/* Always there, one line high even empty: its changes are announced and nothing moves. */
+.preselection {
+  margin: 0;
+  min-height: var(--text-sm-line);
+  padding-inline: var(--space-4);
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-line);
+  text-align: center;
+  color: var(--color-ink-on-table-muted);
+}
+
+/* Under a decision panel, empty, it takes no room: the panel keeps clear of the trick. */
+.underPanel:empty {
+  min-height: 0;
+}
+
 /* On a phone, or a screen too low for the felt, the decision panel and the hand together, the
    table grows and the page scrolls rather than hiding anything (the deal result's button, the
    trick under a panel). */

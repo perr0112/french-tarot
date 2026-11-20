@@ -9,8 +9,10 @@ import { InfoBar } from '../components/InfoBar';
 import { ScoreCorner } from '../components/ScoreCorner';
 import { SeatBadge } from '../components/SeatBadge';
 import { Trick } from '../components/Trick';
+import { cardName } from '../lib/cards';
 import { chienLeavesTo, chienOnTable } from '../lib/chien';
 import { useFreshPoignees } from '../hooks/useFreshPoignees';
+import { usePreselection } from '../hooks/usePreselection';
 import { seatName } from '../lib/names';
 import { poigneeStatus } from '../lib/selection';
 import { seatPositions } from '../lib/seats';
@@ -71,9 +73,21 @@ export function Table({
     poignee === null ||
     poigneeStatus(template.poignee, poignee).level !== null;
 
+  const betweenDeals = view.session?.continued != null;
+  // A card picked ahead of the turn (played then if the rules allow it).
+  const preselection = usePreselection({
+    deal: deal ?? null,
+    dealNumber,
+    me,
+    send,
+    paused: betweenDeals,
+  });
+
   // Only cards that can be picked now are lit; the hand stays plain during other decisions.
-  const active =
-    template?.type === 'playCard'
+  // While another player is to play, any card may be preselected.
+  const active = preselection.available
+    ? (deal?.hand ?? [])
+    : template?.type === 'playCard'
       ? poigneeReady
         ? template.cards
         : []
@@ -82,7 +96,9 @@ export function Table({
         : null;
 
   const pick = (card: Card) => {
-    if (template?.type === 'ecart') {
+    if (preselection.available) {
+      preselection.toggle(card);
+    } else if (template?.type === 'ecart') {
       update({ ecart: ecart.includes(card) ? ecart.filter((c) => c !== card) : [...ecart, card] });
     } else if (template?.type === 'playCard' && poigneeReady) {
       send({
@@ -96,7 +112,6 @@ export function Table({
     }
   };
 
-  const betweenDeals = view.session?.continued != null;
   // A fresh deal: nobody has spoken yet, the hand is dealt in from the dealer's seat.
   const dealing =
     deal?.phase === 'bidding' && deal.bids.length === 0 && dealNumber !== dealtBeforeJoining
@@ -184,6 +199,16 @@ export function Table({
           {!betweenDeals && !template && turnName && (
             <p className={styles.waiting}>{fr.table.waitingFor(turnName)}</p>
           )}
+          <p
+            className={`${styles.preselection} ${template ? styles.underPanel : ''}`}
+            role="status"
+          >
+            {preselection.card
+              ? fr.table.preselected(cardName(preselection.card))
+              : preselection.dropped
+                ? fr.table.preselectionDropped
+                : null}
+          </p>
         </div>
         <SeatBadge
           view={view}
@@ -199,6 +224,8 @@ export function Table({
               cards={deal.hand}
               active={betweenDeals ? null : active}
               selected={ecart}
+              preselected={preselection.card}
+              toggles={preselection.available || template?.type === 'ecart'}
               onPick={pick}
               marked={fromChien}
               dealing={dealing}
