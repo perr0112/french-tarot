@@ -1,5 +1,5 @@
 import type { BidChoice, PoigneeLevel } from '@tarot/engine';
-import type { BotSpeed, SeatBotLevel, ServerErrorCode } from '@tarot/protocol';
+import type { BotSpeed, Reaction, SeatBotLevel, ServerErrorCode } from '@tarot/protocol';
 
 const poigneeShown = (level: string) => `Poignée ${level.toLowerCase()}`;
 const CALLED = 'Appel';
@@ -35,6 +35,14 @@ export const fr = {
   reactions: {
     title: 'Réactions',
     open: 'Réagir',
+    names: {
+      '😂': 'Rire',
+      '👏': 'Bravo',
+      '😮': 'Surpris',
+      '😅': 'Gêné',
+      '🎉': 'Fête',
+      '😡': 'Fâché',
+    } satisfies Record<Reaction, string>,
     shown: (name: string, emoji: string) => `${name} réagit : ${emoji}`,
   },
   redeal: {

@@ -162,6 +162,7 @@ export function Table({
               className={styles[positions[seat] ?? 'top']}
               poigneeShowing={poigneesShown.get(seat)}
               reaction={reactions.get(seat)}
+              bubbleOnLeft={positions[seat] === 'right' || positions[seat] === 'topRight'}
             />
           ),
         )}
@@ -227,6 +228,8 @@ export function Table({
         />
         {view.you.seat !== null && (
           <ReactionPicker
+            // A decision opening closes the row: the decision comes first.
+            key={template?.type ?? 'none'}
             className={styles.react}
             onReact={(emoji) => send({ type: 'react', emoji })}
           />

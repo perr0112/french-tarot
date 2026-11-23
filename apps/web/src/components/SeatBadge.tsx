@@ -22,6 +22,7 @@ export function SeatBadge({
   className,
   poigneeShowing = null,
   reaction = null,
+  bubbleOnLeft = false,
 }: {
   view: RoomView;
   seat: Seat;
@@ -30,6 +31,8 @@ export function SeatBadge({
   poigneeShowing?: PoigneeShowing | null | undefined;
   /** A reaction its player just sent (hooks/useReactions.ts), shown in a bubble. */
   reaction?: ShownReaction | null | undefined;
+  /** The reaction bubble on the left corner: for seats on the right of the table, so it stays in. */
+  bubbleOnLeft?: boolean;
 }) {
   const facts = seatFacts(view, seat);
   const { poignee, ecartTrumps, calledCard } = facts;
@@ -48,7 +51,7 @@ export function SeatBadge({
         <span
           // A new reaction pops anew, even the same emoji twice.
           key={reaction.id}
-          className={styles.reaction}
+          className={`${styles.reaction} ${bubbleOnLeft ? styles.onLeft : ''}`}
           role="img"
           aria-label={fr.reactions.shown(facts.name, reaction.emoji)}
         >

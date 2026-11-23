@@ -33,10 +33,24 @@ describe('reactions', () => {
     expect(reactions(h, 'c0')).toHaveLength(3);
   });
 
+  it('is not saved: only who reacted when changes, kept in memory', () => {
+    const h = twoAtTable();
+    h.send('c1', { type: 'react', emoji: '😮' });
+    expect(h.lastPersist).toBe(false);
+    h.send('c1', { type: 'action', action: { type: 'bid', contract: 'pass' } });
+    expect(h.lastPersist).toBe(true);
+  });
+
   it('is only for the players seated at a table in play', () => {
     const h = new RoomHarness();
     h.join('c0', 'Alice');
     h.send('c0', { type: 'react', emoji: '😂' });
     expect(h.lastError('c0')).toBe('WRONG_ROOM_PHASE');
+    // Four players seated, a fifth waiting for a seat.
+    const full = new RoomHarness();
+    ['Alice', 'Bob', 'Carl', 'Dan', 'Zoé'].forEach((name, i) => full.join(`c${i}`, name));
+    full.send('c0', { type: 'start' });
+    full.send('c4', { type: 'react', emoji: '😂' });
+    expect(full.lastError('c4')).toBe('NOT_SEATED');
   });
 });

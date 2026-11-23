@@ -62,7 +62,8 @@ export interface Participant {
   readonly codeTries?: number;
   /** A bot (AUTOPLAY_LEVEL) plays every decision of the seat; absent in old rooms. */
   readonly autoplay?: boolean;
-  /** When this player last reacted (REACTION_INTERVAL_MS between two); absent if never. */
+  /** When this player last reacted (REACTION_INTERVAL_MS between two): in memory only, never
+   * saved (a room woken from storage lets everyone react at once). */
   readonly reactedAt?: number;
 }
 
@@ -119,6 +120,8 @@ export type RoomEffect =
 export interface RoomResult {
   readonly room: RoomState;
   readonly effects: readonly RoomEffect[];
+  /** Whether the room must be saved: false when only passing state changed (a reaction). */
+  readonly persist: boolean;
 }
 
 export function createRoom(code: string, now: number): RoomState {
@@ -144,6 +147,8 @@ interface Outcome {
   readonly replies: readonly RoomEffect[];
   /** Nothing anyone can see changed: no views are sent (the host code tells nobody else). */
   readonly quiet?: boolean;
+  /** Only passing state changed (when a player last reacted): kept in memory, not saved. */
+  readonly passing?: boolean;
 }
 
 const reply = (connection: string, message: ServerMessage): RoomEffect => ({
@@ -159,15 +164,17 @@ const refuse = (room: RoomState, connection: string, code: ServerErrorCode): Out
 /** Applies one command; never throws on bad input, which only earns its sender an error. */
 export function applyRoomCommand(room: RoomState, command: RoomCommand, env: RoomEnv): RoomResult {
   const outcome = handle(room, command, env);
-  if (outcome.room === 'destroy') return { room, effects: [{ type: 'destroy' }] };
+  if (outcome.room === 'destroy') return { room, effects: [{ type: 'destroy' }], persist: true };
   let next = outcome.room;
   const changed = (next !== room && !outcome.quiet) || command.type === 'wake';
-  if (next !== room && command.type !== 'wake') next = { ...next, lastActivity: env.now };
+  if (next !== room && command.type !== 'wake' && !outcome.passing) {
+    next = { ...next, lastActivity: env.now };
+  }
   const effects: RoomEffect[] = [...outcome.replies];
   if (changed) effects.push(...broadcast(next, env.now));
   const wake = nextWake(next, env.now);
   if (wake !== null) effects.push({ type: 'wakeAt', at: wake });
-  return { room: next, effects };
+  return { room: next, effects, persist: !outcome.passing };
 }
 
 function handle(room: RoomState, command: RoomCommand, env: RoomEnv): Outcome {
@@ -230,7 +237,7 @@ function handleMessage(
     case 'code':
       return hostCode(room, me, connection, message.code, env);
     case 'react':
-      return react(room, me, message.emoji, env);
+      return react(room, me, connection, message.emoji, env);
     case 'autoplay':
       if (me.seat === null) return done('NOT_SEATED');
       return done(setAutoplay(room, me, message.on, env));
@@ -552,10 +559,15 @@ function setAutoplay(
  * A reaction (AGENTS.md §6): sent at once to everyone connected, with the seat, and kept
  * nowhere. One every REACTION_INTERVAL_MS per player; one sent sooner is dropped, quietly.
  */
-function react(room: RoomState, me: Participant, emoji: Reaction, env: RoomEnv): Outcome {
-  if (room.phase !== 'playing' || me.seat === null) {
-    return refuse(room, me.connection ?? '', 'WRONG_ROOM_PHASE');
-  }
+function react(
+  room: RoomState,
+  me: Participant,
+  connection: string,
+  emoji: Reaction,
+  env: RoomEnv,
+): Outcome {
+  if (me.seat === null) return refuse(room, connection, 'NOT_SEATED');
+  if (room.phase !== 'playing') return refuse(room, connection, 'WRONG_ROOM_PHASE');
   if (me.reactedAt !== undefined && env.now - me.reactedAt < REACTION_INTERVAL_MS) {
     return { room, replies: [], quiet: true };
   }
@@ -566,6 +578,7 @@ function react(room: RoomState, me: Participant, emoji: Reaction, env: RoomEnv):
       p.connection === null ? [] : [reply(p.connection, { type: 'reaction', seat, emoji })],
     ),
     quiet: true,
+    passing: true,
   };
 }
 

@@ -1,4 +1,5 @@
-/* By the local badge: the toggle, and the six reactions opening above it, over the felt. */
+/* By the local badge: the toggle, and the six reactions opening below it, over the top of the
+   hand for a moment, never over the decision panel above. */
 .picker {
   position: relative;
   display: grid;
@@ -8,7 +9,7 @@
 .row {
   position: absolute;
   right: 0;
-  bottom: calc(100% + var(--space-1));
+  top: calc(100% + var(--space-1));
   z-index: 1;
   display: flex;
   gap: var(--space-1);
@@ -36,4 +37,13 @@
 
 .emoji:active {
   transform: scale(0.92);
+}
+
+/* Compact breakpoint (DESIGN.md §3.4): the toggle is near the left edge, so the row opens
+   rightwards from it, inside the screen. */
+@media (max-width: 600px) {
+  .row {
+    right: auto;
+    left: 0;
+  }
 }

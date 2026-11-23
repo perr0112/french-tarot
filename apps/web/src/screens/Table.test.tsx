@@ -668,8 +668,22 @@ describe('reactions', () => {
     click('Réagir');
     const picker = screen.getByRole('group', { name: 'Réactions' });
     expect(within(picker).getAllByRole('button')).toHaveLength(6);
-    fireEvent.click(within(picker).getByRole('button', { name: '😂' }));
-    expect(send).toHaveBeenCalledWith({ type: 'react', emoji: '😂' });
+    // Named in French, the first one focused.
+    expect(document.activeElement?.getAttribute('aria-label')).toBe('Rire');
+    fireEvent.click(within(picker).getByRole('button', { name: 'Bravo' }));
+    expect(send).toHaveBeenCalledWith({ type: 'react', emoji: '👏' });
+    expect(screen.queryByRole('group', { name: 'Réactions' })).toBeNull();
+    expect(document.activeElement?.textContent).toBe('Réagir');
+  });
+
+  it('closes with Escape or a click elsewhere', () => {
+    render(<Table view={playing()} send={vi.fn()} />);
+    click('Réagir');
+    fireEvent.keyDown(screen.getByRole('group', { name: 'Réactions' }), { key: 'Escape' });
+    expect(screen.queryByRole('group', { name: 'Réactions' })).toBeNull();
+    expect(document.activeElement?.textContent).toBe('Réagir');
+    click('Réagir');
+    fireEvent.pointerDown(document.body);
     expect(screen.queryByRole('group', { name: 'Réactions' })).toBeNull();
   });
 

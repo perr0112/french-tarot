@@ -19,6 +19,8 @@ export class RoomHarness {
   destroyed = false;
   /** The host code, as the HOST_CODE secret would supply it. */
   hostCode: string | undefined = undefined;
+  /** Whether the last command asked for the room to be saved. */
+  lastPersist = true;
 
   constructor(code = 'ABCDEF') {
     this.room = createRoom(code, this.now);
@@ -32,8 +34,9 @@ export class RoomHarness {
       token: `token-${this.counter}`,
       hostCode: this.hostCode,
     };
-    const { room, effects } = applyRoomCommand(this.room, command, env);
+    const { room, effects, persist } = applyRoomCommand(this.room, command, env);
     this.room = room;
+    this.lastPersist = persist;
     for (const effect of effects) {
       if (effect.type === 'send') {
         const box = this.inbox.get(effect.connection) ?? [];
