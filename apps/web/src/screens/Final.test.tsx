@@ -42,12 +42,12 @@ describe('final ranking', () => {
 
   it('names the winner and lays a card by rank: the 21 first, the Excuse last', () => {
     render(<Final view={ended([-60, 90, 30, -60])} send={vi.fn()} />);
-    expect(screen.getByRole('heading', { name: 'Bot 2 remporte la partie' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Jade 1 remporte la partie' })).toBeTruthy();
     expect(podium()).toEqual((['T21', 'T20', 'EXC', 'EXC'] as const).map(cardName));
   });
 
   it('names every winner of a tie', () => {
     render(<Final view={ended([90, 90, -90, -90])} send={vi.fn()} />);
-    expect(screen.getByRole('heading', { name: 'Égalité entre Alice et Bot 2' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Égalité entre Alice et Jade 1' })).toBeTruthy();
   });
 });

@@ -287,6 +287,47 @@ describe('between deals', () => {
   });
 });
 
+describe('after everyone passed', () => {
+  const allPassed = (continued: number[] = []) => {
+    const deal = playOut(dealWith([...trumps(1, 13), ...suit('S', 1, 5)]), [
+      [0, { type: 'bid', contract: 'pass' }],
+      [1, { type: 'bid', contract: 'pass' }],
+      [2, { type: 'bid', contract: 'pass' }],
+      [3, { type: 'bid', contract: 'pass' }],
+    ]);
+    return {
+      deal,
+      view: roomView(deal, 0, {
+        session: {
+          deals: 8,
+          played: 0,
+          dealer: 0,
+          totals: [0, 0, 0, 0],
+          history: [{ dealer: 3, result: null, cancelled: { reason: 'allPassed' } }],
+          continued,
+        },
+      }),
+    };
+  };
+
+  it('shows the chien face up to everyone', () => {
+    const { deal, view } = allPassed();
+    render(<Table view={view} send={vi.fn()} />);
+    const chien = screen.getByRole('group', { name: 'Chien' });
+    expect(
+      within(chien)
+        .getAllByRole('img')
+        .map((img) => img.getAttribute('aria-label')),
+    ).toEqual(deal.chien.map(cardName));
+  });
+
+  it('keeps the button in its place once clicked, waiting for the others', () => {
+    render(<Table view={allPassed([0]).view} send={vi.fn()} />);
+    expect(screen.getByRole('button', { name: 'En attente…' })).toHaveProperty('disabled', true);
+    expect(screen.getByText('En attente de : Bob')).toBeTruthy();
+  });
+});
+
 describe('the chien', () => {
   const hand: Card[] = [...trumps(1, 13), ...suit('S', 1, 5)];
   const backs = () =>
@@ -329,10 +370,10 @@ describe('the chien', () => {
     expect(shown.map((img) => img.getAttribute('aria-label'))).toEqual(deal.chien.map(cardName));
   });
 
-  it('is in the taker’s hand, its cards marked, during the écart', () => {
+  it('is in the taker’s hand, its cards marked, and still face up on the table, during the écart', () => {
     const deal = takes(dealWith(hand), 'garde');
     render(<Table view={roomView(deal)} send={vi.fn()} />);
-    expect(screen.queryByRole('group', { name: 'Chien' })).toBeNull();
+    expect(screen.getByRole('group', { name: 'Chien' })).toBeTruthy();
     for (const c of deal.chien) {
       expect(card(c).getAttribute('aria-description')).toBe('Vient du chien');
     }
@@ -391,10 +432,10 @@ describe('the scores', () => {
     render(<Table view={scored()} send={vi.fn()} />);
     const totals = within(screen.getByRole('list', { name: 'Scores' }));
     expect(totals.getAllByRole('listitem').map((li) => li.textContent)).toEqual([
-      'Bot 2+90',
+      'Jade 1+90',
       'Bob+30',
       'Alice−60',
-      'Bot 4−60',
+      'Jade 2−60',
     ]);
   });
 

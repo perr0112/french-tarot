@@ -18,7 +18,7 @@ describe('seatFacts', () => {
   it('names a bot by its seat only, and shows the last bid while bidding', () => {
     const view = roomView(playOut(dealWith(hand), [[0, { type: 'bid', contract: 'garde' }]]));
     expect(seatFacts(view, 1)).toEqual({
-      name: 'Bot 2',
+      name: 'Jade 1',
       you: false,
       tags: [],
       bid: null,

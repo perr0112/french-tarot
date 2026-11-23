@@ -51,7 +51,7 @@ export const fr = {
     disconnected: 'déconnecté',
     addBot: 'Ajouter un bot',
     removeBot: 'Retirer',
-    bot: (level: string) => `Bot · ${level}`,
+    bot: (name: string, level: string) => `${name} · ${level}`,
     waiting: 'En attente d’un siège',
     settings: 'Réglages',
     players: 'Joueurs',
@@ -104,7 +104,7 @@ export const fr = {
   table: {
     yourTurn: 'À vous',
     yourHand: 'Votre main',
-    bot: (n: number) => `Bot ${n}`,
+    bot: (n: number) => `Jade ${n}`,
     lastTrickWonBy: (name: string) => `Dernier pli — remporté par ${name}`,
     waitingFor: (name: string) => `${name} réfléchit…`,
     preselected: (card: string) => `Présélection : ${card}`,
@@ -174,6 +174,7 @@ export const fr = {
     chelem: 'Chelem',
     dealScore: 'Score de la donne',
     continue: 'Continuer',
+    waiting: 'En attente…',
     waitingFor: (names: string) => `En attente de : ${names}`,
   },
   sheet: {

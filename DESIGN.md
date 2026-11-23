@@ -35,18 +35,18 @@ The values below are the reference; code must match them.
 
 ### 3.1 Colour
 
-> **Table colour — validated:** a desaturated deep green felt (see §7).
+> **Table colour — validated:** a warm brown baize (see §7; green until 2026-11-23).
 
 | Token                | Value               | Use                                   |
 | -------------------- | ------------------- | ------------------------------------- |
-| `table`              | `#1F3A30`           | Table surface (felt)                  |
-| `table-edge`         | `#18302A`           | Subtle vignette / seat areas          |
+| `table`              | `#4B2E22`           | Table surface (felt)                  |
+| `table-edge`         | `#2E1E16`           | Subtle vignette / seat areas          |
 | `surface`            | `#FAFAF7`           | Panels, score sheet, menus            |
 | `surface-muted`      | `#F1F0EB`           | Secondary surfaces                    |
 | `ink`                | `#1C1C1A`           | Primary text on light surfaces        |
 | `ink-muted`          | `#6B6A65`           | Secondary text                        |
 | `ink-on-table`       | `#F4F2EA`           | Text placed on the table              |
-| `ink-on-table-muted` | `#B9C2BC`           | Secondary text on the table           |
+| `ink-on-table-muted` | `#C8B8A8`           | Secondary text on the table           |
 | `accent`             | `#E2B04A`           | Your turn, selected — the only accent |
 | `suit-red`           | `#C23B32`           | ♥ ♦                                   |
 | `suit-black`         | `#1C1C1A`           | ♠ ♣                                   |
@@ -56,7 +56,7 @@ The values below are the reference; code must match them.
 | `positive`           | `#2F7A49`           | Positive score, contract made         |
 | `negative`           | `#B5473D`           | Negative score, contract failed       |
 
-Contrast: all text ≥ 4.5:1 against its background (≥ 3:1 for text ≥ 24 px).
+Contrast: all text ≥ 4.5:1 against its background (≥ 3:1 for text ≥ 24 px). On the felt: `ink-on-table` 10.9:1, `ink-on-table-muted` 6.4:1, `accent` 6.2:1.
 `positive` is 5.02:1 on `surface` and 4.60:1 on `surface-muted`; `negative` is 5.11:1 and 4.68:1.
 
 ### 3.2 Typography
@@ -184,6 +184,7 @@ Record design decisions here (date — decision — reason).
 - 2026-11-19 — Chien, poignées and écart trumps moved from the info bar to the table (centre, under the seats); deal scores under each seat; final screen as a card podium; `card-podium` token. Reason: user request — information was scattered with no link to the table or the players.
 - 2026-11-19 — Review: `motion-turn-stagger` and `card-spread-overlap` tokens; chien cards get `shadow-card` so the backs can be counted; score colours `.positive` / `.negative` shared in `ui.module.css`; the deal slip's total in bold without a rule.
 - 2026-11-20 — Scores moved from the top bar and drawer to a foldable slip in the felt's bottom-right corner; the called King moved under the taker's badge; poignées shown 5 s; a leave button. Reason: user request.
+- 2026-11-23 — Felt changed from green `#1F3A30` to a warm brown baize `#4B2E22` (edge `#2E1E16`, muted ink `#C8B8A8`), with a soft central light, a fine CSS weave and a darker vignette, no image. Reason: user request — a brown felt that adds to the look of the game.
 - 2026-11-20 — The table is exactly the screen's height (`100dvh`), never scrolled: the felt's empty space gives way to a growing panel, which scrolls inside only as a last resort; on a phone or below 600 px high the page scrolls instead, so nothing is hidden. The score sheet is as tall as the room above its slip. `card-hand` and `card-trick` also follow the height (`9vh`, `8vh`; the podium keeps width-only sizes, `card-podium-rest`), and the poignée panel is tighter (no title, box and levels on one line, one-line hint), so it clears the trick down to 768 px high. Reason: user report — declaring a poignée pushed the hand off screen.
 - 2026-11-20 — Preselected card: dashed accent outline and `shadow-raised`, apart from the solid selection ring; its one-line notice under the decision keeps its height when empty, so nothing moves. Reason: user request (preselect a card ahead of one's turn).
 - 2026-11-20 — Bid panel: contract tiles with drawn marks and multipliers in fixed places; « Passer » apart, outlined, last. Reason: user request — « Passer » was clicked by reflex at the bottom, where « Garde contre » had wrapped.

@@ -32,3 +32,28 @@
 .total {
   font-weight: var(--weight-emphasis);
 }
+
+/* The chien nobody took, face up: six cards across the slip at most. */
+.chien {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-1);
+  list-style: none;
+  margin: var(--space-3) 0;
+  padding: 0;
+}
+
+.chien li {
+  width: min(var(--card-trick), calc((100% - var(--space-1) * 5) / 6));
+}
+
+/* The way on: the button in a fixed place, who is awaited under it on one reserved line. */
+.next {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-1);
+}
+
+.awaited {
+  min-height: var(--text-sm-line);
+}

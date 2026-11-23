@@ -1,6 +1,7 @@
 import { BOT_LEVELS, BOT_SPEEDS, MAX_DEALS, type RoomView } from '@tarot/protocol';
 import { useState } from 'react';
 import ui from '../design/ui.module.css';
+import { seatName } from '../lib/names';
 import type { Send } from '../net/connection';
 import { fr } from '../strings/fr';
 import { LeaveButton } from '../components/LeaveButton';
@@ -69,13 +70,13 @@ export function Lobby({
                     >
                       {BOT_LEVELS.map((level) => (
                         <option key={level} value={level}>
-                          {fr.lobby.bot(fr.botLevel[level])}
+                          {fr.lobby.bot(seatName(view, seat), fr.botLevel[level])}
                         </option>
                       ))}
                       <option value="none">{fr.lobby.removeBot}</option>
                     </select>
                   ) : (
-                    fr.lobby.bot(fr.botLevel[occupant.level])
+                    fr.lobby.bot(seatName(view, seat), fr.botLevel[occupant.level])
                   ))}
                 {occupant.kind === 'empty' &&
                   (host ? (

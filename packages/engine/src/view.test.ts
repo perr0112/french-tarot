@@ -42,6 +42,17 @@ describe('getPlayerView', () => {
     expect(getPlayerView(deal, 2).hand).toHaveLength(24);
   });
 
+  it('reveals the chien to everyone when everyone passed', () => {
+    const deal = play(simpleDeal(), [
+      [1, { type: 'bid', contract: 'pass' }],
+      [2, { type: 'bid', contract: 'pass' }],
+      [3, { type: 'bid', contract: 'pass' }],
+      [0, { type: 'bid', contract: 'pass' }],
+    ]);
+    expect(deal.phase).toBe('cancelled');
+    for (const seat of [0, 1, 2, 3]) expect(getPlayerView(deal, seat).chien).toEqual(SIMPLE_CHIEN);
+  });
+
   it('never reveals the chien in garde sans', () => {
     const deal = takeWith(simpleDeal(), 2, 'gardeSans');
     for (const seat of [0, 1, 2, 3]) {

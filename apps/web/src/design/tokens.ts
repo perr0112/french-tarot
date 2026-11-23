@@ -3,14 +3,14 @@ import { CARD_H, CARD_RADIUS, CARD_W } from '../cards/geometry';
 /** Design tokens (DESIGN.md §3). Components use them through the CSS custom properties below. */
 export const tokens = {
   color: {
-    table: '#1F3A30',
-    'table-edge': '#18302A',
+    table: '#4B2E22',
+    'table-edge': '#2E1E16',
     surface: '#FAFAF7',
     'surface-muted': '#F1F0EB',
     ink: '#1C1C1A',
     'ink-muted': '#6B6A65',
     'ink-on-table': '#F4F2EA',
-    'ink-on-table-muted': '#B9C2BC',
+    'ink-on-table-muted': '#C8B8A8',
     accent: '#E2B04A',
     'suit-red': '#C23B32',
     'suit-black': '#1C1C1A',

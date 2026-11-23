@@ -25,7 +25,7 @@ describe('Lobby', () => {
       target: { value: 'hard' },
     });
     expect(send).toHaveBeenCalledWith({ type: 'setBot', seat: 3, level: 'hard' });
-    expect(screen.getByRole('option', { name: 'Bot · Difficile' })).toBeTruthy();
+    expect(screen.getByRole('option', { name: 'Jade 1 · Difficile' })).toBeTruthy();
     fireEvent.change(screen.getByRole('combobox', { name: 'Joueurs' }), { target: { value: '5' } });
     expect(send).toHaveBeenCalledWith({ type: 'configure', options: { players: 5 } });
     expect(screen.getByRole('button', { name: 'Lancer la partie' })).toHaveProperty(

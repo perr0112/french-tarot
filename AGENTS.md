@@ -148,7 +148,7 @@ Primary source and page references: `docs/research/fft-rules.md`.
   | Garde sans (le chien)   | ×4         | not revealed, counts for the **taker** at the end       |
   | Garde contre (le chien) | ×6         | not revealed, counts for the **defence** at the end     |
 
-- If everyone passes, the deal is cancelled and the next dealer redeals.
+- If everyone passes, the deal is cancelled and the next dealer redeals; the chien is then shown to everyone.
 
 ### 3.4 Écart (Petite / Garde)
 

@@ -1,10 +1,12 @@
 import type { RoomView } from '@tarot/protocol';
 import ui from '../design/ui.module.css';
 import { formatPoints, formatScore } from '../lib/cards';
+import { sortHand } from '../lib/hand';
 import { seatName } from '../lib/names';
 import { madeTone, scoreTone } from '../lib/score';
 import type { Send } from '../net/connection';
 import { fr } from '../strings/fr';
+import { CardFace } from './Card';
 import styles from './DealResult.module.css';
 
 /**
@@ -26,6 +28,8 @@ export function DealResult({ view, send }: { view: RoomView; send: Send }) {
       ? [seatName(view, seat)]
       : [],
   );
+  // Nobody played it: everyone may see what the chien held (AGENTS.md §3.3).
+  const chien = record.cancelled?.reason === 'allPassed' ? (view.deal?.chien ?? null) : null;
   const signed = (value: number) => <span className={scoreTone(value)}>{formatScore(value)}</span>;
   return (
     <section className={`${ui.panel} ${ui.enter} ${styles.result}`} aria-label={fr.result.title}>
@@ -78,20 +82,31 @@ export function DealResult({ view, send }: { view: RoomView; send: Send }) {
             : fr.result.allPassed}
         </p>
       )}
+      {chien && (
+        <ol className={styles.chien} role="group" aria-label={fr.table.chien}>
+          {sortHand(chien).map((card) => (
+            <li key={card}>
+              <CardFace card={card} />
+            </li>
+          ))}
+        </ol>
+      )}
       {session.continued && (
-        <div className={ui.row}>
-          {me !== null && !session.continued.includes(me) && (
+        // The button keeps its place once clicked; who is still awaited goes on its own line.
+        <div className={styles.next}>
+          {me !== null && (
             <button
               type="button"
               className={`${ui.button} ${ui.primary}`}
+              disabled={session.continued.includes(me)}
               onClick={() => send({ type: 'continue' })}
             >
-              {fr.result.continue}
+              {session.continued.includes(me) ? fr.result.waiting : fr.result.continue}
             </button>
           )}
-          {waiting.length > 0 && (
-            <span className={ui.label}>{fr.result.waitingFor(waiting.join(', '))}</span>
-          )}
+          <span className={`${ui.label} ${styles.awaited}`}>
+            {waiting.length > 0 ? fr.result.waitingFor(waiting.join(', ')) : null}
+          </span>
         </div>
       )}
     </section>

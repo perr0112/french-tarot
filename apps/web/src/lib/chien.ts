@@ -14,14 +14,15 @@ export type ChienDestination = Seat | 'hand' | 'defence' | null;
 
 /**
  * Where the chien is on the table, as a seat sees it (AGENTS.md §3.3–3.4): face down while the
- * players bid (and the King is called), turned face up during a petite or garde écart for everyone
- * but the taker, who has it in hand. A garde sans or contre sets it aside unseen.
+ * players bid (and the King is called), turned face up during a petite or garde écart for
+ * everyone, the taker too, who also has its cards in hand. A garde sans or contre sets it aside
+ * unseen.
  */
 export function chienOnTable(deal: PlayerView): ChienOnTable | null {
   if (deal.phase === 'bidding' || deal.phase === 'kingCall') {
     return { faceUp: false, count: variantFor(deal.players).chienSize };
   }
-  if (deal.phase === 'ecart' && deal.chien && deal.seat !== deal.taker) {
+  if (deal.phase === 'ecart' && deal.chien) {
     // Sorted like a hand, so it reads at a glance.
     return { faceUp: true, cards: sortHand(deal.chien) };
   }
