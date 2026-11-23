@@ -35,10 +35,18 @@
 
 /* The chien nobody took, face up, spread as it lies in the centre (Chien). */
 .chien {
-  --chien-card: var(--card-trick);
+  /* Smaller than on the mat: the slip stays short, the chien a reminder. */
+  --chien-card: calc(var(--card-trick) * 0.6);
   display: flex;
   justify-content: center;
   list-style: none;
-  margin: var(--space-3) 0;
+  margin: 0;
   padding: 0;
+}
+
+.chienFigure {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-1);
+  margin: var(--space-3) 0;
 }

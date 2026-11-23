@@ -19,8 +19,9 @@ export function DealResult({ view, send }: { view: RoomView; send: Send }) {
   const record = session?.history.at(-1);
   if (!session || !record) return null;
   const result = record.result;
-  // Nobody played it: everyone may see what the chien held (AGENTS.md §3.3).
-  const chien = record.cancelled?.reason === 'allPassed' ? (view.deal?.chien ?? null) : null;
+  // The deal is over: everyone sees what the chien held, a garde sans's or contre's too, or one
+  // nobody took (AGENTS.md §3.3); a petit sec's stays hidden (the view gives none).
+  const chien = view.deal?.chien ?? null;
   const signed = (value: number) => <span className={scoreTone(value)}>{formatScore(value)}</span>;
   return (
     <section className={`${ui.panel} ${ui.enter} ${styles.result}`} aria-label={fr.result.title}>
@@ -74,9 +75,12 @@ export function DealResult({ view, send }: { view: RoomView; send: Send }) {
         </p>
       )}
       {chien && (
-        <ol className={styles.chien} role="group" aria-label={fr.table.chien}>
-          <ChienCards chien={{ faceUp: true, cards: sortHand(chien) }} />
-        </ol>
+        <figure className={styles.chienFigure}>
+          <ol className={styles.chien} role="group" aria-label={fr.table.chien}>
+            <ChienCards chien={{ faceUp: true, cards: sortHand(chien) }} />
+          </ol>
+          <figcaption className={ui.label}>{fr.table.chien}</figcaption>
+        </figure>
       )}
       {session.continued && (
         <ReadyButton
