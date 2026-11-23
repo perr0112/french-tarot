@@ -188,6 +188,41 @@ describe('playing again', () => {
     expect(h.view('c0')).toMatchObject({ phase: 'playing', replayReady: null });
   });
 
+  it('forgets the acceptance of a player who leaves: whoever takes the seat has to accept', () => {
+    // Two players and two bots; Zoé waits for a seat.
+    const h = table(['Alice', 'Bob'], { deals: 1 });
+    h.join('c4', 'Zoé');
+    h.send('c0', { type: 'start' });
+    runUntil(h, ['c0', 'c1'], () => h.view('c0').phase === 'finished');
+    h.send('c1', { type: 'newSession' });
+    h.send('c1', { type: 'leave' });
+    // Zoé, who was waiting, takes the seat: not ready for her.
+    expect(h.view('c4').you.seat).toBe(1);
+    expect(h.view('c0').replayReady).toEqual([]);
+  });
+
+  it('starts once a returning player finds everyone else has accepted', () => {
+    const h = table(['Alice', 'Bob'], { deals: 1 });
+    const alice = h.messages('c0').find((m) => m.type === 'welcome');
+    h.send('c0', { type: 'start' });
+    runUntil(h, ['c0', 'c1'], () => h.view('c0').phase === 'finished');
+    h.send('c0', { type: 'newSession' });
+    h.disconnect('c0');
+    h.disconnect('c1');
+    h.join('c5', 'ignored', alice?.type === 'welcome' ? alice.token : undefined);
+    expect(h.view('c5').phase).toBe('playing');
+  });
+
+  it('is only for a player seated at the table', () => {
+    // Two players and two bots; Zoé waits for a seat.
+    const h = table(['Alice', 'Bob'], { deals: 1 });
+    h.join('c4', 'Zoé');
+    h.send('c0', { type: 'start' });
+    runUntil(h, ['c0', 'c1'], () => h.view('c0').phase === 'finished');
+    h.send('c4', { type: 'newSession' });
+    expect(h.lastError('c4')).toBe('NOT_SEATED');
+  });
+
   it('does not wait for a player who has gone', () => {
     const h = table(['Alice', 'Bob'], { deals: 1 });
     h.send('c0', { type: 'start' });

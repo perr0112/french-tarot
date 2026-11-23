@@ -52,12 +52,17 @@ export function Final({
       {/* Everyone at the table accepts to play again (AGENTS.md §5); the host may instead go
           back to the lobby. */}
       <div className={`${ui.row} ${styles.actions}`}>
-        <ReadyButton
-          view={view}
-          ready={view.replayReady ?? []}
-          label={fr.final.replay}
-          onReady={() => send({ type: 'newSession' })}
-        />
+        {view.seats.some((occupant) => occupant.kind === 'empty') ? (
+          // A player left: the seat must be filled, in the lobby, before another session.
+          <p className={styles.seatFree}>{fr.final.seatFree}</p>
+        ) : (
+          <ReadyButton
+            view={view}
+            ready={view.replayReady ?? []}
+            label={fr.final.replay}
+            onReady={() => send({ type: 'newSession' })}
+          />
+        )}
         {view.you.isHost && (
           <button type="button" className={ui.button} onClick={() => send({ type: 'backToLobby' })}>
             {fr.final.backToLobby}

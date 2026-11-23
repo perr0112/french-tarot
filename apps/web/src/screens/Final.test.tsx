@@ -59,6 +59,18 @@ describe('final ranking', () => {
     expect(screen.getByText('En attente de : Alice')).toBeTruthy();
   });
 
+  it('says why nobody can play again while a seat is free', () => {
+    const view = ended([0, 0, 0, 0]);
+    const seats = view.seats.map((occupant, seat) =>
+      seat === 2 ? { kind: 'empty' as const } : occupant,
+    );
+    render(<Final view={{ ...view, seats, replayReady: [] }} send={vi.fn()} />);
+    expect(screen.queryByRole('button', { name: 'Rejouer' })).toBeNull();
+    expect(
+      screen.getByText('Un siège est libre : l’hôte peut revenir au salon pour le remplir.'),
+    ).toBeTruthy();
+  });
+
   it('names every winner of a tie', () => {
     render(<Final view={ended([90, 90, -90, -90])} send={vi.fn()} />);
     expect(screen.getByRole('heading', { name: 'Égalité entre Alice et Jade 1' })).toBeTruthy();

@@ -29,7 +29,7 @@ export function ReadyButton({
       {me !== null &&
         (ready.includes(me) ? (
           <button type="button" className={ui.button} aria-disabled="true">
-            {fr.result.ready}
+            {fr.agree.ready}
           </button>
         ) : (
           <button type="button" className={`${ui.button} ${ui.primary}`} onClick={onReady}>
@@ -37,7 +37,7 @@ export function ReadyButton({
           </button>
         ))}
       <span className={`${ui.label} ${styles.awaited}`}>
-        {awaited.length > 0 ? fr.result.waitingFor(awaited.join(', ')) : null}
+        {awaited.length > 0 ? fr.agree.waitingFor(awaited.join(', ')) : null}
       </span>
     </div>
   );

@@ -197,8 +197,6 @@ export const fr = {
     chelem: 'Chelem',
     dealScore: 'Score de la donne',
     continue: 'Continuer',
-    ready: 'Prêt',
-    waitingFor: (names: string) => `En attente de : ${names}`,
   },
   sheet: {
     deal: 'Donne',
@@ -207,6 +205,11 @@ export const fr = {
     cancelled: 'annulée',
     made: 'réussi',
     failed: 'chuté',
+  },
+  /** Agreeing to go on together: the next deal, a new session (ReadyButton). */
+  agree: {
+    ready: 'Prêt',
+    waitingFor: (names: string) => `En attente de : ${names}`,
   },
   final: {
     title: 'Partie terminée',
@@ -217,6 +220,7 @@ export const fr = {
     lastDeal: 'Détail de la dernière donne',
     rank: (n: number) => (n === 1 ? '1er' : `${n}e`),
     replay: 'Rejouer',
+    seatFree: 'Un siège est libre : l’hôte peut revenir au salon pour le remplir.',
     backToLobby: 'Retour au salon',
   },
   errors: {

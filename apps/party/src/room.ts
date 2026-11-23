@@ -286,7 +286,14 @@ function join(
     }
     replies.push(reply(connection, { type: 'welcome', token: known.token }));
     const back = replace(room, known, { ...known, connection, disconnectedAt: null });
-    return { room: room.phase === 'lobby' ? fillSeats(back) : back, replies };
+    // Once the session is over, everyone else may have accepted to play again meanwhile.
+    const next =
+      room.phase === 'lobby'
+        ? fillSeats(back)
+        : room.phase === 'finished'
+          ? replayIfAllAccepted(back, env)
+          : back;
+    return { room: next, replies };
   }
 
   if (room.phase !== 'lobby') {
@@ -363,7 +370,11 @@ function leave(room: RoomState, leaving: Participant, env: RoomEnv): RoomState {
   const seat = leaving.seat;
   // A host code was for the player, not for the bot taking the seat.
   if (seat !== null && room.favoured === seat) room = { ...room, favoured: null };
-  if (room.phase !== 'playing' || seat === null) return fillSeats({ ...room, participants });
+  if (room.phase !== 'playing' || seat === null) {
+    // Their « Rejouer » was theirs: whoever takes the seat accepts for themselves.
+    const continued = room.continued.filter((s) => s !== seat);
+    return fillSeats({ ...room, participants, continued });
+  }
   const next = withBots(
     { ...room, participants },
     room.bots.map((b, s) => (s === seat ? REPLACEMENT_LEVEL : b)),
