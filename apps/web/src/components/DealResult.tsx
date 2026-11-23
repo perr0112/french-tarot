@@ -19,7 +19,6 @@ export function DealResult({ view, send }: { view: RoomView; send: Send }) {
   const record = session?.history.at(-1);
   if (!session || !record) return null;
   const result = record.result;
-  const me = view.you.seat;
   // Nobody played it: everyone may see what the chien held (AGENTS.md §3.3).
   const chien = record.cancelled?.reason === 'allPassed' ? (view.deal?.chien ?? null) : null;
   const signed = (value: number) => <span className={scoreTone(value)}>{formatScore(value)}</span>;
