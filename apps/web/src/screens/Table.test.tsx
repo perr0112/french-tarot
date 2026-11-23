@@ -1,9 +1,10 @@
 import { ALL_CARDS, createDeal, getPlayerView, isTrump, type Card } from '@tarot/engine';
-import { fourKingsFifteenTrumps } from '@tarot/engine/testing';
+import { fourKingsFifteenTrumps, playRandomly } from '@tarot/engine/testing';
 import { DEFAULT_ROOM_OPTIONS, TRICK_PAUSE_MS } from '@tarot/protocol';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cardName } from '../lib/cards';
+import { sortHand } from '../lib/hand';
 import { POIGNEE_SHOWN_MS } from '../hooks/useFreshPoignees';
 import { PRESELECTION_DROPPED_MS } from '../hooks/usePreselection';
 import { dealWith, playOut, roomView, takes } from '../testing/views';
@@ -284,6 +285,34 @@ describe('between deals', () => {
     expect(screen.getByText('En attente de : Bob')).toBeTruthy();
     click('Continuer');
     expect(send).toHaveBeenCalledWith({ type: 'continue' });
+  });
+});
+
+describe('once a deal is played out', () => {
+  it('shows the chien in the result, a garde sans’s too', () => {
+    const deal = playRandomly(
+      takes(dealWith([...trumps(1, 13), ...suit('S', 1, 5)]), 'gardeSans'),
+      3,
+    );
+    const result = deal.result;
+    if (deal.phase !== 'finished' || !result) throw new Error('not played out');
+    const view = roomView(deal, 1, {
+      session: {
+        deals: 8,
+        played: 1,
+        dealer: 0,
+        totals: result.perSeat,
+        history: [{ dealer: 3, result, cancelled: null }],
+        continued: [],
+      },
+    });
+    render(<Table view={view} send={vi.fn()} />);
+    const chien = screen.getByRole('group', { name: 'Chien' });
+    expect(
+      within(chien)
+        .getAllByRole('img')
+        .map((img) => img.getAttribute('aria-label')),
+    ).toEqual(sortHand(deal.chien).map(cardName));
   });
 });
 
