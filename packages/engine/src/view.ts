@@ -55,9 +55,11 @@ export interface PlayerView {
 
 /**
  * The chien is shown once the contract is known and, in 5 players, the King called; and to
- * everyone when everyone passed (the deal is over, nobody plays it: AGENTS.md §3.3).
+ * everyone once the deal is over — played out (a garde sans or contre too, whose chien was set
+ * aside unseen) or passed by everyone (AGENTS.md §3.3).
  */
 const chienRevealed = (state: DealState) =>
+  state.phase === 'finished' ||
   state.cancelled?.reason === 'allPassed' ||
   (state.phase !== 'bidding' &&
     state.phase !== 'kingCall' &&

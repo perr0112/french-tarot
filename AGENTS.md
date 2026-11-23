@@ -80,7 +80,7 @@ See `CONTEXT.md` for the domain language and `docs/adr/` for the reasoning behin
   **templates**: allowed bids, playable cards (with possible poignées on the first card), and écart
   constraints `{ count, eligible, trumpsAllowed }` — écart combinations are never enumerated.
 - `getPlayerView(state, seat)` produces the redacted view: own hand, card counts, bids, contract and
-  taker, chien when revealed, shown écart trumps, shown poignées, current trick, **last completed
+  taker, chien when revealed (petite and garde; to everyone once the deal is over or everyone passed), shown écart trumps, shown poignées, current trick, **last completed
   trick only**, tricks won per seat, the seat's legal actions, and for the taker their own écart.
   Never: other hands, others' écart, a hidden chien, cards inside older tricks.
 - Variant differences (3/4/5 players) live in a **variant config object**, not in scattered `if`s;
@@ -149,6 +149,7 @@ Primary source and page references: `docs/research/fft-rules.md`.
   | Garde contre (le chien) | ×6         | not revealed, counts for the **defence** at the end     |
 
 - If everyone passes, the deal is cancelled and the next dealer redeals; the chien is then shown to everyone.
+- Once a deal is played out, the chien is shown to everyone with the score, whatever the contract (a garde sans's or contre's too, set aside unseen until then).
 
 ### 3.4 Écart (Petite / Garde)
 
