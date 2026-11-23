@@ -20,7 +20,7 @@ Goal in one line: **clean, uncluttered, pleasant — the table and the cards are
 ## 2. Forbidden
 
 - Hard-coded colours, sizes, radii, shadows or durations in components — use tokens.
-- Gradients, glows, textures and heavy drop shadows (except the subtle card shadow token, and the felt: its soft light, weave and vignette, from the `table-*` tokens only).
+- Gradients, glows, textures and heavy drop shadows (except the subtle card shadow token, and the table and its mat: soft light, wood grain, weave, vignette, stitching and the mat's corner flourishes, from the `table-*`, `mat-*` and `ornament` tokens only).
 - More than **2 font weights** in one view; more than **1 font family** for UI (cards may use their own numeral face).
 - Animations longer than **300 ms** on the input path (playing a card, clicking a bid). Dealing may be longer but must be skippable.
 - Animating layout properties (`width`, `height`, `top`, `left`) — animate `transform` and `opacity`.
@@ -35,14 +35,19 @@ The values below are the reference; code must match them.
 
 ### 3.1 Colour
 
-> **Table colour — validated:** a warm brown baize (see §7; green until 2026-11-23).
+> **Table colour — validated:** a wooden table with a small brown mat under the cards (see §7; a green felt until 2026-11-23).
 
 | Token                | Value                     | Use                                   |
 | -------------------- | ------------------------- | ------------------------------------- |
-| `table`              | `#4B2E22`                 | Table surface (felt)                  |
-| `table-edge`         | `#2E1E16`                 | Subtle vignette / seat areas          |
-| `table-light`        | `rgb(255 236 214 / 0.07)` | The felt's soft central light         |
-| `table-weave`        | `rgb(0 0 0 / 0.035)`      | The felt's fine weave (4 px)          |
+| `table`              | `#2A1D16`                 | The wooden table (walnut)             |
+| `table-edge`         | `#1C130E`                 | Its darker edges (vignette)           |
+| `table-light`        | `rgb(255 236 214 / 0.06)` | Soft light on the table and the mat   |
+| `table-grain`        | `rgb(0 0 0 / 0.08)`       | The wood's grain                      |
+| `mat`                | `#5E3D2B`                 | The small brown mat under the cards   |
+| `mat-edge`           | `#4A2F21`                 | Its edge                              |
+| `mat-weave`          | `rgb(0 0 0 / 0.04)`       | Its fine weave (4 px)                 |
+| `mat-stitch`         | `rgb(244 226 200 / 0.35)` | Its stitched border                   |
+| `ornament`           | `#B08D57`                 | The mat's corner flourishes (brass)   |
 | `surface`            | `#FAFAF7`                 | Panels, score sheet, menus            |
 | `surface-muted`      | `#F1F0EB`                 | Secondary surfaces                    |
 | `ink`                | `#1C1C1A`                 | Primary text on light surfaces        |
@@ -58,7 +63,7 @@ The values below are the reference; code must match them.
 | `positive`           | `#2F7A49`                 | Positive score, contract made         |
 | `negative`           | `#B5473D`                 | Negative score, contract failed       |
 
-Contrast: all text ≥ 4.5:1 against its background (≥ 3:1 for text ≥ 24 px). On the felt: `ink-on-table` 10.9:1, `ink-on-table-muted` 6.4:1, `accent` 6.2:1.
+Contrast: all text ≥ 4.5:1 against its background (≥ 3:1 for text ≥ 24 px). On the table: `ink-on-table` 14.6:1, `ink-on-table-muted` 8.5:1, `accent` 8.2:1; on the mat: 8.6:1, 5.0:1, 4.8:1.
 `positive` is 5.02:1 on `surface` and 4.60:1 on `surface-muted`; `negative` is 5.11:1 and 4.68:1.
 
 ### 3.2 Typography
@@ -190,5 +195,5 @@ Record design decisions here (date — decision — reason).
 - 2026-11-20 — Preselected card: dashed accent outline and `shadow-raised`, apart from the solid selection ring; its one-line notice under the decision keeps its height when empty, so nothing moves. Reason: user request (preselect a card ahead of one's turn).
 - 2026-11-20 — Bid panel: contract tiles with drawn marks and multipliers in fixed places; « Passer » apart, outlined, last. Reason: user request — « Passer » was clicked by reflex at the bottom, where « Garde contre » had wrapped.
 - 2026-11-20 — Scores coloured by sign everywhere: `positive` / `negative` text on light surfaces (score slip, score sheet totals and deal columns, « réussi » / « chuté »), and on the felt a chip on `surface` (deal scores under the seats, final podium totals); zero stays in ink. Reason: user request.
-- 2026-11-23 — Felt changed from green `#1F3A30` to a warm brown baize `#4B2E22` (edge `#2E1E16`, muted ink `#C8B8A8`), with a soft central light, a fine CSS weave and a darker vignette, no image, on every screen (`--felt` in global.css; tokens `table-light`, `table-weave`; §2 allows it for the felt only). Reason: user request — a brown felt that adds to the look of the game.
+- 2026-11-23 — The green felt gives way to a wooden table (walnut `#2A1D16`, CSS grain and vignette, on every screen: `--felt` in global.css) with a small brown mat (`mat #5E3D2B`) in the centre where the cards are laid: stitched edge, soft shadow, and a brass flourish round a suit at each corner (Mat). §2 allows these gradients for the table and the mat only. Reason: user request — a small brown mat like a real one, and an artistic touch at the board's corners.
 - 2026-11-23 — Between deals, the clicked « Continuer » becomes a neutral « Prêt » in the same place (`aria-disabled`, not `disabled`: it keeps the focus and its contrast). Bots are « Jade N », their number kept while they sit.

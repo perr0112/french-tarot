@@ -30,12 +30,18 @@ select {
 }
 
 :root {
-  /* The brown baize, on every screen: a soft light on the middle, a fine weave, the edges
-     darker (DESIGN.md §2, the felt's exception). */
+  /* The wooden table, on every screen: a soft light on the middle, the grain running across,
+     the edges darker (DESIGN.md §2, the table's exception). The mat lies on it (Mat). */
   --felt:
     radial-gradient(ellipse 70% 60% at 50% 42%, var(--color-table-light), transparent 70%),
     radial-gradient(ellipse 120% 100% at 50% 45%, transparent 55%, var(--color-table-edge)),
-    repeating-linear-gradient(45deg, var(--color-table-weave) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(
+      178deg,
+      var(--color-table-grain) 0 1px,
+      transparent 1px 7px,
+      var(--color-table-grain) 7px 8px,
+      transparent 8px 19px
+    ),
     var(--color-table);
   /* Focus ring colour: light on the table; light surfaces (.panel) switch it to ink. */
   --focus-ring-color: var(--color-ink-on-table);

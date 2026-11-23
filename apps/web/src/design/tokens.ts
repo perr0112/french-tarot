@@ -3,11 +3,19 @@ import { CARD_H, CARD_RADIUS, CARD_W } from '../cards/geometry';
 /** Design tokens (DESIGN.md §3). Components use them through the CSS custom properties below. */
 export const tokens = {
   color: {
-    table: '#4B2E22',
-    'table-edge': '#2E1E16',
-    /** The felt's soft central light and the fine weave over it (DESIGN.md §2, the felt only). */
-    'table-light': 'rgb(255 236 214 / 0.07)',
-    'table-weave': 'rgb(0 0 0 / 0.035)',
+    /** The wooden table (walnut) and its darker edges. */
+    table: '#2A1D16',
+    'table-edge': '#1C130E',
+    /** A soft light on the table and the mat, and the wood's grain (DESIGN.md §2, exception). */
+    'table-light': 'rgb(255 236 214 / 0.06)',
+    'table-grain': 'rgb(0 0 0 / 0.08)',
+    /** The small brown mat where the cards are laid: felt, edge, weave, stitching. */
+    mat: '#5E3D2B',
+    'mat-edge': '#4A2F21',
+    'mat-weave': 'rgb(0 0 0 / 0.04)',
+    'mat-stitch': 'rgb(244 226 200 / 0.35)',
+    /** The mat's corner flourishes: a muted brass, never the accent. */
+    ornament: '#B08D57',
     surface: '#FAFAF7',
     'surface-muted': '#F1F0EB',
     ink: '#1C1C1A',

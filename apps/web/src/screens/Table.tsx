@@ -6,6 +6,7 @@ import { Chien } from '../components/Chien';
 import { DealResult } from '../components/DealResult';
 import { Hand } from '../components/Hand';
 import { InfoBar } from '../components/InfoBar';
+import { Mat } from '../components/Mat';
 import { ScoreCorner } from '../components/ScoreCorner';
 import { SeatBadge } from '../components/SeatBadge';
 import { Trick } from '../components/Trick';
@@ -157,7 +158,7 @@ export function Table({
             />
           ),
         )}
-        <div className={styles.centre}>
+        <Mat className={styles.centre}>
           {showsResult ? (
             <DealResult view={view} send={send} />
           ) : (
@@ -181,7 +182,7 @@ export function Table({
               </>
             )
           )}
-        </div>
+        </Mat>
       </div>
       <div className={styles.bottom}>
         <div className={styles.decision}>
