@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createDealFromHands, getPlayerView, type Card, type DealState } from './index';
+import { playRandomly } from './testing/random-player';
 import {
   SIMPLE_CHIEN,
   SIMPLE_HANDS,
@@ -74,6 +75,21 @@ describe('getPlayerView', () => {
     expect(deal.cancelled?.reason).toBe('petitSec');
     for (const seat of [0, 1, 2, 3]) expect(getPlayerView(deal, seat).chien).toBeNull();
   });
+
+  it.each(['gardeSans', 'gardeContre'] as const)(
+    'reveals the chien to everyone once a %s is played out',
+    (contract) => {
+      // A garde contre ends the bidding at once: seat 1, the first to speak, bids it.
+      const taken =
+        contract === 'gardeContre'
+          ? play(simpleDeal(), [[1, { type: 'bid', contract }]])
+          : takeWith(simpleDeal(), 2, contract);
+      const deal = playRandomly(taken, 7);
+      expect(deal.phase).toBe('finished');
+      for (const seat of [0, 1, 2, 3])
+        expect(getPlayerView(deal, seat).chien).toEqual(SIMPLE_CHIEN);
+    },
+  );
 
   it('never reveals the chien in garde sans', () => {
     const deal = takeWith(simpleDeal(), 2, 'gardeSans');
