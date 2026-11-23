@@ -1,0 +1,49 @@
+/* By the local badge: the toggle, and the six reactions opening below it, over the top of the
+   hand for a moment, never over the decision panel above. */
+.picker {
+  position: relative;
+  display: grid;
+  justify-items: end;
+}
+
+.row {
+  position: absolute;
+  right: 0;
+  top: calc(100% + var(--space-1));
+  z-index: 1;
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-panel);
+  --focus-ring-color: var(--color-ink);
+}
+
+.emoji {
+  border: none;
+  background: none;
+  border-radius: var(--radius-sm);
+  padding: var(--space-1);
+  font-size: var(--text-lg-size);
+  line-height: var(--text-lg-line);
+  cursor: pointer;
+  transition: transform var(--duration-instant) var(--ease-out);
+}
+
+.emoji:hover {
+  background: var(--color-surface-muted);
+}
+
+.emoji:active {
+  transform: scale(0.92);
+}
+
+/* Compact breakpoint (DESIGN.md §3.4): the toggle is near the left edge, so the row opens
+   rightwards from it, inside the screen. */
+@media (max-width: 600px) {
+  .row {
+    right: auto;
+    left: 0;
+  }
+}

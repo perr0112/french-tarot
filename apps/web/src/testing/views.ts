@@ -52,14 +52,15 @@ export function roomView(
     options: DEFAULT_ROOM_OPTIONS,
     you: { nickname: 'Alice', seat, isHost: seat === 0 },
     seats: [
-      { kind: 'human', nickname: 'Alice', connected: true, replacedByBot: false },
-      { kind: 'bot', level: 'medium' },
-      { kind: 'human', nickname: 'Bob', connected: true, replacedByBot: false },
-      { kind: 'bot', level: 'easy' },
+      { kind: 'human', nickname: 'Alice', connected: true, replacedByBot: false, autoplay: false },
+      { kind: 'bot', level: 'medium', number: 1 },
+      { kind: 'human', nickname: 'Bob', connected: true, replacedByBot: false, autoplay: false },
+      { kind: 'bot', level: 'easy', number: 2 },
     ],
     waiting: [],
     session: { deals: 8, played: 0, dealer: 3, totals: [0, 0, 0, 0], history: [], continued: null },
     deal: deal ? getPlayerView(deal, seat) : null,
+    canAbandonDeal: false,
     ...overrides,
   };
 }

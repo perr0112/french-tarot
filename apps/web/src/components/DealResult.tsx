@@ -1,10 +1,12 @@
 import type { RoomView } from '@tarot/protocol';
 import ui from '../design/ui.module.css';
 import { formatPoints, formatScore } from '../lib/cards';
+import { sortHand } from '../lib/hand';
 import { seatName } from '../lib/names';
 import { madeTone, scoreTone } from '../lib/score';
 import type { Send } from '../net/connection';
 import { fr } from '../strings/fr';
+import { ChienCards } from './Chien';
 import styles from './DealResult.module.css';
 
 /**
@@ -26,6 +28,9 @@ export function DealResult({ view, send }: { view: RoomView; send: Send }) {
       ? [seatName(view, seat)]
       : [],
   );
+  // The deal is over: everyone sees what the chien held, a garde sans's or contre's too, or one
+  // nobody took (AGENTS.md §3.3); a petit sec's stays hidden (the view gives none).
+  const chien = view.deal?.chien ?? null;
   const signed = (value: number) => <span className={scoreTone(value)}>{formatScore(value)}</span>;
   return (
     <section className={`${ui.panel} ${ui.enter} ${styles.result}`} aria-label={fr.result.title}>
@@ -78,20 +83,35 @@ export function DealResult({ view, send }: { view: RoomView; send: Send }) {
             : fr.result.allPassed}
         </p>
       )}
+      {chien && (
+        <figure className={styles.chienFigure}>
+          <ol className={styles.chien} role="group" aria-label={fr.table.chien}>
+            <ChienCards chien={{ faceUp: true, cards: sortHand(chien) }} />
+          </ol>
+          <figcaption className={ui.label}>{fr.table.chien}</figcaption>
+        </figure>
+      )}
       {session.continued && (
-        <div className={ui.row}>
-          {me !== null && !session.continued.includes(me) && (
-            <button
-              type="button"
-              className={`${ui.button} ${ui.primary}`}
-              onClick={() => send({ type: 'continue' })}
-            >
-              {fr.result.continue}
-            </button>
-          )}
-          {waiting.length > 0 && (
-            <span className={ui.label}>{fr.result.waitingFor(waiting.join(', '))}</span>
-          )}
+        // The button keeps its place once clicked; who is still awaited goes on its own line.
+        <div className={styles.next}>
+          {me !== null &&
+            (session.continued.includes(me) ? (
+              // Not disabled: the focus stays on it and its text keeps its contrast.
+              <button type="button" className={ui.button} aria-disabled="true">
+                {fr.result.ready}
+              </button>
+            ) : (
+              <button
+                type="button"
+                className={`${ui.button} ${ui.primary}`}
+                onClick={() => send({ type: 'continue' })}
+              >
+                {fr.result.continue}
+              </button>
+            ))}
+          <span className={`${ui.label} ${styles.awaited}`}>
+            {waiting.length > 0 ? fr.result.waitingFor(waiting.join(', ')) : null}
+          </span>
         </div>
       )}
     </section>

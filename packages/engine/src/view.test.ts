@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createDealFromHands, getPlayerView, type Card, type DealState } from './index';
+import { playRandomly } from './testing/random-player';
 import {
   SIMPLE_CHIEN,
   SIMPLE_HANDS,
@@ -41,6 +42,54 @@ describe('getPlayerView', () => {
     });
     expect(getPlayerView(deal, 2).hand).toHaveLength(24);
   });
+
+  it('reveals the chien to everyone when everyone passed', () => {
+    const deal = play(simpleDeal(), [
+      [1, { type: 'bid', contract: 'pass' }],
+      [2, { type: 'bid', contract: 'pass' }],
+      [3, { type: 'bid', contract: 'pass' }],
+      [0, { type: 'bid', contract: 'pass' }],
+    ]);
+    expect(deal.phase).toBe('cancelled');
+    for (const seat of [0, 1, 2, 3]) expect(getPlayerView(deal, seat).chien).toEqual(SIMPLE_CHIEN);
+  });
+
+  it('keeps the chien hidden when a petit sec cancels the deal', () => {
+    const plain = (s: string, from: number, to: number) =>
+      Array.from(
+        { length: to - from + 1 },
+        (_, i) => `${s}${String(from + i).padStart(2, '0')}` as Card,
+      );
+    const trump = (from: number, to: number) => plain('T', from, to);
+    // Seat 1's only trump is the Petit, and it has no Excuse.
+    const deal = createDealFromHands({
+      hands: [
+        [...plain('S', 1, 14), ...trump(2, 5)],
+        [...plain('H', 1, 14), 'T01', ...plain('D', 1, 3)],
+        [...plain('C', 1, 14), ...trump(10, 13)],
+        [...plain('D', 4, 14), ...trump(14, 17), ...trump(6, 8)],
+      ],
+      chien: [...trump(18, 21), 'T09', 'EXC'],
+      dealer: 0,
+    });
+    expect(deal.cancelled?.reason).toBe('petitSec');
+    for (const seat of [0, 1, 2, 3]) expect(getPlayerView(deal, seat).chien).toBeNull();
+  });
+
+  it.each(['gardeSans', 'gardeContre'] as const)(
+    'reveals the chien to everyone once a %s is played out',
+    (contract) => {
+      // A garde contre ends the bidding at once: seat 1, the first to speak, bids it.
+      const taken =
+        contract === 'gardeContre'
+          ? play(simpleDeal(), [[1, { type: 'bid', contract }]])
+          : takeWith(simpleDeal(), 2, contract);
+      const deal = playRandomly(taken, 7);
+      expect(deal.phase).toBe('finished');
+      for (const seat of [0, 1, 2, 3])
+        expect(getPlayerView(deal, seat).chien).toEqual(SIMPLE_CHIEN);
+    },
+  );
 
   it('never reveals the chien in garde sans', () => {
     const deal = takeWith(simpleDeal(), 2, 'gardeSans');

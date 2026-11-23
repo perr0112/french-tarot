@@ -15,10 +15,10 @@ const hand: Card[] = ['T01', 'T02', 'T03', 'T04', 'T05', 'T06', 'T07', 'T08', 'T
 ]) as Card[];
 
 describe('seatFacts', () => {
-  it('names a bot by its seat only, and shows the last bid while bidding', () => {
+  it('names a bot « Jade » with its number, and shows the last bid while bidding', () => {
     const view = roomView(playOut(dealWith(hand), [[0, { type: 'bid', contract: 'garde' }]]));
     expect(seatFacts(view, 1)).toEqual({
-      name: 'Bot 2',
+      name: 'Jade 1',
       you: false,
       tags: [],
       bid: null,
@@ -43,17 +43,30 @@ describe('seatFacts', () => {
     expect(seatFacts(view, 3)).toMatchObject({ tags: ['Donneur'], cards: 18, tricks: 0 });
   });
 
-  it('says when a player is away or replaced by a bot', () => {
+  it('says when a player is away, replaced by a bot, or lets a bot play', () => {
     const view = roomView(dealWith(hand), 0, {
       seats: [
-        { kind: 'human', nickname: 'Alice', connected: true, replacedByBot: false },
-        { kind: 'human', nickname: 'Carl', connected: false, replacedByBot: false },
-        { kind: 'human', nickname: 'Bob', connected: false, replacedByBot: true },
-        { kind: 'bot', level: 'easy' },
+        {
+          kind: 'human',
+          nickname: 'Alice',
+          connected: true,
+          replacedByBot: false,
+          autoplay: false,
+        },
+        {
+          kind: 'human',
+          nickname: 'Carl',
+          connected: false,
+          replacedByBot: false,
+          autoplay: false,
+        },
+        { kind: 'human', nickname: 'Bob', connected: false, replacedByBot: true, autoplay: false },
+        { kind: 'human', nickname: 'Dan', connected: true, replacedByBot: false, autoplay: true },
       ],
     });
     expect(seatFacts(view, 1).status).toBe('déconnecté');
     expect(seatFacts(view, 2).status).toBe('remplacé par un bot');
+    expect(seatFacts(view, 3).status).toBe('jeu auto');
   });
 
   it('tags each defender with the chien in a garde contre', () => {

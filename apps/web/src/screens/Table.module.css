@@ -6,7 +6,7 @@
   overflow: hidden;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  background: var(--color-table);
+  background: var(--felt);
 }
 
 .felt {
@@ -47,7 +47,7 @@
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   grid-template-areas:
     '. decision scores'
-    '. me scores'
+    'react me scores'
     'hand hand hand';
   justify-items: center;
   gap: var(--space-2);
@@ -62,6 +62,13 @@
 
 .me {
   grid-area: me;
+}
+
+/* The reactions, by the local badge, on its left. */
+.react {
+  grid-area: react;
+  justify-self: end;
+  align-self: center;
 }
 
 .scores {
@@ -80,9 +87,15 @@
   grid-area: centre;
   display: grid;
   place-items: center;
-  width: 100%;
-  /* As tall as a trick, whatever lies there (the chien, nothing), so the seats beside it stay. */
-  min-height: calc(var(--card-trick) * var(--card-ratio) * 2);
+  /* The mat: a small part of the table, just what the cards need. Its size never changes,
+     whatever lies there (the chien, a trick of 3 to 5 cards and its caption, nothing): a full
+     trick is two cards high and five wide (Trick), its caption one line under it. */
+  width: min(100%, var(--width-regular));
+  min-width: min(100%, calc(var(--card-trick) * 5 + var(--mat-padding) * 2));
+  height: calc(
+    var(--card-trick) * var(--card-ratio) * 2 + var(--space-2) + var(--text-sm-line) +
+      var(--mat-padding) * 2
+  );
 }
 
 .waiting {
@@ -138,7 +151,7 @@
   .bottom {
     grid-template-areas:
       'decision decision decision'
-      '. me scores'
+      'react me scores'
       'hand hand hand';
   }
 

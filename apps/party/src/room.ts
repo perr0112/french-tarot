@@ -24,7 +24,9 @@ import {
   type ServerErrorCode,
   type ServerMessage,
   CHIEN_PAUSE_MS,
+  REACTION_INTERVAL_MS,
   TRICK_PAUSE_MS,
+  type Reaction,
 } from '@tarot/protocol';
 
 export { CHIEN_PAUSE_MS, TRICK_PAUSE_MS };
@@ -41,8 +43,12 @@ export const REPLACE_AFTER_MS = 10_000;
 export const EXPIRE_AFTER_MS = 24 * 60 * 60 * 1000;
 /** Wrong host codes a participant may send before every code is refused. */
 export const MAX_CODE_TRIES = 5;
+/** With nobody to wait for (every player on autoplay), how long a deal's result stays shown. */
+export const AUTO_NEXT_DEAL_MS = 6000;
 /** Level of the bot that plays for a disconnected player, or for one who left. */
 const REPLACEMENT_LEVEL: SeatBotLevel = 'medium';
+/** The bot playing for a player who turned autoplay on: random legal cards (AGENTS.md §5). */
+const AUTOPLAY_LEVEL: SeatBotLevel = 'easy';
 
 export interface Participant {
   /** Secret that lets this participant reconnect; only ever sent to them. */
@@ -54,6 +60,11 @@ export interface Participant {
   readonly disconnectedAt: number | null;
   /** Wrong host codes sent so far (absent in old rooms); past MAX_CODE_TRIES, all are refused. */
   readonly codeTries?: number;
+  /** A bot (AUTOPLAY_LEVEL) plays every decision of the seat; absent in old rooms. */
+  readonly autoplay?: boolean;
+  /** When this player last reacted (REACTION_INTERVAL_MS between two): in memory only, never
+   * saved (a room woken from storage lets everyone react at once). */
+  readonly reactedAt?: number;
 }
 
 /** The whole state of a room: plain JSON, persisted after every command. */
@@ -65,6 +76,8 @@ export interface RoomState {
   readonly participants: readonly Participant[];
   /** Bot level of each seat, or null for a human or empty seat. */
   readonly bots: readonly (SeatBotLevel | null)[];
+  /** Number of each seat's bot (« Jade 2 »), kept while it sits there; absent in old rooms. */
+  readonly botNumbers?: readonly (number | null)[];
   readonly session: SessionState | null;
   /** The deal in play, or the last one once it is over (the session drops finished deals). */
   readonly currentDeal: DealState | null;
@@ -107,6 +120,8 @@ export type RoomEffect =
 export interface RoomResult {
   readonly room: RoomState;
   readonly effects: readonly RoomEffect[];
+  /** Whether the room must be saved: false when only passing state changed (a reaction). */
+  readonly persist: boolean;
 }
 
 export function createRoom(code: string, now: number): RoomState {
@@ -132,6 +147,8 @@ interface Outcome {
   readonly replies: readonly RoomEffect[];
   /** Nothing anyone can see changed: no views are sent (the host code tells nobody else). */
   readonly quiet?: boolean;
+  /** Only passing state changed (when a player last reacted): kept in memory, not saved. */
+  readonly passing?: boolean;
 }
 
 const reply = (connection: string, message: ServerMessage): RoomEffect => ({
@@ -147,15 +164,17 @@ const refuse = (room: RoomState, connection: string, code: ServerErrorCode): Out
 /** Applies one command; never throws on bad input, which only earns its sender an error. */
 export function applyRoomCommand(room: RoomState, command: RoomCommand, env: RoomEnv): RoomResult {
   const outcome = handle(room, command, env);
-  if (outcome.room === 'destroy') return { room, effects: [{ type: 'destroy' }] };
+  if (outcome.room === 'destroy') return { room, effects: [{ type: 'destroy' }], persist: true };
   let next = outcome.room;
   const changed = (next !== room && !outcome.quiet) || command.type === 'wake';
-  if (next !== room && command.type !== 'wake') next = { ...next, lastActivity: env.now };
+  if (next !== room && command.type !== 'wake' && !outcome.passing) {
+    next = { ...next, lastActivity: env.now };
+  }
   const effects: RoomEffect[] = [...outcome.replies];
   if (changed) effects.push(...broadcast(next, env.now));
   const wake = nextWake(next, env.now);
   if (wake !== null) effects.push({ type: 'wakeAt', at: wake });
-  return { room: next, effects };
+  return { room: next, effects, persist: !outcome.passing };
 }
 
 function handle(room: RoomState, command: RoomCommand, env: RoomEnv): Outcome {
@@ -198,7 +217,7 @@ function handleMessage(
     case 'backToLobby':
       return done(
         asHostIn(room, me, 'finished') ?? {
-          ...room,
+          ...endAutoplay(room),
           phase: 'lobby',
           session: null,
           currentDeal: null,
@@ -217,6 +236,13 @@ function handleMessage(
       return { room: leave(room, me, env), replies: [{ type: 'close', connection }] };
     case 'code':
       return hostCode(room, me, connection, message.code, env);
+    case 'react':
+      return react(room, me, connection, message.emoji, env);
+    case 'autoplay':
+      if (me.seat === null) return done('NOT_SEATED');
+      return done(setAutoplay(room, me, message.on, env));
+    case 'abandonDeal':
+      return done(abandonDeal(room, me, env));
   }
 }
 
@@ -317,11 +343,10 @@ function leave(room: RoomState, leaving: Participant, env: RoomEnv): RoomState {
   // A host code was for the player, not for the bot taking the seat.
   if (seat !== null && room.favoured === seat) room = { ...room, favoured: null };
   if (room.phase !== 'playing' || seat === null) return fillSeats({ ...room, participants });
-  const next: RoomState = {
-    ...room,
-    participants,
-    bots: room.bots.map((b, s) => (s === seat ? REPLACEMENT_LEVEL : b)),
-  };
+  const next = withBots(
+    { ...room, participants },
+    room.bots.map((b, s) => (s === seat ? REPLACEMENT_LEVEL : b)),
+  );
   // The deal may only have been waiting for this player to continue.
   return room.session?.phase === 'waitingForDeal' ? dealIfAllContinued(next, env) : next;
 }
@@ -345,14 +370,18 @@ function fillSeats(room: RoomState): RoomState {
 function configure(room: RoomState, patch: Partial<RoomOptions>): RoomState {
   const options = { ...room.options, ...patch };
   const players = options.players;
-  return fillSeats({
-    ...room,
-    options,
-    bots: Array.from({ length: players }, (_, seat) => room.bots[seat] ?? null),
-    participants: room.participants.map((p) =>
-      p.seat !== null && p.seat >= players ? { ...p, seat: null } : p,
+  return fillSeats(
+    withBots(
+      {
+        ...room,
+        options,
+        participants: room.participants.map((p) =>
+          p.seat !== null && p.seat >= players ? { ...p, seat: null } : p,
+        ),
+      },
+      Array.from({ length: players }, (_, seat) => room.bots[seat] ?? null),
     ),
-  });
+  );
 }
 
 function setBot(
@@ -362,7 +391,35 @@ function setBot(
 ): RoomState | ServerErrorCode {
   if (seat >= room.options.players) return 'SEAT_INVALID';
   if (humanAt(room, seat)) return 'SEAT_TAKEN';
-  return fillSeats({ ...room, bots: room.bots.map((b, s) => (s === seat ? level : b)) });
+  return fillSeats(
+    withBots(
+      room,
+      room.bots.map((b, s) => (s === seat ? level : b)),
+    ),
+  );
+}
+
+/** The bots' numbers: as stored, or (old rooms) in seat order. */
+function botNumbersOf(room: RoomState): (number | null)[] {
+  if (room.botNumbers) return [...room.botNumbers];
+  let count = 0;
+  return room.bots.map((bot) => (bot === null ? null : ++count));
+}
+
+/**
+ * Seats `bots`: a bot that stays keeps its number, even with a new level; a new one takes the
+ * smallest number free, so no bot is renamed when another comes or goes (Jade 1, Jade 2…).
+ */
+function withBots(room: RoomState, bots: readonly (SeatBotLevel | null)[]): RoomState {
+  const before = botNumbersOf(room);
+  const numbers = bots.map((bot, seat) => (bot === null ? null : (before[seat] ?? null)));
+  bots.forEach((bot, seat) => {
+    if (bot === null || numbers[seat] !== null) return;
+    let free = 1;
+    while (numbers.includes(free)) free++;
+    numbers[seat] = free;
+  });
+  return { ...room, bots, botNumbers: numbers };
 }
 
 // ---------------------------------------------------------------- session and deals
@@ -378,7 +435,7 @@ function beginSession(room: RoomState, dealer: Seat, env: RoomEnv): RoomState {
   const { players, deals, chelemAnnouncements } = room.options;
   const session = createSession({ players, deals, dealer, options: { chelemAnnouncements } });
   // A host code is for the session it was typed in.
-  return dealNext({ ...room, phase: 'playing', session, favoured: null }, env);
+  return dealNext(endAutoplay({ ...room, phase: 'playing', session, favoured: null }), env);
 }
 
 /**
@@ -453,13 +510,14 @@ function play(
   const sessionResult = applySessionAction(room.session, { type: 'play', seat, action });
   if (!sessionResult.ok) return sessionResult.error.code;
   const after = dealResult.state;
+  const over = sessionResult.session.phase === 'finished';
   const trickDone = after.tricks.length > deal.tricks.length;
   const chienShown = after.phase === 'ecart' && deal.phase !== 'ecart';
   // Everyone sees a completed trick, or the chien turned over, before the next move.
   const pauseAfter = trickDone ? TRICK_PAUSE_MS : chienShown ? CHIEN_PAUSE_MS : 0;
   return {
-    ...room,
-    phase: sessionResult.session.phase === 'finished' ? 'finished' : 'playing',
+    ...(over ? endAutoplay(room) : room),
+    phase: over ? 'finished' : 'playing',
     session: sessionResult.session,
     currentDeal: after,
     turnSince: now + pauseAfter,
@@ -476,9 +534,87 @@ function humanPlay(room: RoomState, seat: Seat, action: Action, now: number) {
   return { ...next, memories: next.memories.map((m, s) => (s === seat ? emptyMemory() : m)) };
 }
 
-/** Seats whose connected players must ask for the next deal before it is dealt. */
+/** Seats whose players must ask for the next deal before it is dealt: connected, not on autoplay. */
 const connectedSeats = (room: RoomState) =>
-  room.participants.flatMap((p) => (p.seat !== null && p.connection !== null ? [p.seat] : []));
+  room.participants.flatMap((p) =>
+    p.seat !== null && p.connection !== null && p.autoplay !== true ? [p.seat] : [],
+  );
+
+function setAutoplay(
+  room: RoomState,
+  me: Participant,
+  on: boolean,
+  env: RoomEnv,
+): RoomState | ServerErrorCode {
+  // For the session in play only: it ends with it (endAutoplay).
+  if (room.phase !== 'playing') return 'WRONG_ROOM_PHASE';
+  const next = replace(room, me, { ...me, autoplay: on });
+  // The next deal may only have been waiting for this player to continue.
+  return on && next.phase === 'playing' && next.session?.phase === 'waitingForDeal'
+    ? dealIfAllContinued(next, env)
+    : next;
+}
+
+/**
+ * A reaction (AGENTS.md §6): sent at once to everyone connected, with the seat, and kept
+ * nowhere. One every REACTION_INTERVAL_MS per player; one sent sooner is dropped, quietly.
+ */
+function react(
+  room: RoomState,
+  me: Participant,
+  connection: string,
+  emoji: Reaction,
+  env: RoomEnv,
+): Outcome {
+  if (me.seat === null) return refuse(room, connection, 'NOT_SEATED');
+  if (room.phase !== 'playing') return refuse(room, connection, 'WRONG_ROOM_PHASE');
+  if (me.reactedAt !== undefined && env.now - me.reactedAt < REACTION_INTERVAL_MS) {
+    return { room, replies: [], quiet: true };
+  }
+  const seat = me.seat;
+  return {
+    room: replace(room, me, { ...me, reactedAt: env.now }),
+    replies: room.participants.flatMap((p) =>
+      p.connection === null ? [] : [reply(p.connection, { type: 'reaction', seat, emoji })],
+    ),
+    quiet: true,
+    passing: true,
+  };
+}
+
+/** Whether `me` may abandon the deal: seated, alone with bots, a deal in progress. */
+function mayAbandonDeal(room: RoomState, me: Participant): boolean {
+  return (
+    room.phase === 'playing' &&
+    room.session?.deal != null &&
+    me.seat !== null &&
+    room.participants.filter((p) => p.seat !== null).length === 1
+  );
+}
+
+/** Autoplay is for one session: off when it ends or a new one begins. */
+const endAutoplay = (room: RoomState): RoomState => ({
+  ...room,
+  participants: room.participants.map((p) => (p.autoplay ? { ...p, autoplay: false } : p)),
+});
+
+/**
+ * « Redonner »: a player alone with bots drops the deal in progress for a new one from the same
+ * dealer, recorded nowhere (AGENTS.md §5). Never with another player at the table.
+ */
+function abandonDeal(room: RoomState, me: Participant, env: RoomEnv): RoomState | ServerErrorCode {
+  if (!room.session || !mayAbandonDeal(room, me)) return 'ABANDON_NOT_ALLOWED';
+  const result = applySessionAction(room.session, { type: 'abandon', seed: env.seed });
+  if (!result.ok) return result.error.code;
+  return {
+    ...room,
+    session: result.session,
+    // As dealNext: null when a petit sec cancels the new deal at once (it is then recorded).
+    currentDeal: result.session.deal,
+    memories: Array.from({ length: room.options.players }, emptyMemory),
+    turnSince: env.now,
+  };
+}
 
 function continueToNextDeal(
   room: RoomState,
@@ -493,8 +629,23 @@ function continueToNextDeal(
 }
 
 function dealIfAllContinued(room: RoomState, env: RoomEnv): RoomState {
-  const waitingFor = connectedSeats(room).filter((s) => !room.continued.includes(s));
-  return waitingFor.length === 0 && !isPaused(room) ? dealNext(room, env) : room;
+  return nobodyAwaited(room) && !isPaused(room) ? dealNext(room, env) : room;
+}
+
+const nobodyAwaited = (room: RoomState) =>
+  connectedSeats(room).every((s) => room.continued.includes(s));
+
+/**
+ * When the next deal comes by itself: a deal just over with nobody to ask for the next one
+ * (every player on autoplay), once its result has been shown a while.
+ */
+function autoDealAt(room: RoomState): number | null {
+  return room.phase === 'playing' &&
+    room.session?.phase === 'waitingForDeal' &&
+    !isPaused(room) &&
+    nobodyAwaited(room)
+    ? room.turnSince + AUTO_NEXT_DEAL_MS
+    : null;
 }
 
 // ---------------------------------------------------------------- bots and timing
@@ -509,6 +660,7 @@ function controllerOf(room: RoomState, seat: Seat, now: number): Controller {
   const level = room.bots[seat];
   if (level) return { kind: 'bot', level, since: -Infinity };
   const human = humanAt(room, seat);
+  if (human?.autoplay === true) return { kind: 'bot', level: AUTOPLAY_LEVEL, since: -Infinity };
   const from = human ? replacedFrom(human) : null;
   if (from === null) return { kind: 'human' };
   return now >= from
@@ -543,6 +695,8 @@ function nextWake(room: RoomState, now: number): number | null {
   const times: number[] = [];
   const turn = botTurn(room, now);
   if (turn !== null) times.push(turn.dueAt);
+  const autoDeal = autoDealAt(room);
+  if (autoDeal !== null) times.push(autoDeal);
   if (room.phase === 'playing' && !isPaused(room)) {
     for (const p of room.participants) {
       const from = replacedFrom(p);
@@ -567,6 +721,8 @@ function wake(room: RoomState, env: RoomEnv): Outcome {
   if (isPaused(room) && env.now >= room.lastActivity + EXPIRE_AFTER_MS) {
     return { room: 'destroy', replies: [] };
   }
+  const autoDeal = autoDealAt(room);
+  if (autoDeal !== null && autoDeal <= env.now) return { room: dealNext(room, env), replies: [] };
   const turn = botTurn(room, env.now);
   if (turn === null || turn.dueAt > env.now) return { room, replies: [] };
   const { deal, seat, level } = turn;
@@ -610,14 +766,18 @@ function simpleAction(template: LegalAction): Action {
 
 function occupantOf(room: RoomState, seat: Seat, now: number): SeatOccupant {
   const level = room.bots[seat];
-  if (level) return { kind: 'bot', level };
+  if (level) return { kind: 'bot', level, number: botNumbersOf(room)[seat] ?? seat + 1 };
   const human = humanAt(room, seat);
   if (!human) return { kind: 'empty' };
   return {
     kind: 'human',
     nickname: human.nickname,
     connected: human.connection !== null,
-    replacedByBot: room.phase === 'playing' && controllerOf(room, seat, now).kind === 'bot',
+    replacedByBot:
+      room.phase === 'playing' &&
+      human.autoplay !== true &&
+      controllerOf(room, seat, now).kind === 'bot',
+    autoplay: human.autoplay === true,
   };
 }
 
@@ -644,6 +804,7 @@ export function roomViewFor(room: RoomState, token: string, now: number): RoomVi
       continued: session.phase === 'waitingForDeal' ? room.continued : null,
     },
     deal: me.seat !== null && room.currentDeal ? getPlayerView(room.currentDeal, me.seat) : null,
+    canAbandonDeal: mayAbandonDeal(room, me),
   };
 }
 

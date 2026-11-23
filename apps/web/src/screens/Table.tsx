@@ -1,4 +1,4 @@
-import type { Card } from '@tarot/engine';
+import type { Card, Seat } from '@tarot/engine';
 import type { RoomView } from '@tarot/protocol';
 import { TRICK_PAUSE_MS } from '@tarot/protocol';
 import { useEffect, useState } from 'react';
@@ -6,6 +6,7 @@ import { Chien } from '../components/Chien';
 import { DealResult } from '../components/DealResult';
 import { Hand } from '../components/Hand';
 import { InfoBar } from '../components/InfoBar';
+import { Mat } from '../components/Mat';
 import { ScoreCorner } from '../components/ScoreCorner';
 import { SeatBadge } from '../components/SeatBadge';
 import { Trick } from '../components/Trick';
@@ -13,6 +14,8 @@ import { cardName } from '../lib/cards';
 import { chienLeavesTo, chienOnTable } from '../lib/chien';
 import { useFreshPoignees } from '../hooks/useFreshPoignees';
 import { usePreselection } from '../hooks/usePreselection';
+import type { ShownReaction } from '../hooks/useReactions';
+import { ReactionPicker } from '../components/ReactionPicker';
 import { seatName } from '../lib/names';
 import { poigneeStatus } from '../lib/selection';
 import { seatPositions } from '../lib/seats';
@@ -35,9 +38,12 @@ export function Table({
   send,
   dealtBeforeJoining = null,
   onLeave,
+  reactions = new Map(),
 }: {
   view: RoomView;
   send: Send;
+  /** The reactions shown at the seats (hooks/useReactions.ts). */
+  reactions?: ReadonlyMap<Seat, ShownReaction>;
   /** The deal already dealt when this page joined the table: it is shown, not dealt in again. */
   dealtBeforeJoining?: number | null;
   /** Leaves the table for good (a bot takes the seat). */
@@ -144,6 +150,8 @@ export function Table({
         showingLastTrick={reviewLastTrick}
         onToggleLastTrick={() => setReviewingAt(reviewLastTrick ? null : cardsPlayed)}
         onLeave={onLeave}
+        onAutoplay={view.you.seat === null ? undefined : (on) => send({ type: 'autoplay', on })}
+        onAbandonDeal={view.canAbandonDeal ? () => send({ type: 'abandonDeal' }) : undefined}
       />
       <div className={styles.felt}>
         {view.seats.map((_, seat) =>
@@ -154,10 +162,12 @@ export function Table({
               seat={seat}
               className={styles[positions[seat] ?? 'top']}
               poigneeShowing={poigneesShown.get(seat)}
+              reaction={reactions.get(seat)}
+              bubbleOnLeft={positions[seat] === 'right' || positions[seat] === 'topRight'}
             />
           ),
         )}
-        <div className={styles.centre}>
+        <Mat className={styles.centre}>
           {showsResult ? (
             <DealResult view={view} send={send} />
           ) : (
@@ -181,7 +191,7 @@ export function Table({
               </>
             )
           )}
-        </div>
+        </Mat>
       </div>
       <div className={styles.bottom}>
         <div className={styles.decision}>
@@ -215,7 +225,16 @@ export function Table({
           seat={me}
           className={styles.me}
           poigneeShowing={poigneesShown.get(me)}
+          reaction={reactions.get(me)}
         />
+        {view.you.seat !== null && (
+          <ReactionPicker
+            // A decision opening closes the row: the decision comes first.
+            key={template?.type ?? 'none'}
+            className={styles.react}
+            onReact={(emoji) => send({ type: 'react', emoji })}
+          />
+        )}
         {/* By the local player's right hand: it takes no room from the seats, trick or hand. */}
         <ScoreCorner view={view} className={styles.scores} />
         {deal && deal.phase !== 'finished' && (

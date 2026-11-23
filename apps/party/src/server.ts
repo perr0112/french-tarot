@@ -50,7 +50,7 @@ export class Room extends Server<Env> {
       token: crypto.randomUUID(),
       hostCode: this.env.HOST_CODE,
     };
-    const { room, effects } = applyRoomCommand(
+    const { room, effects, persist } = applyRoomCommand(
       this.state ?? createRoom(this.name, env.now),
       command,
       env,
@@ -76,7 +76,7 @@ export class Room extends Server<Env> {
     }
     if (room !== this.state) {
       this.state = room;
-      await this.ctx.storage.put(STORAGE_KEY, room);
+      if (persist) await this.ctx.storage.put(STORAGE_KEY, room);
     }
     if (wakeAt === null) await this.ctx.storage.deleteAlarm();
     else await this.ctx.storage.setAlarm(wakeAt);

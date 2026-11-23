@@ -80,7 +80,7 @@ See `CONTEXT.md` for the domain language and `docs/adr/` for the reasoning behin
   **templates**: allowed bids, playable cards (with possible poignées on the first card), and écart
   constraints `{ count, eligible, trumpsAllowed }` — écart combinations are never enumerated.
 - `getPlayerView(state, seat)` produces the redacted view: own hand, card counts, bids, contract and
-  taker, chien when revealed, shown écart trumps, shown poignées, current trick, **last completed
+  taker, chien when revealed (petite and garde; to everyone once the deal is over or everyone passed), shown écart trumps, shown poignées, current trick, **last completed
   trick only**, tricks won per seat, the seat's legal actions, and for the taker their own écart.
   Never: other hands, others' écart, a hidden chien, cards inside older tricks.
 - Variant differences (3/4/5 players) live in a **variant config object**, not in scattered `if`s;
@@ -148,7 +148,8 @@ Primary source and page references: `docs/research/fft-rules.md`.
   | Garde sans (le chien)   | ×4         | not revealed, counts for the **taker** at the end       |
   | Garde contre (le chien) | ×6         | not revealed, counts for the **defence** at the end     |
 
-- If everyone passes, the deal is cancelled and the next dealer redeals.
+- If everyone passes, the deal is cancelled and the next dealer redeals; the chien is then shown to everyone.
+- Once a deal is played out, the chien is shown to everyone with the score, whatever the contract (a garde sans's or contre's too, set aside unseen until then).
 
 ### 3.4 Écart (Petite / Garde)
 
@@ -270,6 +271,8 @@ Three levels, all strictly using the redacted player view and `getLegalActions`:
 - **Reconnection**: a session token is stored in `localStorage` per room; reconnecting restores the seat.
 - **Disconnect → bot replacement**: when a human disconnects, a bot (room default level) plays their seat until they come back; the UI shows that seat as "remplacé par un bot".
 - **Leaving**: a player may leave the table for good (« Quitter la table »). In the lobby the seat is freed; during a session a bot (room default level) takes it at once. The player is forgotten (their reconnection token no longer works), and the next human becomes host if they were.
+- **Autoplay** (« Jeu auto »): any seated player may let a bot (Facile: random legal cards) take every decision of their seat, and take it back at any time. The others see « jeu auto » at that seat. Autoplay lasts one session: it is turned off when the session ends. A seat on autoplay is not waited for between deals; when nobody is, the next deal comes by itself after its result has been shown a few seconds.
+- **Abandoning the deal** (« Redonner »): a player alone at the table with bots may, after confirming, abandon the deal in progress for a new one from the same dealer; it is recorded nowhere (CONTEXT.md). Refused with another human at the table.
 - **Host code** (not a game rule, a tool of the app's owner): typing `tarot("<code>")` in the browser console, during a session, gives the sender a strong but believable hand in the next deal only — 11 trumps including the 21, 20, 19 and 18, the Excuse, and plain suit cards, high or low, for the rest; everything else is drawn from the deal's seed. Refused in the last deal (none follows); forgotten when the session ends or the player leaves; used even if that deal is then cancelled. The code is the room server's `HOST_CODE` Cloudflare secret (at most 200 characters), never in the repository or the web app; unset, every code is refused, and so is every code after 5 wrong ones from a player. The answer goes to the sender only; nobody else receives anything.
 - No turn timer (not requested). Do not add one without asking.
 
@@ -290,6 +293,7 @@ Three levels, all strictly using the redacted player view and `getLegalActions`:
   - Previous trick can be reviewed.
   - While another player is to play in a trick one has not played in yet, a card may be preselected for that trick (in the page only, the server never knows it): played at once when the turn comes if the rules allow it, dropped with a word why if not, and kept waiting for a click when a poignée may be declared with it.
   - Score breakdown is explained after each deal (see §3.8).
+- **Reactions**: a seated player may send one of six emoji (😂 👏 😮 😅 🎉 😡), at most one every 2 s; it pops in a bubble at their seat for everyone, for 3 s, and is kept nowhere. Bots do not react.
 - **Declarations are proposed at the right moment**: when a poignée is possible, the UI offers to declare it and lets the player pick which trumps to show (Excuse handling per §3.6). Same for chelem announcement before the first card.
 - Clear indications of: dealer, current speaker/player, contract and taker, called king (5p, once revealed), shown poignées, chien (when revealed).
 - Animations for dealing/playing/collecting tricks should be smooth but short; never block input longer than necessary.

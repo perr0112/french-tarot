@@ -1,6 +1,8 @@
 import type { ClientMessage, RoomView, ServerErrorCode, ServerMessage } from '@tarot/protocol';
 import PartySocket from 'partysocket';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { Seat } from '@tarot/engine';
+import { useReactions, type ShownReaction } from '../hooks/useReactions';
 import { fr } from '../strings/fr';
 import { storage } from './storage';
 
@@ -31,6 +33,8 @@ export interface RoomConnection {
   readonly dismissError: () => void;
   /** Leaves the table for good: a bot takes the seat; the stored token is forgotten. */
   readonly leave: () => void;
+  /** Reactions just sent at the table, by seat, while they are shown. */
+  readonly reactions: ReadonlyMap<Seat, ShownReaction>;
 }
 
 /** One attempt to sit at the table; a new object retries, even with the same nickname. */
@@ -43,6 +47,8 @@ export function useRoomConnection(code: string, request: JoinRequest | null): Ro
   const [status, setStatus] = useState<ConnectionStatus>('connecting');
   const [view, setView] = useState<RoomView | null>(null);
   const [error, setError] = useState<ServerErrorCode | null>(null);
+  const reactions = useReactions();
+  const addReaction = reactions.add;
   const socketRef = useRef<PartySocket | null>(null);
   /**
    * The current connection's flag, set once its socket must not reconnect (refused, left,
@@ -70,6 +76,7 @@ export function useRoomConnection(code: string, request: JoinRequest | null): Ro
       const message = JSON.parse(event.data) as ServerMessage;
       if (message.type === 'welcome') storage.saveToken(code, message.token);
       else if (message.type === 'state') setView(message.view);
+      else if (message.type === 'reaction') addReaction(message.seat, message.emoji);
       else if (message.type === 'code')
         console.info(fr.code[message.accepted ? 'accepted' : 'refused']);
       else if (message.code === 'NICKNAME_TAKEN') {
@@ -90,7 +97,7 @@ export function useRoomConnection(code: string, request: JoinRequest | null): Ro
       socket.close();
       socketRef.current = null;
     };
-  }, [code, request]);
+  }, [code, request, addReaction]);
 
   const send = useCallback<Send>((message) => {
     socketRef.current?.send(JSON.stringify(message));
@@ -111,5 +118,5 @@ export function useRoomConnection(code: string, request: JoinRequest | null): Ro
     };
   }, [send]);
 
-  return { status, view, error, send, dismissError, leave };
+  return { status, view, error, send, dismissError, leave, reactions: reactions.shown };
 }

@@ -6,6 +6,7 @@ import {
   MAX_DEALS,
   MAX_CODE_LENGTH,
   MAX_NICKNAME_LENGTH,
+  REACTIONS,
   type RoomOptions,
 } from './options';
 
@@ -59,6 +60,12 @@ const clientMessage = z.union([
   z.object({ type: z.literal('backToLobby') }),
   /** Leaves the table for good: a bot takes the seat during a session. */
   z.object({ type: z.literal('leave') }),
+  /** Lets a bot (Facile) play every decision of one's seat, or takes them back. */
+  z.object({ type: z.literal('autoplay'), on: z.boolean() }),
+  /** A lone player among bots: the deal in progress is dropped for a new one. */
+  z.object({ type: z.literal('abandonDeal') }),
+  /** A reaction shown at one's seat for a moment, to everyone at the table. */
+  z.object({ type: z.literal('react'), emoji: z.enum(REACTIONS) }),
   /** The host code (typed in the browser console): an exceptional hand next deal. */
   z.object({ type: z.literal('code'), code: z.string().min(1).max(MAX_CODE_LENGTH) }),
 ]);

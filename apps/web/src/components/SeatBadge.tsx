@@ -4,6 +4,7 @@ import ui from '../design/ui.module.css';
 import { cardName, formatScore } from '../lib/cards';
 import { seatName } from '../lib/names';
 import type { PoigneeShowing } from '../hooks/useFreshPoignees';
+import type { ShownReaction } from '../hooks/useReactions';
 import { seatFacts } from '../lib/seatFacts';
 import { fr } from '../strings/fr';
 import { CardStrip } from './CardStrip';
@@ -20,12 +21,18 @@ export function SeatBadge({
   seat,
   className,
   poigneeShowing = null,
+  reaction = null,
+  bubbleOnLeft = false,
 }: {
   view: RoomView;
   seat: Seat;
   className?: string | undefined;
   /** Whether its poignée is still shown (hooks/useFreshPoignees.ts). */
   poigneeShowing?: PoigneeShowing | null | undefined;
+  /** A reaction its player just sent (hooks/useReactions.ts), shown in a bubble. */
+  reaction?: ShownReaction | null | undefined;
+  /** The reaction bubble on the left corner: for seats on the right of the table, so it stays in. */
+  bubbleOnLeft?: boolean;
 }) {
   const facts = seatFacts(view, seat);
   const { poignee, ecartTrumps, calledCard } = facts;
@@ -40,6 +47,17 @@ export function SeatBadge({
       // Where this seat's cards come from and its tricks go (motion/animate.ts).
       data-seat={seat}
     >
+      {reaction && (
+        <span
+          // A new reaction pops anew, even the same emoji twice.
+          key={reaction.id}
+          className={`${styles.reaction} ${bubbleOnLeft ? styles.onLeft : ''}`}
+          role="img"
+          aria-label={fr.reactions.shown(facts.name, reaction.emoji)}
+        >
+          {reaction.emoji}
+        </span>
+      )}
       <span className={styles.name}>
         {facts.name}
         {facts.you ? ` ${fr.lobby.you}` : ''}

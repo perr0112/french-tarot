@@ -1,9 +1,10 @@
 import { ALL_CARDS, createDeal, getPlayerView, isTrump, type Card } from '@tarot/engine';
-import { fourKingsFifteenTrumps } from '@tarot/engine/testing';
+import { fourKingsFifteenTrumps, playRandomly } from '@tarot/engine/testing';
 import { DEFAULT_ROOM_OPTIONS, TRICK_PAUSE_MS } from '@tarot/protocol';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cardName } from '../lib/cards';
+import { sortHand } from '../lib/hand';
 import { POIGNEE_SHOWN_MS } from '../hooks/useFreshPoignees';
 import { PRESELECTION_DROPPED_MS } from '../hooks/usePreselection';
 import { dealWith, playOut, roomView, takes } from '../testing/views';
@@ -287,6 +288,77 @@ describe('between deals', () => {
   });
 });
 
+describe('once a deal is played out', () => {
+  it('shows the chien in the result, a garde sans’s too', () => {
+    const deal = playRandomly(
+      takes(dealWith([...trumps(1, 13), ...suit('S', 1, 5)]), 'gardeSans'),
+      3,
+    );
+    const result = deal.result;
+    if (deal.phase !== 'finished' || !result) throw new Error('not played out');
+    const view = roomView(deal, 1, {
+      session: {
+        deals: 8,
+        played: 1,
+        dealer: 0,
+        totals: result.perSeat,
+        history: [{ dealer: 3, result, cancelled: null }],
+        continued: [],
+      },
+    });
+    render(<Table view={view} send={vi.fn()} />);
+    const chien = screen.getByRole('group', { name: 'Chien' });
+    expect(
+      within(chien)
+        .getAllByRole('img')
+        .map((img) => img.getAttribute('aria-label')),
+    ).toEqual(sortHand(deal.chien).map(cardName));
+  });
+});
+
+describe('after everyone passed', () => {
+  const allPassed = (continued: number[] = []) => {
+    const deal = playOut(dealWith([...trumps(1, 13), ...suit('S', 1, 5)]), [
+      [0, { type: 'bid', contract: 'pass' }],
+      [1, { type: 'bid', contract: 'pass' }],
+      [2, { type: 'bid', contract: 'pass' }],
+      [3, { type: 'bid', contract: 'pass' }],
+    ]);
+    return {
+      deal,
+      view: roomView(deal, 0, {
+        session: {
+          deals: 8,
+          played: 0,
+          dealer: 0,
+          totals: [0, 0, 0, 0],
+          history: [{ dealer: 3, result: null, cancelled: { reason: 'allPassed' } }],
+          continued,
+        },
+      }),
+    };
+  };
+
+  it('shows the chien face up to everyone', () => {
+    const { deal, view } = allPassed();
+    render(<Table view={view} send={vi.fn()} />);
+    const chien = screen.getByRole('group', { name: 'Chien' });
+    expect(
+      within(chien)
+        .getAllByRole('img')
+        .map((img) => img.getAttribute('aria-label')),
+    ).toEqual(deal.chien.map(cardName));
+  });
+
+  it('keeps the button in its place once clicked, waiting for the others', () => {
+    render(<Table view={allPassed([0]).view} send={vi.fn()} />);
+    // Not disabled: it keeps the focus and its text stays legible (DESIGN.md §3.1, §3.5).
+    const ready = screen.getByRole('button', { name: 'Prêt' });
+    expect(ready.getAttribute('aria-disabled')).toBe('true');
+    expect(screen.getByText('En attente de : Bob')).toBeTruthy();
+  });
+});
+
 describe('the chien', () => {
   const hand: Card[] = [...trumps(1, 13), ...suit('S', 1, 5)];
   const backs = () =>
@@ -313,9 +385,10 @@ describe('the chien', () => {
       [4, { type: 'bid', contract: 'pass' }],
       [0, { type: 'bid', contract: 'pass' }],
     ]);
-    const seats = Array.from({ length: 5 }, () => ({
+    const seats = Array.from({ length: 5 }, (_, i) => ({
       kind: 'bot' as const,
       level: 'medium' as const,
+      number: i + 1,
     }));
     const options = { ...DEFAULT_ROOM_OPTIONS, players: 5 as const };
     render(<Table view={roomView(deal, 0, { seats, options })} send={vi.fn()} />);
@@ -329,10 +402,10 @@ describe('the chien', () => {
     expect(shown.map((img) => img.getAttribute('aria-label'))).toEqual(deal.chien.map(cardName));
   });
 
-  it('is in the taker’s hand, its cards marked, during the écart', () => {
+  it('is in the taker’s hand, its cards marked, and still face up on the table, during the écart', () => {
     const deal = takes(dealWith(hand), 'garde');
     render(<Table view={roomView(deal)} send={vi.fn()} />);
-    expect(screen.queryByRole('group', { name: 'Chien' })).toBeNull();
+    expect(screen.getByRole('group', { name: 'Chien' })).toBeTruthy();
     for (const c of deal.chien) {
       expect(card(c).getAttribute('aria-description')).toBe('Vient du chien');
     }
@@ -391,10 +464,10 @@ describe('the scores', () => {
     render(<Table view={scored()} send={vi.fn()} />);
     const totals = within(screen.getByRole('list', { name: 'Scores' }));
     expect(totals.getAllByRole('listitem').map((li) => li.textContent)).toEqual([
-      'Bot 2+90',
+      'Jade 1+90',
       'Bob+30',
       'Alice−60',
-      'Bot 4−60',
+      'Jade 2−60',
     ]);
   });
 
@@ -419,9 +492,10 @@ describe('the called King', () => {
       [0, { type: 'bid', contract: 'pass' }],
       [1, { type: 'callKing', card: 'H14' }],
     ]);
-    const seats = Array.from({ length: 5 }, () => ({
+    const seats = Array.from({ length: 5 }, (_, i) => ({
       kind: 'bot' as const,
       level: 'medium' as const,
+      number: i + 1,
     }));
     const options = { ...DEFAULT_ROOM_OPTIONS, players: 5 as const };
     render(<Table view={roomView(deal, 0, { seats, options })} send={vi.fn()} />);
@@ -555,5 +629,97 @@ describe('preselecting a card', () => {
   it('is not offered while the players bid', () => {
     render(<Table view={roomView(dealWith(plain, 0))} send={vi.fn()} />);
     expect(card('S03')).toHaveProperty('disabled', true);
+  });
+});
+
+describe('autoplay and abandoning the deal', () => {
+  const alone = (autoplay = false) =>
+    roomView(dealWith([...trumps(1, 13), ...suit('S', 1, 5)]), 0, {
+      seats: [
+        { kind: 'human', nickname: 'Alice', connected: true, replacedByBot: false, autoplay },
+        { kind: 'bot', level: 'medium', number: 1 },
+        { kind: 'bot', level: 'medium', number: 2 },
+        { kind: 'bot', level: 'easy', number: 3 },
+      ],
+      canAbandonDeal: true,
+    });
+
+  it('turns autoplay on and off', () => {
+    const send = vi.fn();
+    const { rerender } = render(<Table view={alone()} send={send} />);
+    const toggle = () => screen.getByRole('button', { name: /^Jeu auto/ });
+    expect(toggle().getAttribute('aria-pressed')).toBe('false');
+    fireEvent.click(toggle());
+    expect(send).toHaveBeenCalledWith({ type: 'autoplay', on: true });
+    rerender(<Table view={alone(true)} send={send} />);
+    expect(toggle().getAttribute('aria-pressed')).toBe('true');
+    expect(toggle().textContent).toBe('Jeu auto : activé');
+    // Said once, in the bar: not again under one's own seat.
+    expect(screen.queryByText('jeu auto')).toBeNull();
+    fireEvent.click(toggle());
+    expect(send).toHaveBeenCalledWith({ type: 'autoplay', on: false });
+  });
+
+  it('offers a lone player among bots to abandon the deal, after asking', () => {
+    const send = vi.fn();
+    render(<Table view={alone()} send={send} />);
+    click('Redonner');
+    expect(send).not.toHaveBeenCalled();
+    within(screen.getByRole('group', { name: 'Redonner' }))
+      .getByRole('button', { name: 'Redonner' })
+      .click();
+    expect(send).toHaveBeenCalledWith({ type: 'abandonDeal' });
+  });
+
+  it('gives the focus back to the button once answered, Escape keeping the deal', () => {
+    const send = vi.fn();
+    render(<Table view={alone()} send={send} />);
+    click('Redonner');
+    fireEvent.keyDown(screen.getByRole('group', { name: 'Redonner' }), { key: 'Escape' });
+    expect(send).not.toHaveBeenCalled();
+    expect(document.activeElement?.textContent).toBe('Redonner');
+  });
+
+  it('offers no « Redonner » with another player at the table', () => {
+    render(
+      <Table view={roomView(dealWith([...trumps(1, 13), ...suit('S', 1, 5)]))} send={vi.fn()} />,
+    );
+    expect(screen.queryByRole('button', { name: 'Redonner' })).toBeNull();
+  });
+});
+
+describe('reactions', () => {
+  const playing = () => roomView(dealWith([...trumps(1, 13), ...suit('S', 1, 5)]));
+
+  it('picks one of six reactions by one’s badge and sends it', () => {
+    const send = vi.fn();
+    render(<Table view={playing()} send={send} />);
+    click('Réagir');
+    const picker = screen.getByRole('group', { name: 'Réactions' });
+    expect(within(picker).getAllByRole('button')).toHaveLength(6);
+    // Named in French, the first one focused.
+    expect(document.activeElement?.getAttribute('aria-label')).toBe('Rire');
+    fireEvent.click(within(picker).getByRole('button', { name: 'Bravo' }));
+    expect(send).toHaveBeenCalledWith({ type: 'react', emoji: '👏' });
+    expect(screen.queryByRole('group', { name: 'Réactions' })).toBeNull();
+    expect(document.activeElement?.textContent).toBe('Réagir');
+  });
+
+  it('closes with Escape or a click elsewhere', () => {
+    render(<Table view={playing()} send={vi.fn()} />);
+    click('Réagir');
+    fireEvent.keyDown(screen.getByRole('group', { name: 'Réactions' }), { key: 'Escape' });
+    expect(screen.queryByRole('group', { name: 'Réactions' })).toBeNull();
+    expect(document.activeElement?.textContent).toBe('Réagir');
+    click('Réagir');
+    fireEvent.pointerDown(document.body);
+    expect(screen.queryByRole('group', { name: 'Réactions' })).toBeNull();
+  });
+
+  it('shows a reaction at the seat of the player who sent it', () => {
+    const reactions = new Map([[2, { emoji: '🎉' as const, id: 1 }]]);
+    render(<Table view={playing()} send={vi.fn()} reactions={reactions} />);
+    const bob = document.querySelector('[data-seat="2"]') as HTMLElement;
+    expect(within(bob).getByRole('img', { name: 'Bob réagit : 🎉' })).toBeTruthy();
   });
 });

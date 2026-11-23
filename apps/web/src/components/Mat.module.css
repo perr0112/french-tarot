@@ -1,0 +1,80 @@
+/* The small brown mat on the wooden table, where the cards are laid (DESIGN.md §2, §3.1): a
+   suede-like felt with a soft light and a fine weave, a stitched edge, a shadow under it. */
+.mat {
+  position: relative;
+  /* Read by whoever sizes the mat (Table: its fixed height). */
+  --mat-padding: var(--space-5);
+  padding: var(--mat-padding);
+  border-radius: var(--radius-lg);
+  /* No light on it: the muted captions keep their contrast everywhere on the mat. */
+  background:
+    repeating-linear-gradient(45deg, var(--color-mat-weave) 0 1px, transparent 1px 4px),
+    var(--color-mat);
+  box-shadow:
+    inset 0 0 0 var(--border-thick) var(--color-mat-edge),
+    var(--shadow-mat);
+  outline: var(--border-thin) dashed var(--color-mat-stitch);
+  outline-offset: calc(var(--space-2) * -1);
+}
+
+.ornament {
+  position: absolute;
+  width: var(--space-7);
+  height: var(--space-7);
+  pointer-events: none;
+}
+
+/* Inside the stitching, never across it. */
+.topLeft {
+  top: var(--space-3);
+  left: var(--space-3);
+}
+
+.topRight {
+  top: var(--space-3);
+  right: var(--space-3);
+}
+
+.bottomRight {
+  bottom: var(--space-3);
+  right: var(--space-3);
+}
+
+.bottomLeft {
+  bottom: var(--space-3);
+  left: var(--space-3);
+}
+
+.lines {
+  fill: none;
+  stroke: var(--color-ornament);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.thin {
+  stroke-width: 0.75;
+  opacity: 0.7;
+}
+
+.leaf,
+.suit {
+  fill: var(--color-ornament);
+}
+
+.leaf {
+  opacity: 0.6;
+}
+
+/* Compact breakpoint (DESIGN.md §3.4): less room around the cards, smaller flourishes. */
+@media (max-width: 600px) {
+  .mat {
+    --mat-padding: var(--space-4);
+    padding: var(--mat-padding) var(--space-3);
+  }
+
+  .ornament {
+    width: var(--space-6);
+    height: var(--space-6);
+  }
+}

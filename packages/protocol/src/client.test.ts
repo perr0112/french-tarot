@@ -73,3 +73,13 @@ describe('parseClientMessage', () => {
     }
   });
 });
+
+describe('reactions', () => {
+  it('accepts the six reactions only', () => {
+    expect(parseClientMessage({ type: 'react', emoji: '😂' })).toEqual({
+      ok: true,
+      message: { type: 'react', emoji: '😂' },
+    });
+    expect(parseClientMessage({ type: 'react', emoji: '💩' }).ok).toBe(false);
+  });
+});

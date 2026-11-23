@@ -23,8 +23,11 @@ describe('chienOnTable', () => {
     });
   });
 
-  it('is in the taker’s hand, not on the table, during their écart', () => {
-    expect(chienOnTable(getPlayerView(takes(dealWith(hand), 'petite'), 0))).toBeNull();
+  it('is shown face up to the taker too, as long as to the others, during their écart', () => {
+    expect(chienOnTable(getPlayerView(takes(dealWith(hand), 'petite'), 0))).toEqual({
+      faceUp: true,
+      cards: sortHand(chienCards(dealWith(hand))),
+    });
   });
 
   it.each(['gardeSans', 'gardeContre'] as const)('leaves the table in a %s', (contract) => {

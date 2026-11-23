@@ -5,7 +5,7 @@ import type {
   SessionDealRecord,
   SessionErrorCode,
 } from '@tarot/engine';
-import type { RoomOptions, SeatBotLevel } from './options';
+import type { Reaction, RoomOptions, SeatBotLevel } from './options';
 
 export type RoomPhase = 'lobby' | 'playing' | 'finished';
 
@@ -21,6 +21,7 @@ export type RoomErrorCode =
   | 'SEAT_TAKEN'
   | 'SEATS_NOT_FILLED'
   | 'NOT_SEATED'
+  | 'ABANDON_NOT_ALLOWED'
   | 'REPLACED_BY_NEW_CONNECTION';
 
 /** Every error a client may receive: room, session or engine rules. */
@@ -33,8 +34,11 @@ export type SeatOccupant =
       readonly connected: boolean;
       /** A bot plays this seat until its player comes back ("remplacé par un bot"). */
       readonly replacedByBot: boolean;
+      /** The player let a bot play for them (« jeu auto »). */
+      readonly autoplay: boolean;
     }
-  | { readonly kind: 'bot'; readonly level: SeatBotLevel }
+  /** `number`: the bot's own number (« Jade 2 »), kept as long as it sits at this seat. */
+  | { readonly kind: 'bot'; readonly level: SeatBotLevel; readonly number: number }
   | { readonly kind: 'empty' };
 
 export interface SessionView {
@@ -59,6 +63,8 @@ export interface RoomView {
   readonly session: SessionView | null;
   /** The current deal, or the last one once it is over, from this seat's point of view. */
   readonly deal: PlayerView | null;
+  /** This player may drop the deal in progress for a new one (« Redonner », AGENTS.md §5). */
+  readonly canAbandonDeal: boolean;
 }
 
 /** Messages the room sends to a client. */
@@ -66,5 +72,7 @@ export type ServerMessage =
   | { readonly type: 'welcome'; readonly token: string }
   | { readonly type: 'state'; readonly view: RoomView }
   | { readonly type: 'error'; readonly code: ServerErrorCode }
+  /** To everyone at the table: a player reacted (shown at their seat, kept nowhere). */
+  | { readonly type: 'reaction'; readonly seat: Seat; readonly emoji: Reaction }
   /** Only to the sender of a code: whether it armed the next deal. */
   | { readonly type: 'code'; readonly accepted: boolean };

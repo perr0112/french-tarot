@@ -1,5 +1,5 @@
 import type { BidChoice, PoigneeLevel } from '@tarot/engine';
-import type { BotSpeed, SeatBotLevel, ServerErrorCode } from '@tarot/protocol';
+import type { BotSpeed, Reaction, SeatBotLevel, ServerErrorCode } from '@tarot/protocol';
 
 const poigneeShown = (level: string) => `Poignée ${level.toLowerCase()}`;
 const CALLED = 'Appel';
@@ -27,9 +27,29 @@ export const fr = {
   },
   leave: {
     button: 'Quitter la table',
+    short: 'Quitter',
     confirm: 'Quitter la table ? Un bot prendra votre place.',
     yes: 'Quitter',
     stay: 'Rester',
+  },
+  reactions: {
+    title: 'Réactions',
+    open: 'Réagir',
+    names: {
+      '😂': 'Rire',
+      '👏': 'Bravo',
+      '😮': 'Surpris',
+      '😅': 'Gêné',
+      '🎉': 'Fête',
+      '😡': 'Fâché',
+    } satisfies Record<Reaction, string>,
+    shown: (name: string, emoji: string) => `${name} réagit : ${emoji}`,
+  },
+  redeal: {
+    button: 'Redonner',
+    confirm: 'Abandonner cette donne pour une nouvelle ?',
+    yes: 'Redonner',
+    stay: 'Garder',
   },
   connection: {
     connecting: 'Connexion à la table…',
@@ -51,7 +71,7 @@ export const fr = {
     disconnected: 'déconnecté',
     addBot: 'Ajouter un bot',
     removeBot: 'Retirer',
-    bot: (level: string) => `Bot · ${level}`,
+    bot: (name: string, level: string) => `${name} · ${level}`,
     waiting: 'En attente d’un siège',
     settings: 'Réglages',
     players: 'Joueurs',
@@ -104,7 +124,7 @@ export const fr = {
   table: {
     yourTurn: 'À vous',
     yourHand: 'Votre main',
-    bot: (n: number) => `Bot ${n}`,
+    bot: (n: number) => `Jade ${n}`,
     lastTrickWonBy: (name: string) => `Dernier pli — remporté par ${name}`,
     waitingFor: (name: string) => `${name} réfléchit…`,
     preselected: (card: string) => `Présélection : ${card}`,
@@ -113,6 +133,9 @@ export const fr = {
     taker: 'Preneur',
     partner: 'Partenaire',
     replaced: 'remplacé par un bot',
+    autoplay: 'Jeu auto',
+    autoplayActive: 'Jeu auto : activé',
+    autoplayOn: 'jeu auto',
     disconnected: 'déconnecté',
     cards: (n: number) => (n > 1 ? `${n} cartes` : `${n} carte`),
     contract: (contract: string, taker: string) => `${contract} — ${taker}`,
@@ -174,6 +197,7 @@ export const fr = {
     chelem: 'Chelem',
     dealScore: 'Score de la donne',
     continue: 'Continuer',
+    ready: 'Prêt',
     waitingFor: (names: string) => `En attente de : ${names}`,
   },
   sheet: {
@@ -209,6 +233,7 @@ export const fr = {
     SEATS_NOT_FILLED: 'Tous les sièges doivent être occupés pour lancer la partie.',
     NOT_SEATED: "Vous n'êtes pas assis à la table.",
     REPLACED_BY_NEW_CONNECTION: 'Cette table a été ouverte ailleurs.',
+    ABANDON_NOT_ALLOWED: 'On ne peut redonner que seul à la table avec des bots.',
     NO_DEAL_IN_PROGRESS: "Aucune donne n'est en cours.",
     DEAL_IN_PROGRESS: 'Une donne est déjà en cours.',
     SESSION_OVER: 'La partie est terminée.',

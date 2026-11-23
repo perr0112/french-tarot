@@ -37,7 +37,10 @@ export interface SessionState {
 export type SessionAction =
   /** `favoured`: the seat dealt an exceptional hand (createFavouredDeal), if any. */
   | { readonly type: 'deal'; readonly seed: number; readonly favoured?: Seat }
-  | { readonly type: 'play'; readonly seat: Seat; readonly action: Action };
+  | { readonly type: 'play'; readonly seat: Seat; readonly action: Action }
+  /** Abandons the deal in progress, unrecorded, for a new one from the same dealer (the room's
+   * « Redonner », a lone player among bots; CONTEXT.md, Abandoned deal). */
+  | { readonly type: 'abandon'; readonly seed: number };
 
 export type SessionErrorCode = 'NO_DEAL_IN_PROGRESS' | 'DEAL_IN_PROGRESS' | 'SESSION_OVER';
 
@@ -89,6 +92,16 @@ export function applySessionAction(session: SessionState, action: SessionAction)
           ? createDeal(input)
           : createFavouredDeal({ ...input, seat: action.favoured });
       return { ok: true, session: settle({ ...session, phase: 'dealing', deal }) };
+    }
+    case 'abandon': {
+      if (session.deal === null) return failWith('NO_DEAL_IN_PROGRESS');
+      const deal = createDeal({
+        players: session.players,
+        dealer: session.dealer,
+        seed: action.seed,
+        options: session.options,
+      });
+      return { ok: true, session: settle({ ...session, deal }) };
     }
     case 'play': {
       if (session.deal === null) return failWith('NO_DEAL_IN_PROGRESS');

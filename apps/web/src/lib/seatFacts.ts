@@ -63,11 +63,15 @@ export function seatFacts(view: RoomView, seat: Seat): SeatFacts {
   const bid =
     deal?.phase === 'bidding' ? deal.bids.filter((b) => b.seat === seat).at(-1) : undefined;
   const human = occupant?.kind === 'human' ? occupant : null;
-  const status = human?.replacedByBot
-    ? fr.table.replaced
-    : human && !human.connected
-      ? fr.table.disconnected
-      : null;
+  // One's own autoplay is said once, by its toggle in the top bar.
+  const status =
+    human?.autoplay && !you
+      ? fr.table.autoplayOn
+      : human?.replacedByBot
+        ? fr.table.replaced
+        : human && !human.connected
+          ? fr.table.disconnected
+          : null;
   const running = deal !== null && deal.phase !== 'finished';
   // The session waits for the players to ask for the next deal: the last one is over.
   const betweenDeals = view.session?.continued != null;
