@@ -658,3 +658,25 @@ describe('autoplay and abandoning the deal', () => {
     expect(screen.queryByRole('button', { name: 'Redonner' })).toBeNull();
   });
 });
+
+describe('reactions', () => {
+  const playing = () => roomView(dealWith([...trumps(1, 13), ...suit('S', 1, 5)]));
+
+  it('picks one of six reactions by one’s badge and sends it', () => {
+    const send = vi.fn();
+    render(<Table view={playing()} send={send} />);
+    click('Réagir');
+    const picker = screen.getByRole('group', { name: 'Réactions' });
+    expect(within(picker).getAllByRole('button')).toHaveLength(6);
+    fireEvent.click(within(picker).getByRole('button', { name: '😂' }));
+    expect(send).toHaveBeenCalledWith({ type: 'react', emoji: '😂' });
+    expect(screen.queryByRole('group', { name: 'Réactions' })).toBeNull();
+  });
+
+  it('shows a reaction at the seat of the player who sent it', () => {
+    const reactions = new Map([[2, { emoji: '🎉' as const, id: 1 }]]);
+    render(<Table view={playing()} send={vi.fn()} reactions={reactions} />);
+    const bob = document.querySelector('[data-seat="2"]') as HTMLElement;
+    expect(within(bob).getByRole('img', { name: 'Bob réagit : 🎉' })).toBeTruthy();
+  });
+});

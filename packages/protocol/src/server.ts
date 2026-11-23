@@ -5,7 +5,7 @@ import type {
   SessionDealRecord,
   SessionErrorCode,
 } from '@tarot/engine';
-import type { RoomOptions, SeatBotLevel } from './options';
+import type { Reaction, RoomOptions, SeatBotLevel } from './options';
 
 export type RoomPhase = 'lobby' | 'playing' | 'finished';
 
@@ -72,5 +72,7 @@ export type ServerMessage =
   | { readonly type: 'welcome'; readonly token: string }
   | { readonly type: 'state'; readonly view: RoomView }
   | { readonly type: 'error'; readonly code: ServerErrorCode }
+  /** To everyone at the table: a player reacted (shown at their seat, kept nowhere). */
+  | { readonly type: 'reaction'; readonly seat: Seat; readonly emoji: Reaction }
   /** Only to the sender of a code: whether it armed the next deal. */
   | { readonly type: 'code'; readonly accepted: boolean };

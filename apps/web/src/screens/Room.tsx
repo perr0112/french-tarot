@@ -19,7 +19,10 @@ export function Room({ code }: { code: string }) {
     const nickname = storage.nickname();
     return nickname === null ? null : { nickname };
   });
-  const { status, view, error, send, dismissError, leave } = useRoomConnection(code, request);
+  const { status, view, error, send, dismissError, leave, reactions } = useRoomConnection(
+    code,
+    request,
+  );
   // Only while connected: a message sent while reconnecting would be lost, and the room would
   // keep the seat waiting (the banner says why the button is gone).
   const onLeave =
@@ -85,6 +88,7 @@ export function Room({ code }: { code: string }) {
       {view?.phase === 'playing' && (
         <Table
           view={view}
+          reactions={reactions}
           send={send}
           dealtBeforeJoining={dealtBeforeJoining ?? null}
           onLeave={onLeave}

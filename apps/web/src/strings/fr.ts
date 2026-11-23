@@ -32,6 +32,11 @@ export const fr = {
     yes: 'Quitter',
     stay: 'Rester',
   },
+  reactions: {
+    title: 'Réactions',
+    open: 'Réagir',
+    shown: (name: string, emoji: string) => `${name} réagit : ${emoji}`,
+  },
   redeal: {
     button: 'Redonner',
     confirm: 'Abandonner cette donne pour une nouvelle ?',

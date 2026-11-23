@@ -1,4 +1,4 @@
-import type { Card } from '@tarot/engine';
+import type { Card, Seat } from '@tarot/engine';
 import type { RoomView } from '@tarot/protocol';
 import { TRICK_PAUSE_MS } from '@tarot/protocol';
 import { useEffect, useState } from 'react';
@@ -13,6 +13,8 @@ import { cardName } from '../lib/cards';
 import { chienLeavesTo, chienOnTable } from '../lib/chien';
 import { useFreshPoignees } from '../hooks/useFreshPoignees';
 import { usePreselection } from '../hooks/usePreselection';
+import type { ShownReaction } from '../hooks/useReactions';
+import { ReactionPicker } from '../components/ReactionPicker';
 import { seatName } from '../lib/names';
 import { poigneeStatus } from '../lib/selection';
 import { seatPositions } from '../lib/seats';
@@ -35,9 +37,12 @@ export function Table({
   send,
   dealtBeforeJoining = null,
   onLeave,
+  reactions = new Map(),
 }: {
   view: RoomView;
   send: Send;
+  /** The reactions shown at the seats (hooks/useReactions.ts). */
+  reactions?: ReadonlyMap<Seat, ShownReaction>;
   /** The deal already dealt when this page joined the table: it is shown, not dealt in again. */
   dealtBeforeJoining?: number | null;
   /** Leaves the table for good (a bot takes the seat). */
@@ -156,6 +161,7 @@ export function Table({
               seat={seat}
               className={styles[positions[seat] ?? 'top']}
               poigneeShowing={poigneesShown.get(seat)}
+              reaction={reactions.get(seat)}
             />
           ),
         )}
@@ -217,7 +223,14 @@ export function Table({
           seat={me}
           className={styles.me}
           poigneeShowing={poigneesShown.get(me)}
+          reaction={reactions.get(me)}
         />
+        {view.you.seat !== null && (
+          <ReactionPicker
+            className={styles.react}
+            onReact={(emoji) => send({ type: 'react', emoji })}
+          />
+        )}
         {/* By the local player's right hand: it takes no room from the seats, trick or hand. */}
         <ScoreCorner view={view} className={styles.scores} />
         {deal && deal.phase !== 'finished' && (

@@ -5,6 +5,13 @@ export const BOT_LEVELS = ['easy', 'medium', 'hard'] as const;
 export type SeatBotLevel = (typeof BOT_LEVELS)[number];
 
 export const BOT_SPEEDS = ['fast', 'normal', 'slow'] as const;
+
+/** The reactions a player may send to the table (AGENTS.md §6). */
+export const REACTIONS = ['😂', '👏', '😮', '😅', '🎉', '😡'] as const;
+export type Reaction = (typeof REACTIONS)[number];
+
+/** A player may react once every this many milliseconds. */
+export const REACTION_INTERVAL_MS = 2000;
 export type BotSpeed = (typeof BOT_SPEEDS)[number];
 
 /** Room options set by the host before a session starts (AGENTS.md §5). */

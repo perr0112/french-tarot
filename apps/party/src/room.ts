@@ -24,7 +24,9 @@ import {
   type ServerErrorCode,
   type ServerMessage,
   CHIEN_PAUSE_MS,
+  REACTION_INTERVAL_MS,
   TRICK_PAUSE_MS,
+  type Reaction,
 } from '@tarot/protocol';
 
 export { CHIEN_PAUSE_MS, TRICK_PAUSE_MS };
@@ -60,6 +62,8 @@ export interface Participant {
   readonly codeTries?: number;
   /** A bot (AUTOPLAY_LEVEL) plays every decision of the seat; absent in old rooms. */
   readonly autoplay?: boolean;
+  /** When this player last reacted (REACTION_INTERVAL_MS between two); absent if never. */
+  readonly reactedAt?: number;
 }
 
 /** The whole state of a room: plain JSON, persisted after every command. */
@@ -225,6 +229,8 @@ function handleMessage(
       return { room: leave(room, me, env), replies: [{ type: 'close', connection }] };
     case 'code':
       return hostCode(room, me, connection, message.code, env);
+    case 'react':
+      return react(room, me, message.emoji, env);
     case 'autoplay':
       if (me.seat === null) return done('NOT_SEATED');
       return done(setAutoplay(room, me, message.on, env));
@@ -540,6 +546,27 @@ function setAutoplay(
   return on && next.phase === 'playing' && next.session?.phase === 'waitingForDeal'
     ? dealIfAllContinued(next, env)
     : next;
+}
+
+/**
+ * A reaction (AGENTS.md §6): sent at once to everyone connected, with the seat, and kept
+ * nowhere. One every REACTION_INTERVAL_MS per player; one sent sooner is dropped, quietly.
+ */
+function react(room: RoomState, me: Participant, emoji: Reaction, env: RoomEnv): Outcome {
+  if (room.phase !== 'playing' || me.seat === null) {
+    return refuse(room, me.connection ?? '', 'WRONG_ROOM_PHASE');
+  }
+  if (me.reactedAt !== undefined && env.now - me.reactedAt < REACTION_INTERVAL_MS) {
+    return { room, replies: [], quiet: true };
+  }
+  const seat = me.seat;
+  return {
+    room: replace(room, me, { ...me, reactedAt: env.now }),
+    replies: room.participants.flatMap((p) =>
+      p.connection === null ? [] : [reply(p.connection, { type: 'reaction', seat, emoji })],
+    ),
+    quiet: true,
+  };
 }
 
 /** Whether `me` may abandon the deal: seated, alone with bots, a deal in progress. */
