@@ -65,6 +65,8 @@ export interface RoomState {
   readonly participants: readonly Participant[];
   /** Bot level of each seat, or null for a human or empty seat. */
   readonly bots: readonly (SeatBotLevel | null)[];
+  /** Number of each seat's bot (« Jade 2 »), kept while it sits there; absent in old rooms. */
+  readonly botNumbers?: readonly (number | null)[];
   readonly session: SessionState | null;
   /** The deal in play, or the last one once it is over (the session drops finished deals). */
   readonly currentDeal: DealState | null;
@@ -317,11 +319,10 @@ function leave(room: RoomState, leaving: Participant, env: RoomEnv): RoomState {
   // A host code was for the player, not for the bot taking the seat.
   if (seat !== null && room.favoured === seat) room = { ...room, favoured: null };
   if (room.phase !== 'playing' || seat === null) return fillSeats({ ...room, participants });
-  const next: RoomState = {
-    ...room,
-    participants,
-    bots: room.bots.map((b, s) => (s === seat ? REPLACEMENT_LEVEL : b)),
-  };
+  const next = withBots(
+    { ...room, participants },
+    room.bots.map((b, s) => (s === seat ? REPLACEMENT_LEVEL : b)),
+  );
   // The deal may only have been waiting for this player to continue.
   return room.session?.phase === 'waitingForDeal' ? dealIfAllContinued(next, env) : next;
 }
@@ -345,14 +346,18 @@ function fillSeats(room: RoomState): RoomState {
 function configure(room: RoomState, patch: Partial<RoomOptions>): RoomState {
   const options = { ...room.options, ...patch };
   const players = options.players;
-  return fillSeats({
-    ...room,
-    options,
-    bots: Array.from({ length: players }, (_, seat) => room.bots[seat] ?? null),
-    participants: room.participants.map((p) =>
-      p.seat !== null && p.seat >= players ? { ...p, seat: null } : p,
+  return fillSeats(
+    withBots(
+      {
+        ...room,
+        options,
+        participants: room.participants.map((p) =>
+          p.seat !== null && p.seat >= players ? { ...p, seat: null } : p,
+        ),
+      },
+      Array.from({ length: players }, (_, seat) => room.bots[seat] ?? null),
     ),
-  });
+  );
 }
 
 function setBot(
@@ -362,7 +367,35 @@ function setBot(
 ): RoomState | ServerErrorCode {
   if (seat >= room.options.players) return 'SEAT_INVALID';
   if (humanAt(room, seat)) return 'SEAT_TAKEN';
-  return fillSeats({ ...room, bots: room.bots.map((b, s) => (s === seat ? level : b)) });
+  return fillSeats(
+    withBots(
+      room,
+      room.bots.map((b, s) => (s === seat ? level : b)),
+    ),
+  );
+}
+
+/** The bots' numbers: as stored, or (old rooms) in seat order. */
+function botNumbersOf(room: RoomState): (number | null)[] {
+  if (room.botNumbers) return [...room.botNumbers];
+  let count = 0;
+  return room.bots.map((bot) => (bot === null ? null : ++count));
+}
+
+/**
+ * Seats `bots`: a bot that stays keeps its number, even with a new level; a new one takes the
+ * smallest number free, so no bot is renamed when another comes or goes (Jade 1, Jade 2…).
+ */
+function withBots(room: RoomState, bots: readonly (SeatBotLevel | null)[]): RoomState {
+  const before = botNumbersOf(room);
+  const numbers = bots.map((bot, seat) => (bot === null ? null : (before[seat] ?? null)));
+  bots.forEach((bot, seat) => {
+    if (bot === null || numbers[seat] !== null) return;
+    let free = 1;
+    while (numbers.includes(free)) free++;
+    numbers[seat] = free;
+  });
+  return { ...room, bots, botNumbers: numbers };
 }
 
 // ---------------------------------------------------------------- session and deals
@@ -610,7 +643,7 @@ function simpleAction(template: LegalAction): Action {
 
 function occupantOf(room: RoomState, seat: Seat, now: number): SeatOccupant {
   const level = room.bots[seat];
-  if (level) return { kind: 'bot', level };
+  if (level) return { kind: 'bot', level, number: botNumbersOf(room)[seat] ?? seat + 1 };
   const human = humanAt(room, seat);
   if (!human) return { kind: 'empty' };
   return {

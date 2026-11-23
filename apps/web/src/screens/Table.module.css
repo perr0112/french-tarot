@@ -6,13 +6,7 @@
   overflow: hidden;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  /* A brown baize: a soft light on the middle, a fine weave, the edges darker (DESIGN.md §3.1). */
-  background:
-    radial-gradient(ellipse 70% 60% at 50% 42%, rgb(255 236 214 / 0.07), transparent 70%),
-    radial-gradient(ellipse 120% 100% at 50% 45%, transparent 55%, var(--color-table-edge)),
-    repeating-linear-gradient(45deg, rgb(0 0 0 / 0.035) 0 1px, transparent 1px 3px),
-    repeating-linear-gradient(-45deg, rgb(255 255 255 / 0.02) 0 1px, transparent 1px 3px),
-    var(--color-table);
+  background: var(--felt);
 }
 
 .felt {

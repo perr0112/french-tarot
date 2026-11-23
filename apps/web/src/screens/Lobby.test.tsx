@@ -11,7 +11,7 @@ const lobbyView = (isHost: boolean) =>
       { kind: 'human', nickname: 'Alice', connected: true, replacedByBot: false },
       { kind: 'empty' },
       { kind: 'human', nickname: 'Bob', connected: true, replacedByBot: false },
-      { kind: 'bot', level: 'easy' },
+      { kind: 'bot', level: 'easy', number: 1 },
     ],
   });
 

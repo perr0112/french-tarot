@@ -34,7 +34,8 @@ export type SeatOccupant =
       /** A bot plays this seat until its player comes back ("remplacé par un bot"). */
       readonly replacedByBot: boolean;
     }
-  | { readonly kind: 'bot'; readonly level: SeatBotLevel }
+  /** `number`: the bot's own number (« Jade 2 »), kept as long as it sits at this seat. */
+  | { readonly kind: 'bot'; readonly level: SeatBotLevel; readonly number: number }
   | { readonly kind: 'empty' };
 
 export interface SessionView {

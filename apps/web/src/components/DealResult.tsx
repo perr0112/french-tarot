@@ -6,7 +6,7 @@ import { seatName } from '../lib/names';
 import { madeTone, scoreTone } from '../lib/score';
 import type { Send } from '../net/connection';
 import { fr } from '../strings/fr';
-import { CardFace } from './Card';
+import { ChienCards } from './Chien';
 import styles from './DealResult.module.css';
 
 /**
@@ -84,26 +84,27 @@ export function DealResult({ view, send }: { view: RoomView; send: Send }) {
       )}
       {chien && (
         <ol className={styles.chien} role="group" aria-label={fr.table.chien}>
-          {sortHand(chien).map((card) => (
-            <li key={card}>
-              <CardFace card={card} />
-            </li>
-          ))}
+          <ChienCards chien={{ faceUp: true, cards: sortHand(chien) }} />
         </ol>
       )}
       {session.continued && (
         // The button keeps its place once clicked; who is still awaited goes on its own line.
         <div className={styles.next}>
-          {me !== null && (
-            <button
-              type="button"
-              className={`${ui.button} ${ui.primary}`}
-              disabled={session.continued.includes(me)}
-              onClick={() => send({ type: 'continue' })}
-            >
-              {session.continued.includes(me) ? fr.result.waiting : fr.result.continue}
-            </button>
-          )}
+          {me !== null &&
+            (session.continued.includes(me) ? (
+              // Not disabled: the focus stays on it and its text keeps its contrast.
+              <button type="button" className={ui.button} aria-disabled="true">
+                {fr.result.ready}
+              </button>
+            ) : (
+              <button
+                type="button"
+                className={`${ui.button} ${ui.primary}`}
+                onClick={() => send({ type: 'continue' })}
+              >
+                {fr.result.continue}
+              </button>
+            ))}
           <span className={`${ui.label} ${styles.awaited}`}>
             {waiting.length > 0 ? fr.result.waitingFor(waiting.join(', ')) : null}
           </span>

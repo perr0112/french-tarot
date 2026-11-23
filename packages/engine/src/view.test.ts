@@ -53,6 +53,28 @@ describe('getPlayerView', () => {
     for (const seat of [0, 1, 2, 3]) expect(getPlayerView(deal, seat).chien).toEqual(SIMPLE_CHIEN);
   });
 
+  it('keeps the chien hidden when a petit sec cancels the deal', () => {
+    const plain = (s: string, from: number, to: number) =>
+      Array.from(
+        { length: to - from + 1 },
+        (_, i) => `${s}${String(from + i).padStart(2, '0')}` as Card,
+      );
+    const trump = (from: number, to: number) => plain('T', from, to);
+    // Seat 1's only trump is the Petit, and it has no Excuse.
+    const deal = createDealFromHands({
+      hands: [
+        [...plain('S', 1, 14), ...trump(2, 5)],
+        [...plain('H', 1, 14), 'T01', ...plain('D', 1, 3)],
+        [...plain('C', 1, 14), ...trump(10, 13)],
+        [...plain('D', 4, 14), ...trump(14, 17), ...trump(6, 8)],
+      ],
+      chien: [...trump(18, 21), 'T09', 'EXC'],
+      dealer: 0,
+    });
+    expect(deal.cancelled?.reason).toBe('petitSec');
+    for (const seat of [0, 1, 2, 3]) expect(getPlayerView(deal, seat).chien).toBeNull();
+  });
+
   it('never reveals the chien in garde sans', () => {
     const deal = takeWith(simpleDeal(), 2, 'gardeSans');
     for (const seat of [0, 1, 2, 3]) {

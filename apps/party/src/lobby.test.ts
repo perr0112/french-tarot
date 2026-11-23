@@ -104,7 +104,7 @@ describe('lobby settings', () => {
     const h = new RoomHarness();
     h.join('c1', 'Alice');
     h.send('c1', { type: 'setBot', seat: 2, level: 'easy' });
-    expect(h.view('c1').seats[2]).toEqual({ kind: 'bot', level: 'easy' });
+    expect(h.view('c1').seats[2]).toEqual({ kind: 'bot', level: 'easy', number: 1 });
     h.send('c1', { type: 'setBot', seat: 0, level: 'medium' });
     expect(h.lastError('c1')).toBe('SEAT_TAKEN');
     h.send('c1', { type: 'setBot', seat: 4, level: 'medium' });
@@ -166,5 +166,33 @@ describe('leaving', () => {
     h.send('c1', { type: 'leave' });
     h.join('c3', 'Carl', token);
     expect(h.view('c3').you).toMatchObject({ nickname: 'Carl' });
+  });
+});
+
+describe('bot numbers', () => {
+  const numbers = (h: RoomHarness, connection: string) =>
+    h.view(connection).seats.map((s) => (s.kind === 'bot' ? s.number : null));
+
+  it('gives each bot the smallest free number when it sits, and keeps it there', () => {
+    const h = new RoomHarness();
+    h.join('c1', 'Alice');
+    h.send('c1', { type: 'setBot', seat: 3, level: 'medium' });
+    h.send('c1', { type: 'setBot', seat: 2, level: 'medium' });
+    expect(numbers(h, 'c1')).toEqual([null, null, 2, 1]);
+    // A new level is the same bot.
+    h.send('c1', { type: 'setBot', seat: 3, level: 'hard' });
+    h.send('c1', { type: 'setBot', seat: 2, level: null });
+    h.send('c1', { type: 'setBot', seat: 1, level: 'easy' });
+    expect(numbers(h, 'c1')).toEqual([null, 2, null, 1]);
+  });
+
+  it('numbers the bot taking a leaver’s seat without renaming the others', () => {
+    const h = new RoomHarness();
+    h.join('c1', 'Alice');
+    h.join('c2', 'Bob');
+    [2, 3].forEach((seat) => h.send('c1', { type: 'setBot', seat, level: 'medium' }));
+    h.send('c1', { type: 'start' });
+    h.send('c2', { type: 'leave' });
+    expect(numbers(h, 'c1')).toEqual([null, 3, 1, 2]);
   });
 });

@@ -174,7 +174,7 @@ export const fr = {
     chelem: 'Chelem',
     dealScore: 'Score de la donne',
     continue: 'Continuer',
-    waiting: 'En attente…',
+    ready: 'Prêt',
     waitingFor: (names: string) => `En attente de : ${names}`,
   },
   sheet: {

@@ -20,7 +20,7 @@ Goal in one line: **clean, uncluttered, pleasant — the table and the cards are
 ## 2. Forbidden
 
 - Hard-coded colours, sizes, radii, shadows or durations in components — use tokens.
-- Gradients, glows, textures and heavy drop shadows (except the subtle card shadow token).
+- Gradients, glows, textures and heavy drop shadows (except the subtle card shadow token, and the felt: its soft light, weave and vignette, from the `table-*` tokens only).
 - More than **2 font weights** in one view; more than **1 font family** for UI (cards may use their own numeral face).
 - Animations longer than **300 ms** on the input path (playing a card, clicking a bid). Dealing may be longer but must be skippable.
 - Animating layout properties (`width`, `height`, `top`, `left`) — animate `transform` and `opacity`.
@@ -37,24 +37,26 @@ The values below are the reference; code must match them.
 
 > **Table colour — validated:** a warm brown baize (see §7; green until 2026-11-23).
 
-| Token                | Value               | Use                                   |
-| -------------------- | ------------------- | ------------------------------------- |
-| `table`              | `#4B2E22`           | Table surface (felt)                  |
-| `table-edge`         | `#2E1E16`           | Subtle vignette / seat areas          |
-| `surface`            | `#FAFAF7`           | Panels, score sheet, menus            |
-| `surface-muted`      | `#F1F0EB`           | Secondary surfaces                    |
-| `ink`                | `#1C1C1A`           | Primary text on light surfaces        |
-| `ink-muted`          | `#6B6A65`           | Secondary text                        |
-| `ink-on-table`       | `#F4F2EA`           | Text placed on the table              |
-| `ink-on-table-muted` | `#C8B8A8`           | Secondary text on the table           |
-| `accent`             | `#E2B04A`           | Your turn, selected — the only accent |
-| `suit-red`           | `#C23B32`           | ♥ ♦                                   |
-| `suit-black`         | `#1C1C1A`           | ♠ ♣                                   |
-| `card-face`          | `#FFFDF8`           | Mini card background                  |
-| `card-paper`         | `#E4E1D5`           | Scans' paper: cartouches, trump bands |
-| `card-edge`          | `rgb(0 0 0 / 0.12)` | Card face outline (stroke over scans) |
-| `positive`           | `#2F7A49`           | Positive score, contract made         |
-| `negative`           | `#B5473D`           | Negative score, contract failed       |
+| Token                | Value                     | Use                                   |
+| -------------------- | ------------------------- | ------------------------------------- |
+| `table`              | `#4B2E22`                 | Table surface (felt)                  |
+| `table-edge`         | `#2E1E16`                 | Subtle vignette / seat areas          |
+| `table-light`        | `rgb(255 236 214 / 0.07)` | The felt's soft central light         |
+| `table-weave`        | `rgb(0 0 0 / 0.035)`      | The felt's fine weave (4 px)          |
+| `surface`            | `#FAFAF7`                 | Panels, score sheet, menus            |
+| `surface-muted`      | `#F1F0EB`                 | Secondary surfaces                    |
+| `ink`                | `#1C1C1A`                 | Primary text on light surfaces        |
+| `ink-muted`          | `#6B6A65`                 | Secondary text                        |
+| `ink-on-table`       | `#F4F2EA`                 | Text placed on the table              |
+| `ink-on-table-muted` | `#C8B8A8`                 | Secondary text on the table           |
+| `accent`             | `#E2B04A`                 | Your turn, selected — the only accent |
+| `suit-red`           | `#C23B32`                 | ♥ ♦                                   |
+| `suit-black`         | `#1C1C1A`                 | ♠ ♣                                   |
+| `card-face`          | `#FFFDF8`                 | Mini card background                  |
+| `card-paper`         | `#E4E1D5`                 | Scans' paper: cartouches, trump bands |
+| `card-edge`          | `rgb(0 0 0 / 0.12)`       | Card face outline (stroke over scans) |
+| `positive`           | `#2F7A49`                 | Positive score, contract made         |
+| `negative`           | `#B5473D`                 | Negative score, contract failed       |
 
 Contrast: all text ≥ 4.5:1 against its background (≥ 3:1 for text ≥ 24 px). On the felt: `ink-on-table` 10.9:1, `ink-on-table-muted` 6.4:1, `accent` 6.2:1.
 `positive` is 5.02:1 on `surface` and 4.60:1 on `surface-muted`; `negative` is 5.11:1 and 4.68:1.
@@ -184,8 +186,9 @@ Record design decisions here (date — decision — reason).
 - 2026-11-19 — Chien, poignées and écart trumps moved from the info bar to the table (centre, under the seats); deal scores under each seat; final screen as a card podium; `card-podium` token. Reason: user request — information was scattered with no link to the table or the players.
 - 2026-11-19 — Review: `motion-turn-stagger` and `card-spread-overlap` tokens; chien cards get `shadow-card` so the backs can be counted; score colours `.positive` / `.negative` shared in `ui.module.css`; the deal slip's total in bold without a rule.
 - 2026-11-20 — Scores moved from the top bar and drawer to a foldable slip in the felt's bottom-right corner; the called King moved under the taker's badge; poignées shown 5 s; a leave button. Reason: user request.
-- 2026-11-23 — Felt changed from green `#1F3A30` to a warm brown baize `#4B2E22` (edge `#2E1E16`, muted ink `#C8B8A8`), with a soft central light, a fine CSS weave and a darker vignette, no image. Reason: user request — a brown felt that adds to the look of the game.
 - 2026-11-20 — The table is exactly the screen's height (`100dvh`), never scrolled: the felt's empty space gives way to a growing panel, which scrolls inside only as a last resort; on a phone or below 600 px high the page scrolls instead, so nothing is hidden. The score sheet is as tall as the room above its slip. `card-hand` and `card-trick` also follow the height (`9vh`, `8vh`; the podium keeps width-only sizes, `card-podium-rest`), and the poignée panel is tighter (no title, box and levels on one line, one-line hint), so it clears the trick down to 768 px high. Reason: user report — declaring a poignée pushed the hand off screen.
 - 2026-11-20 — Preselected card: dashed accent outline and `shadow-raised`, apart from the solid selection ring; its one-line notice under the decision keeps its height when empty, so nothing moves. Reason: user request (preselect a card ahead of one's turn).
 - 2026-11-20 — Bid panel: contract tiles with drawn marks and multipliers in fixed places; « Passer » apart, outlined, last. Reason: user request — « Passer » was clicked by reflex at the bottom, where « Garde contre » had wrapped.
 - 2026-11-20 — Scores coloured by sign everywhere: `positive` / `negative` text on light surfaces (score slip, score sheet totals and deal columns, « réussi » / « chuté »), and on the felt a chip on `surface` (deal scores under the seats, final podium totals); zero stays in ink. Reason: user request.
+- 2026-11-23 — Felt changed from green `#1F3A30` to a warm brown baize `#4B2E22` (edge `#2E1E16`, muted ink `#C8B8A8`), with a soft central light, a fine CSS weave and a darker vignette, no image, on every screen (`--felt` in global.css; tokens `table-light`, `table-weave`; §2 allows it for the felt only). Reason: user request — a brown felt that adds to the look of the game.
+- 2026-11-23 — Between deals, the clicked « Continuer » becomes a neutral « Prêt » in the same place (`aria-disabled`, not `disabled`: it keeps the focus and its contrast). Bots are « Jade N », their number kept while they sit.

@@ -3,14 +3,20 @@ import { roomView } from '../testing/views';
 import { seatName } from './names';
 
 describe('seatName', () => {
-  it('numbers the bots among themselves, in seat order: Jade 1, Jade 2…', () => {
-    const view = roomView(null);
-    // Seats: Alice, a bot, Bob, a bot.
+  it('calls a bot Jade with the number the room gave it', () => {
+    const view = roomView(null, 0, {
+      seats: [
+        { kind: 'human', nickname: 'Alice', connected: true, replacedByBot: false },
+        { kind: 'bot', level: 'medium', number: 3 },
+        { kind: 'empty' },
+        { kind: 'bot', level: 'easy', number: 1 },
+      ],
+    });
     expect([0, 1, 2, 3].map((seat) => seatName(view, seat))).toEqual([
       'Alice',
+      'Jade 3',
+      'Siège 3',
       'Jade 1',
-      'Bob',
-      'Jade 2',
     ]);
   });
 
@@ -18,11 +24,11 @@ describe('seatName', () => {
     const view = roomView(null, 0, {
       seats: [
         { kind: 'human', nickname: 'Alice', connected: false, replacedByBot: true },
-        { kind: 'bot', level: 'medium' },
-        { kind: 'empty' },
-        { kind: 'bot', level: 'easy' },
+        { kind: 'bot', level: 'medium', number: 1 },
+        { kind: 'bot', level: 'medium', number: 2 },
+        { kind: 'bot', level: 'easy', number: 3 },
       ],
     });
-    expect([0, 1, 3].map((seat) => seatName(view, seat))).toEqual(['Alice', 'Jade 1', 'Jade 2']);
+    expect(seatName(view, 0)).toBe('Alice');
   });
 });

@@ -15,7 +15,7 @@ const hand: Card[] = ['T01', 'T02', 'T03', 'T04', 'T05', 'T06', 'T07', 'T08', 'T
 ]) as Card[];
 
 describe('seatFacts', () => {
-  it('names a bot by its seat only, and shows the last bid while bidding', () => {
+  it('names a bot « Jade » with its number, and shows the last bid while bidding', () => {
     const view = roomView(playOut(dealWith(hand), [[0, { type: 'bid', contract: 'garde' }]]));
     expect(seatFacts(view, 1)).toEqual({
       name: 'Jade 1',
@@ -49,7 +49,7 @@ describe('seatFacts', () => {
         { kind: 'human', nickname: 'Alice', connected: true, replacedByBot: false },
         { kind: 'human', nickname: 'Carl', connected: false, replacedByBot: false },
         { kind: 'human', nickname: 'Bob', connected: false, replacedByBot: true },
-        { kind: 'bot', level: 'easy' },
+        { kind: 'bot', level: 'easy', number: 1 },
       ],
     });
     expect(seatFacts(view, 1).status).toBe('déconnecté');

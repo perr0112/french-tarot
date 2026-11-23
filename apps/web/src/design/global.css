@@ -12,7 +12,8 @@ body,
 }
 
 body {
-  background: var(--color-table);
+  background: var(--felt);
+  background-attachment: fixed;
   color: var(--color-ink-on-table);
   font-family: var(--font-ui);
   font-size: var(--text-md-size);
@@ -29,6 +30,13 @@ select {
 }
 
 :root {
+  /* The brown baize, on every screen: a soft light on the middle, a fine weave, the edges
+     darker (DESIGN.md §2, the felt's exception). */
+  --felt:
+    radial-gradient(ellipse 70% 60% at 50% 42%, var(--color-table-light), transparent 70%),
+    radial-gradient(ellipse 120% 100% at 50% 45%, transparent 55%, var(--color-table-edge)),
+    repeating-linear-gradient(45deg, var(--color-table-weave) 0 1px, transparent 1px 4px),
+    var(--color-table);
   /* Focus ring colour: light on the table; light surfaces (.panel) switch it to ink. */
   --focus-ring-color: var(--color-ink-on-table);
   /* Native checkboxes / radios: checked = selected state, so the accent. */

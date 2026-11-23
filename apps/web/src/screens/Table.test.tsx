@@ -323,7 +323,9 @@ describe('after everyone passed', () => {
 
   it('keeps the button in its place once clicked, waiting for the others', () => {
     render(<Table view={allPassed([0]).view} send={vi.fn()} />);
-    expect(screen.getByRole('button', { name: 'En attente…' })).toHaveProperty('disabled', true);
+    // Not disabled: it keeps the focus and its text stays legible (DESIGN.md §3.1, §3.5).
+    const ready = screen.getByRole('button', { name: 'Prêt' });
+    expect(ready.getAttribute('aria-disabled')).toBe('true');
     expect(screen.getByText('En attente de : Bob')).toBeTruthy();
   });
 });
@@ -354,9 +356,10 @@ describe('the chien', () => {
       [4, { type: 'bid', contract: 'pass' }],
       [0, { type: 'bid', contract: 'pass' }],
     ]);
-    const seats = Array.from({ length: 5 }, () => ({
+    const seats = Array.from({ length: 5 }, (_, i) => ({
       kind: 'bot' as const,
       level: 'medium' as const,
+      number: i + 1,
     }));
     const options = { ...DEFAULT_ROOM_OPTIONS, players: 5 as const };
     render(<Table view={roomView(deal, 0, { seats, options })} send={vi.fn()} />);
@@ -460,9 +463,10 @@ describe('the called King', () => {
       [0, { type: 'bid', contract: 'pass' }],
       [1, { type: 'callKing', card: 'H14' }],
     ]);
-    const seats = Array.from({ length: 5 }, () => ({
+    const seats = Array.from({ length: 5 }, (_, i) => ({
       kind: 'bot' as const,
       level: 'medium' as const,
+      number: i + 1,
     }));
     const options = { ...DEFAULT_ROOM_OPTIONS, players: 5 as const };
     render(<Table view={roomView(deal, 0, { seats, options })} send={vi.fn()} />);

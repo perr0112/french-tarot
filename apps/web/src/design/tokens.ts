@@ -5,6 +5,9 @@ export const tokens = {
   color: {
     table: '#4B2E22',
     'table-edge': '#2E1E16',
+    /** The felt's soft central light and the fine weave over it (DESIGN.md §2, the felt only). */
+    'table-light': 'rgb(255 236 214 / 0.07)',
+    'table-weave': 'rgb(0 0 0 / 0.035)',
     surface: '#FAFAF7',
     'surface-muted': '#F1F0EB',
     ink: '#1C1C1A',
