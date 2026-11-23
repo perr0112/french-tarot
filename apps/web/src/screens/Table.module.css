@@ -87,7 +87,8 @@
   grid-area: centre;
   display: grid;
   place-items: center;
-  width: 100%;
+  /* The mat: a small part of the table, just what the cards need. */
+  width: min(100%, var(--width-regular));
   /* As tall as a trick, whatever lies there (the chien, nothing), so the seats beside it stay. */
   min-height: calc(var(--card-trick) * var(--card-ratio) * 2);
 }
