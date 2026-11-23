@@ -21,6 +21,7 @@ export type RoomErrorCode =
   | 'SEAT_TAKEN'
   | 'SEATS_NOT_FILLED'
   | 'NOT_SEATED'
+  | 'REDEAL_NOT_ALLOWED'
   | 'REPLACED_BY_NEW_CONNECTION';
 
 /** Every error a client may receive: room, session or engine rules. */
@@ -33,6 +34,8 @@ export type SeatOccupant =
       readonly connected: boolean;
       /** A bot plays this seat until its player comes back ("remplacé par un bot"). */
       readonly replacedByBot: boolean;
+      /** The player let a bot play for them (« jeu auto »). */
+      readonly autoplay: boolean;
     }
   /** `number`: the bot's own number (« Jade 2 »), kept as long as it sits at this seat. */
   | { readonly kind: 'bot'; readonly level: SeatBotLevel; readonly number: number }

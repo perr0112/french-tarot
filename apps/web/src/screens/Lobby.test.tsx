@@ -8,9 +8,9 @@ const lobbyView = (isHost: boolean) =>
     phase: 'lobby',
     session: null,
     seats: [
-      { kind: 'human', nickname: 'Alice', connected: true, replacedByBot: false },
+      { kind: 'human', nickname: 'Alice', connected: true, replacedByBot: false, autoplay: false },
       { kind: 'empty' },
-      { kind: 'human', nickname: 'Bob', connected: true, replacedByBot: false },
+      { kind: 'human', nickname: 'Bob', connected: true, replacedByBot: false, autoplay: false },
       { kind: 'bot', level: 'easy', number: 1 },
     ],
   });

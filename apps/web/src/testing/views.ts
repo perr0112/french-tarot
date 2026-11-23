@@ -52,9 +52,9 @@ export function roomView(
     options: DEFAULT_ROOM_OPTIONS,
     you: { nickname: 'Alice', seat, isHost: seat === 0 },
     seats: [
-      { kind: 'human', nickname: 'Alice', connected: true, replacedByBot: false },
+      { kind: 'human', nickname: 'Alice', connected: true, replacedByBot: false, autoplay: false },
       { kind: 'bot', level: 'medium', number: 1 },
-      { kind: 'human', nickname: 'Bob', connected: true, replacedByBot: false },
+      { kind: 'human', nickname: 'Bob', connected: true, replacedByBot: false, autoplay: false },
       { kind: 'bot', level: 'easy', number: 2 },
     ],
     waiting: [],

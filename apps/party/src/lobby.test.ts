@@ -12,6 +12,7 @@ describe('joining a room', () => {
       nickname: 'Alice',
       connected: true,
       replacedByBot: false,
+      autoplay: false,
     });
   });
 

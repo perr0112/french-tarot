@@ -138,3 +138,25 @@ describe('session', () => {
     expect(session.totals.reduce((a, b) => a + b, 0)).toBe(0);
   });
 });
+
+describe('redealing the deal in progress', () => {
+  const fresh = createSession({ players: 4, deals: 2, dealer: 0 });
+
+  it('replaces it with a new one from the same dealer, leaving no trace on the score sheet', () => {
+    const started = apply(apply(fresh, { type: 'deal', seed: 1 }), {
+      type: 'play',
+      seat: 1,
+      action: { type: 'bid', contract: 'pass' },
+    });
+    const redealt = apply(started, { type: 'redeal', seed: 2 });
+    expect(redealt.deal).toEqual(createDeal({ players: 4, dealer: 0, seed: 2 }));
+    expect(redealt).toMatchObject({ phase: 'dealing', dealer: 0, played: 0, history: [] });
+  });
+
+  it('is refused with no deal in progress', () => {
+    expect(applySessionAction(fresh, { type: 'redeal', seed: 2 })).toMatchObject({
+      ok: false,
+      error: { code: 'NO_DEAL_IN_PROGRESS' },
+    });
+  });
+});

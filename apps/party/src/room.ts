@@ -41,8 +41,12 @@ export const REPLACE_AFTER_MS = 10_000;
 export const EXPIRE_AFTER_MS = 24 * 60 * 60 * 1000;
 /** Wrong host codes a participant may send before every code is refused. */
 export const MAX_CODE_TRIES = 5;
+/** With nobody to wait for (every player on autoplay), how long a deal's result stays shown. */
+export const AUTO_NEXT_DEAL_MS = 6000;
 /** Level of the bot that plays for a disconnected player, or for one who left. */
 const REPLACEMENT_LEVEL: SeatBotLevel = 'medium';
+/** The bot playing for a player who turned autoplay on: random legal cards (AGENTS.md §5). */
+const AUTOPLAY_LEVEL: SeatBotLevel = 'easy';
 
 export interface Participant {
   /** Secret that lets this participant reconnect; only ever sent to them. */
@@ -54,6 +58,8 @@ export interface Participant {
   readonly disconnectedAt: number | null;
   /** Wrong host codes sent so far (absent in old rooms); past MAX_CODE_TRIES, all are refused. */
   readonly codeTries?: number;
+  /** A bot (AUTOPLAY_LEVEL) plays every decision of the seat; absent in old rooms. */
+  readonly autoplay?: boolean;
 }
 
 /** The whole state of a room: plain JSON, persisted after every command. */
@@ -219,6 +225,11 @@ function handleMessage(
       return { room: leave(room, me, env), replies: [{ type: 'close', connection }] };
     case 'code':
       return hostCode(room, me, connection, message.code, env);
+    case 'autoplay':
+      if (me.seat === null) return done('NOT_SEATED');
+      return done(setAutoplay(room, me, message.on, env));
+    case 'redeal':
+      return done(redeal(room, me, env));
   }
 }
 
@@ -509,9 +520,38 @@ function humanPlay(room: RoomState, seat: Seat, action: Action, now: number) {
   return { ...next, memories: next.memories.map((m, s) => (s === seat ? emptyMemory() : m)) };
 }
 
-/** Seats whose connected players must ask for the next deal before it is dealt. */
+/** Seats whose players must ask for the next deal before it is dealt: connected, not on autoplay. */
 const connectedSeats = (room: RoomState) =>
-  room.participants.flatMap((p) => (p.seat !== null && p.connection !== null ? [p.seat] : []));
+  room.participants.flatMap((p) =>
+    p.seat !== null && p.connection !== null && p.autoplay !== true ? [p.seat] : [],
+  );
+
+function setAutoplay(room: RoomState, me: Participant, on: boolean, env: RoomEnv): RoomState {
+  const next = replace(room, me, { ...me, autoplay: on });
+  // The next deal may only have been waiting for this player to continue.
+  return on && next.phase === 'playing' && next.session?.phase === 'waitingForDeal'
+    ? dealIfAllContinued(next, env)
+    : next;
+}
+
+/**
+ * « Redonner »: a player alone with bots drops the deal in progress for a new one from the same
+ * dealer, recorded nowhere (AGENTS.md §5). Never with another player at the table.
+ */
+function redeal(room: RoomState, me: Participant, env: RoomEnv): RoomState | ServerErrorCode {
+  if (room.phase !== 'playing' || !room.session) return 'WRONG_ROOM_PHASE';
+  const humans = room.participants.filter((p) => p.seat !== null);
+  if (me.seat === null || humans.length !== 1) return 'REDEAL_NOT_ALLOWED';
+  const result = applySessionAction(room.session, { type: 'redeal', seed: env.seed });
+  if (!result.ok) return result.error.code;
+  return {
+    ...room,
+    session: result.session,
+    currentDeal: result.session.deal ?? room.currentDeal,
+    memories: Array.from({ length: room.options.players }, emptyMemory),
+    turnSince: env.now,
+  };
+}
 
 function continueToNextDeal(
   room: RoomState,
@@ -526,8 +566,23 @@ function continueToNextDeal(
 }
 
 function dealIfAllContinued(room: RoomState, env: RoomEnv): RoomState {
-  const waitingFor = connectedSeats(room).filter((s) => !room.continued.includes(s));
-  return waitingFor.length === 0 && !isPaused(room) ? dealNext(room, env) : room;
+  return nobodyAwaited(room) && !isPaused(room) ? dealNext(room, env) : room;
+}
+
+const nobodyAwaited = (room: RoomState) =>
+  connectedSeats(room).every((s) => room.continued.includes(s));
+
+/**
+ * When the next deal comes by itself: a deal just over with nobody to ask for the next one
+ * (every player on autoplay), once its result has been shown a while.
+ */
+function autoDealAt(room: RoomState): number | null {
+  return room.phase === 'playing' &&
+    room.session?.phase === 'waitingForDeal' &&
+    !isPaused(room) &&
+    nobodyAwaited(room)
+    ? room.turnSince + AUTO_NEXT_DEAL_MS
+    : null;
 }
 
 // ---------------------------------------------------------------- bots and timing
@@ -542,6 +597,7 @@ function controllerOf(room: RoomState, seat: Seat, now: number): Controller {
   const level = room.bots[seat];
   if (level) return { kind: 'bot', level, since: -Infinity };
   const human = humanAt(room, seat);
+  if (human?.autoplay === true) return { kind: 'bot', level: AUTOPLAY_LEVEL, since: -Infinity };
   const from = human ? replacedFrom(human) : null;
   if (from === null) return { kind: 'human' };
   return now >= from
@@ -576,6 +632,8 @@ function nextWake(room: RoomState, now: number): number | null {
   const times: number[] = [];
   const turn = botTurn(room, now);
   if (turn !== null) times.push(turn.dueAt);
+  const autoDeal = autoDealAt(room);
+  if (autoDeal !== null) times.push(autoDeal);
   if (room.phase === 'playing' && !isPaused(room)) {
     for (const p of room.participants) {
       const from = replacedFrom(p);
@@ -600,6 +658,8 @@ function wake(room: RoomState, env: RoomEnv): Outcome {
   if (isPaused(room) && env.now >= room.lastActivity + EXPIRE_AFTER_MS) {
     return { room: 'destroy', replies: [] };
   }
+  const autoDeal = autoDealAt(room);
+  if (autoDeal !== null && autoDeal <= env.now) return { room: dealNext(room, env), replies: [] };
   const turn = botTurn(room, env.now);
   if (turn === null || turn.dueAt > env.now) return { room, replies: [] };
   const { deal, seat, level } = turn;
@@ -650,7 +710,11 @@ function occupantOf(room: RoomState, seat: Seat, now: number): SeatOccupant {
     kind: 'human',
     nickname: human.nickname,
     connected: human.connection !== null,
-    replacedByBot: room.phase === 'playing' && controllerOf(room, seat, now).kind === 'bot',
+    replacedByBot:
+      room.phase === 'playing' &&
+      human.autoplay !== true &&
+      controllerOf(room, seat, now).kind === 'bot',
+    autoplay: human.autoplay === true,
   };
 }
 

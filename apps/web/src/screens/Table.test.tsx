@@ -602,3 +602,46 @@ describe('preselecting a card', () => {
     expect(card('S03')).toHaveProperty('disabled', true);
   });
 });
+
+describe('autoplay and redealing', () => {
+  const alone = (autoplay = false) =>
+    roomView(dealWith([...trumps(1, 13), ...suit('S', 1, 5)]), 0, {
+      seats: [
+        { kind: 'human', nickname: 'Alice', connected: true, replacedByBot: false, autoplay },
+        { kind: 'bot', level: 'medium', number: 1 },
+        { kind: 'bot', level: 'medium', number: 2 },
+        { kind: 'bot', level: 'easy', number: 3 },
+      ],
+    });
+
+  it('turns autoplay on and off', () => {
+    const send = vi.fn();
+    const { rerender } = render(<Table view={alone()} send={send} />);
+    const toggle = () => screen.getByRole('button', { name: 'Jeu auto' });
+    expect(toggle().getAttribute('aria-pressed')).toBe('false');
+    fireEvent.click(toggle());
+    expect(send).toHaveBeenCalledWith({ type: 'autoplay', on: true });
+    rerender(<Table view={alone(true)} send={send} />);
+    expect(toggle().getAttribute('aria-pressed')).toBe('true');
+    fireEvent.click(toggle());
+    expect(send).toHaveBeenCalledWith({ type: 'autoplay', on: false });
+  });
+
+  it('offers a lone player among bots to redeal, after asking', () => {
+    const send = vi.fn();
+    render(<Table view={alone()} send={send} />);
+    click('Redonner');
+    expect(send).not.toHaveBeenCalled();
+    within(screen.getByRole('group', { name: 'Redonner' }))
+      .getByRole('button', { name: 'Redonner' })
+      .click();
+    expect(send).toHaveBeenCalledWith({ type: 'redeal' });
+  });
+
+  it('offers no redeal with another player at the table', () => {
+    render(
+      <Table view={roomView(dealWith([...trumps(1, 13), ...suit('S', 1, 5)]))} send={vi.fn()} />,
+    );
+    expect(screen.queryByRole('button', { name: 'Redonner' })).toBeNull();
+  });
+});
