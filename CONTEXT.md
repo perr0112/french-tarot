@@ -35,6 +35,10 @@ The seat that deals this deal; the role moves to the next seat after each deal, 
 A deal stopped before play because everyone passed or a player had a petit sec; it is redealt by the next dealer and does not count toward the session's N deals.
 _Avoid_: Void deal, misdeal
 
+**Abandoned deal** (« Redonner »):
+A deal in progress that a player alone with bots drops: the same dealer deals a new one, and the abandoned deal is recorded nowhere, unlike a cancelled deal.
+_Avoid_: Redeal (the next dealer dealing after a cancelled deal)
+
 **Variant**:
 The player count (3, 4 or 5) and every rule parameter that depends on it.
 

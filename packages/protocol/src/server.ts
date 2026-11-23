@@ -21,7 +21,7 @@ export type RoomErrorCode =
   | 'SEAT_TAKEN'
   | 'SEATS_NOT_FILLED'
   | 'NOT_SEATED'
-  | 'REDEAL_NOT_ALLOWED'
+  | 'ABANDON_NOT_ALLOWED'
   | 'REPLACED_BY_NEW_CONNECTION';
 
 /** Every error a client may receive: room, session or engine rules. */
@@ -63,6 +63,8 @@ export interface RoomView {
   readonly session: SessionView | null;
   /** The current deal, or the last one once it is over, from this seat's point of view. */
   readonly deal: PlayerView | null;
+  /** This player may drop the deal in progress for a new one (« Redonner », AGENTS.md §5). */
+  readonly canAbandonDeal: boolean;
 }
 
 /** Messages the room sends to a client. */

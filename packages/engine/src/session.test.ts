@@ -139,7 +139,7 @@ describe('session', () => {
   });
 });
 
-describe('redealing the deal in progress', () => {
+describe('abandoning the deal in progress', () => {
   const fresh = createSession({ players: 4, deals: 2, dealer: 0 });
 
   it('replaces it with a new one from the same dealer, leaving no trace on the score sheet', () => {
@@ -148,13 +148,24 @@ describe('redealing the deal in progress', () => {
       seat: 1,
       action: { type: 'bid', contract: 'pass' },
     });
-    const redealt = apply(started, { type: 'redeal', seed: 2 });
-    expect(redealt.deal).toEqual(createDeal({ players: 4, dealer: 0, seed: 2 }));
-    expect(redealt).toMatchObject({ phase: 'dealing', dealer: 0, played: 0, history: [] });
+    const abandoned = apply(started, { type: 'abandon', seed: 2 });
+    expect(abandoned.deal).toEqual(createDeal({ players: 4, dealer: 0, seed: 2 }));
+    expect(abandoned).toMatchObject({ phase: 'dealing', dealer: 0, played: 0, history: [] });
+  });
+
+  it('records the new deal like any other when a petit sec cancels it', () => {
+    const abandoned = apply(apply(fresh, { type: 'deal', seed: 1 }), {
+      type: 'abandon',
+      seed: petitSecSeed,
+    });
+    expect(abandoned).toMatchObject({ deal: null, dealer: 1, played: 0 });
+    expect(abandoned.history).toEqual([
+      { dealer: 0, result: null, cancelled: expect.objectContaining({ reason: 'petitSec' }) },
+    ]);
   });
 
   it('is refused with no deal in progress', () => {
-    expect(applySessionAction(fresh, { type: 'redeal', seed: 2 })).toMatchObject({
+    expect(applySessionAction(fresh, { type: 'abandon', seed: 2 })).toMatchObject({
       ok: false,
       error: { code: 'NO_DEAL_IN_PROGRESS' },
     });

@@ -135,13 +135,6 @@ export function Table({
   // The taker's own chien cards stay marked in the hand while the écart is chosen.
   const fromChien = deal?.phase === 'ecart' && deal.taker === me ? (deal.chien ?? []) : [];
   const poigneesShown = useFreshPoignees(deal ?? null, dealNumber);
-  // A lone player among bots may drop the deal in progress for a new one (AGENTS.md §5).
-  const canRedeal =
-    !betweenDeals &&
-    deal != null &&
-    deal.phase !== 'finished' &&
-    deal.phase !== 'cancelled' &&
-    view.seats.filter((occupant) => occupant.kind === 'human').length === 1;
   const turnName = deal?.turn != null && deal.turn !== me ? seatName(view, deal.turn) : null;
 
   return (
@@ -152,7 +145,7 @@ export function Table({
         onToggleLastTrick={() => setReviewingAt(reviewLastTrick ? null : cardsPlayed)}
         onLeave={onLeave}
         onAutoplay={view.you.seat === null ? undefined : (on) => send({ type: 'autoplay', on })}
-        onRedeal={canRedeal ? () => send({ type: 'redeal' }) : undefined}
+        onAbandonDeal={view.canAbandonDeal ? () => send({ type: 'abandonDeal' }) : undefined}
       />
       <div className={styles.felt}>
         {view.seats.map((_, seat) =>

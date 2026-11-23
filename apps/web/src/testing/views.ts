@@ -60,6 +60,7 @@ export function roomView(
     waiting: [],
     session: { deals: 8, played: 0, dealer: 3, totals: [0, 0, 0, 0], history: [], continued: null },
     deal: deal ? getPlayerView(deal, seat) : null,
+    canAbandonDeal: false,
     ...overrides,
   };
 }

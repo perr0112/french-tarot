@@ -62,7 +62,7 @@ const clientMessage = z.union([
   /** Lets a bot (Facile) play every decision of one's seat, or takes them back. */
   z.object({ type: z.literal('autoplay'), on: z.boolean() }),
   /** A lone player among bots: the deal in progress is dropped for a new one. */
-  z.object({ type: z.literal('redeal') }),
+  z.object({ type: z.literal('abandonDeal') }),
   /** The host code (typed in the browser console): an exceptional hand next deal. */
   z.object({ type: z.literal('code'), code: z.string().min(1).max(MAX_CODE_LENGTH) }),
 ]);

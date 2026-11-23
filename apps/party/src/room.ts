@@ -206,7 +206,7 @@ function handleMessage(
     case 'backToLobby':
       return done(
         asHostIn(room, me, 'finished') ?? {
-          ...room,
+          ...endAutoplay(room),
           phase: 'lobby',
           session: null,
           currentDeal: null,
@@ -228,8 +228,8 @@ function handleMessage(
     case 'autoplay':
       if (me.seat === null) return done('NOT_SEATED');
       return done(setAutoplay(room, me, message.on, env));
-    case 'redeal':
-      return done(redeal(room, me, env));
+    case 'abandonDeal':
+      return done(abandonDeal(room, me, env));
   }
 }
 
@@ -422,7 +422,7 @@ function beginSession(room: RoomState, dealer: Seat, env: RoomEnv): RoomState {
   const { players, deals, chelemAnnouncements } = room.options;
   const session = createSession({ players, deals, dealer, options: { chelemAnnouncements } });
   // A host code is for the session it was typed in.
-  return dealNext({ ...room, phase: 'playing', session, favoured: null }, env);
+  return dealNext(endAutoplay({ ...room, phase: 'playing', session, favoured: null }), env);
 }
 
 /**
@@ -497,13 +497,14 @@ function play(
   const sessionResult = applySessionAction(room.session, { type: 'play', seat, action });
   if (!sessionResult.ok) return sessionResult.error.code;
   const after = dealResult.state;
+  const over = sessionResult.session.phase === 'finished';
   const trickDone = after.tricks.length > deal.tricks.length;
   const chienShown = after.phase === 'ecart' && deal.phase !== 'ecart';
   // Everyone sees a completed trick, or the chien turned over, before the next move.
   const pauseAfter = trickDone ? TRICK_PAUSE_MS : chienShown ? CHIEN_PAUSE_MS : 0;
   return {
-    ...room,
-    phase: sessionResult.session.phase === 'finished' ? 'finished' : 'playing',
+    ...(over ? endAutoplay(room) : room),
+    phase: over ? 'finished' : 'playing',
     session: sessionResult.session,
     currentDeal: after,
     turnSince: now + pauseAfter,
@@ -526,7 +527,14 @@ const connectedSeats = (room: RoomState) =>
     p.seat !== null && p.connection !== null && p.autoplay !== true ? [p.seat] : [],
   );
 
-function setAutoplay(room: RoomState, me: Participant, on: boolean, env: RoomEnv): RoomState {
+function setAutoplay(
+  room: RoomState,
+  me: Participant,
+  on: boolean,
+  env: RoomEnv,
+): RoomState | ServerErrorCode {
+  // For the session in play only: it ends with it (endAutoplay).
+  if (room.phase !== 'playing') return 'WRONG_ROOM_PHASE';
   const next = replace(room, me, { ...me, autoplay: on });
   // The next deal may only have been waiting for this player to continue.
   return on && next.phase === 'playing' && next.session?.phase === 'waitingForDeal'
@@ -534,20 +542,35 @@ function setAutoplay(room: RoomState, me: Participant, on: boolean, env: RoomEnv
     : next;
 }
 
+/** Whether `me` may abandon the deal: seated, alone with bots, a deal in progress. */
+function mayAbandonDeal(room: RoomState, me: Participant): boolean {
+  return (
+    room.phase === 'playing' &&
+    room.session?.deal != null &&
+    me.seat !== null &&
+    room.participants.filter((p) => p.seat !== null).length === 1
+  );
+}
+
+/** Autoplay is for one session: off when it ends or a new one begins. */
+const endAutoplay = (room: RoomState): RoomState => ({
+  ...room,
+  participants: room.participants.map((p) => (p.autoplay ? { ...p, autoplay: false } : p)),
+});
+
 /**
  * « Redonner »: a player alone with bots drops the deal in progress for a new one from the same
  * dealer, recorded nowhere (AGENTS.md §5). Never with another player at the table.
  */
-function redeal(room: RoomState, me: Participant, env: RoomEnv): RoomState | ServerErrorCode {
-  if (room.phase !== 'playing' || !room.session) return 'WRONG_ROOM_PHASE';
-  const humans = room.participants.filter((p) => p.seat !== null);
-  if (me.seat === null || humans.length !== 1) return 'REDEAL_NOT_ALLOWED';
-  const result = applySessionAction(room.session, { type: 'redeal', seed: env.seed });
+function abandonDeal(room: RoomState, me: Participant, env: RoomEnv): RoomState | ServerErrorCode {
+  if (!room.session || !mayAbandonDeal(room, me)) return 'ABANDON_NOT_ALLOWED';
+  const result = applySessionAction(room.session, { type: 'abandon', seed: env.seed });
   if (!result.ok) return result.error.code;
   return {
     ...room,
     session: result.session,
-    currentDeal: result.session.deal ?? room.currentDeal,
+    // As dealNext: null when a petit sec cancels the new deal at once (it is then recorded).
+    currentDeal: result.session.deal,
     memories: Array.from({ length: room.options.players }, emptyMemory),
     turnSince: env.now,
   };
@@ -741,6 +764,7 @@ export function roomViewFor(room: RoomState, token: string, now: number): RoomVi
       continued: session.phase === 'waitingForDeal' ? room.continued : null,
     },
     deal: me.seat !== null && room.currentDeal ? getPlayerView(room.currentDeal, me.seat) : null,
+    canAbandonDeal: mayAbandonDeal(room, me),
   };
 }
 

@@ -17,7 +17,7 @@ export function InfoBar({
   onToggleLastTrick,
   onLeave,
   onAutoplay,
-  onRedeal,
+  onAbandonDeal,
 }: {
   view: RoomView;
   showingLastTrick: boolean;
@@ -26,7 +26,7 @@ export function InfoBar({
   /** Lets a bot play the local seat, or takes it back. */
   onAutoplay?: ((on: boolean) => void) | undefined;
   /** Offered to a lone player among bots while a deal is in progress. */
-  onRedeal?: (() => void) | undefined;
+  onAbandonDeal?: (() => void) | undefined;
 }) {
   const deal = view.deal;
   const me = view.you.seat === null ? undefined : view.seats[view.you.seat];
@@ -45,7 +45,7 @@ export function InfoBar({
             {showingLastTrick ? fr.table.hideLastTrick : fr.table.lastTrick}
           </button>
         )}
-        {onRedeal && <ConfirmButton words={fr.redeal} ask onConfirm={onRedeal} />}
+        {onAbandonDeal && <ConfirmButton words={fr.redeal} ask onConfirm={onAbandonDeal} />}
         {onAutoplay && (
           <button
             type="button"
@@ -53,7 +53,7 @@ export function InfoBar({
             aria-pressed={autoplay}
             onClick={() => onAutoplay(!autoplay)}
           >
-            {fr.table.autoplay}
+            {autoplay ? fr.table.autoplayActive : fr.table.autoplay}
           </button>
         )}
         {onLeave && <LeaveButton confirm onLeave={onLeave} />}

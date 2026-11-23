@@ -603,7 +603,7 @@ describe('preselecting a card', () => {
   });
 });
 
-describe('autoplay and redealing', () => {
+describe('autoplay and abandoning the deal', () => {
   const alone = (autoplay = false) =>
     roomView(dealWith([...trumps(1, 13), ...suit('S', 1, 5)]), 0, {
       seats: [
@@ -612,22 +612,26 @@ describe('autoplay and redealing', () => {
         { kind: 'bot', level: 'medium', number: 2 },
         { kind: 'bot', level: 'easy', number: 3 },
       ],
+      canAbandonDeal: true,
     });
 
   it('turns autoplay on and off', () => {
     const send = vi.fn();
     const { rerender } = render(<Table view={alone()} send={send} />);
-    const toggle = () => screen.getByRole('button', { name: 'Jeu auto' });
+    const toggle = () => screen.getByRole('button', { name: /^Jeu auto/ });
     expect(toggle().getAttribute('aria-pressed')).toBe('false');
     fireEvent.click(toggle());
     expect(send).toHaveBeenCalledWith({ type: 'autoplay', on: true });
     rerender(<Table view={alone(true)} send={send} />);
     expect(toggle().getAttribute('aria-pressed')).toBe('true');
+    expect(toggle().textContent).toBe('Jeu auto : activé');
+    // Said once, in the bar: not again under one's own seat.
+    expect(screen.queryByText('jeu auto')).toBeNull();
     fireEvent.click(toggle());
     expect(send).toHaveBeenCalledWith({ type: 'autoplay', on: false });
   });
 
-  it('offers a lone player among bots to redeal, after asking', () => {
+  it('offers a lone player among bots to abandon the deal, after asking', () => {
     const send = vi.fn();
     render(<Table view={alone()} send={send} />);
     click('Redonner');
@@ -635,10 +639,19 @@ describe('autoplay and redealing', () => {
     within(screen.getByRole('group', { name: 'Redonner' }))
       .getByRole('button', { name: 'Redonner' })
       .click();
-    expect(send).toHaveBeenCalledWith({ type: 'redeal' });
+    expect(send).toHaveBeenCalledWith({ type: 'abandonDeal' });
   });
 
-  it('offers no redeal with another player at the table', () => {
+  it('gives the focus back to the button once answered, Escape keeping the deal', () => {
+    const send = vi.fn();
+    render(<Table view={alone()} send={send} />);
+    click('Redonner');
+    fireEvent.keyDown(screen.getByRole('group', { name: 'Redonner' }), { key: 'Escape' });
+    expect(send).not.toHaveBeenCalled();
+    expect(document.activeElement?.textContent).toBe('Redonner');
+  });
+
+  it('offers no « Redonner » with another player at the table', () => {
     render(
       <Table view={roomView(dealWith([...trumps(1, 13), ...suit('S', 1, 5)]))} send={vi.fn()} />,
     );

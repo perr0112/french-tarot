@@ -49,11 +49,44 @@ describe('autoplay', () => {
   });
 });
 
-describe('redealing', () => {
+describe('autoplay, session by session', () => {
+  it('is refused in the lobby', () => {
+    const h = new RoomHarness();
+    h.join('c0', 'Alice');
+    h.send('c0', { type: 'autoplay', on: true });
+    expect(h.lastError('c0')).toBe('WRONG_ROOM_PHASE');
+  });
+
+  it('is turned off when the session ends', () => {
+    const h = new RoomHarness();
+    h.join('c0', 'Alice');
+    h.send('c0', { type: 'configure', options: { deals: 1 } });
+    [1, 2, 3].forEach((seat) => h.send('c0', { type: 'setBot', seat, level: 'medium' }));
+    h.send('c0', { type: 'start' });
+    h.send('c0', { type: 'autoplay', on: true });
+    for (let step = 0; step < 300 && h.view('c0').phase !== 'finished'; step++) h.advance(5000);
+    expect(h.view('c0').phase).toBe('finished');
+    expect(h.view('c0').seats[0]).toMatchObject({ autoplay: false });
+  });
+});
+
+describe('abandoning the deal (« Redonner »)', () => {
+  it('is offered in the view to a lone player among bots, during a deal only', () => {
+    const h = aloneWithBots();
+    expect(h.view('c0').canAbandonDeal).toBe(true);
+    const two = new RoomHarness();
+    two.join('c0', 'Alice');
+    two.join('c1', 'Bob');
+    [2, 3].forEach((seat) => two.send('c0', { type: 'setBot', seat, level: 'medium' }));
+    expect(two.view('c0').canAbandonDeal).toBe(false);
+    two.send('c0', { type: 'start' });
+    expect(two.view('c0').canAbandonDeal).toBe(false);
+  });
+
   it('gives a lone player among bots a new deal from the same dealer, unrecorded', () => {
     const h = aloneWithBots();
     const before = h.view('c0');
-    h.send('c0', { type: 'redeal' });
+    h.send('c0', { type: 'abandonDeal' });
     const after = h.view('c0');
     expect(after.deal?.hand).not.toEqual(before.deal?.hand);
     expect(after.deal?.dealer).toBe(before.deal?.dealer);
@@ -67,7 +100,7 @@ describe('redealing', () => {
     h.join('c1', 'Bob');
     [2, 3].forEach((seat) => h.send('c0', { type: 'setBot', seat, level: 'medium' }));
     h.send('c0', { type: 'start' });
-    h.send('c0', { type: 'redeal' });
-    expect(h.lastError('c0')).toBe('REDEAL_NOT_ALLOWED');
+    h.send('c0', { type: 'abandonDeal' });
+    expect(h.lastError('c0')).toBe('ABANDON_NOT_ALLOWED');
   });
 });
