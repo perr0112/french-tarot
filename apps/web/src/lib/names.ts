@@ -12,3 +12,18 @@ export function seatName(view: RoomView, seat: Seat): string {
   if (occupant?.kind === 'bot') return fr.table.bot(occupant.number);
   return fr.lobby.seat(seat + 1);
 }
+
+/**
+ * The other connected players still awaited before the table goes on (the next deal, the next
+ * session), by name: the local player has their own button.
+ */
+export function awaitedNames(view: RoomView, ready: readonly Seat[]): string[] {
+  return view.seats.flatMap((occupant, seat) =>
+    seat !== view.you.seat &&
+    occupant.kind === 'human' &&
+    occupant.connected &&
+    !ready.includes(seat)
+      ? [seatName(view, seat)]
+      : [],
+  );
+}

@@ -50,14 +50,3 @@
   gap: var(--space-1);
   margin: var(--space-3) 0;
 }
-
-/* The way on: the button in a fixed place, who is awaited under it on one reserved line. */
-.next {
-  display: grid;
-  justify-items: center;
-  gap: var(--space-1);
-}
-
-.awaited {
-  min-height: var(--text-sm-line);
-}

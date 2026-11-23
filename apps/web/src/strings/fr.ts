@@ -197,8 +197,6 @@ export const fr = {
     chelem: 'Chelem',
     dealScore: 'Score de la donne',
     continue: 'Continuer',
-    ready: 'Prêt',
-    waitingFor: (names: string) => `En attente de : ${names}`,
   },
   sheet: {
     deal: 'Donne',
@@ -208,6 +206,11 @@ export const fr = {
     made: 'réussi',
     failed: 'chuté',
   },
+  /** Agreeing to go on together: the next deal, a new session (ReadyButton). */
+  agree: {
+    ready: 'Prêt',
+    waitingFor: (names: string) => `En attente de : ${names}`,
+  },
   final: {
     title: 'Partie terminée',
     winner: (name: string) => `${name} remporte la partie`,
@@ -216,9 +219,9 @@ export const fr = {
     ranking: 'Classement',
     lastDeal: 'Détail de la dernière donne',
     rank: (n: number) => (n === 1 ? '1er' : `${n}e`),
-    newSession: 'Nouvelle partie',
+    replay: 'Rejouer',
+    seatFree: 'Un siège est libre : l’hôte peut revenir au salon pour le remplir.',
     backToLobby: 'Retour au salon',
-    hostDecides: "L'hôte peut relancer une partie.",
   },
   errors: {
     INVALID_MESSAGE: 'Message incompris par le serveur.',
