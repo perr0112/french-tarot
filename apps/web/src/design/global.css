@@ -35,12 +35,15 @@ select {
   --felt:
     radial-gradient(ellipse 70% 60% at 50% 42%, var(--color-table-light), transparent 70%),
     radial-gradient(ellipse 120% 100% at 50% 45%, transparent 55%, var(--color-table-edge)),
-    repeating-linear-gradient(
-      178deg,
-      var(--color-table-grain) 0 1px,
-      transparent 1px 7px,
-      var(--color-table-grain) 7px 8px,
-      transparent 8px 19px
+    repeating-linear-gradient(179deg, var(--color-table-grain) 0 1px, transparent 1px 11px),
+    repeating-linear-gradient(177deg, var(--color-table-grain) 0 1px, transparent 1px 17px),
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--color-table-figure) 30%,
+      transparent 45%,
+      var(--color-table-figure) 70%,
+      transparent
     ),
     var(--color-table);
   /* Focus ring colour: light on the table; light surfaces (.panel) switch it to ink. */

@@ -3,13 +3,25 @@ import styles from './Mat.module.css';
 
 type Corner = 'topLeft' | 'topRight' | 'bottomRight' | 'bottomLeft';
 
+type Suit = 'spade' | 'heart' | 'club' | 'diamond';
+
 /** One suit per corner, as the four suits of the deck go round the table. */
-const CORNERS: readonly { corner: Corner; suit: string }[] = [
-  { corner: 'topLeft', suit: '♠' },
-  { corner: 'topRight', suit: '♥' },
-  { corner: 'bottomRight', suit: '♣' },
-  { corner: 'bottomLeft', suit: '♦' },
+const CORNERS: readonly { corner: Corner; suit: Suit }[] = [
+  { corner: 'topLeft', suit: 'spade' },
+  { corner: 'topRight', suit: 'heart' },
+  { corner: 'bottomRight', suit: 'club' },
+  { corner: 'bottomLeft', suit: 'diamond' },
 ];
+
+/** The suits drawn in a 10 × 10 box (not font glyphs, which some systems turn into emoji). */
+const SUIT_PATHS: Readonly<Record<Suit, string>> = {
+  spade:
+    'M5 0C3 3 0 4.5 0 6.6 0 8 1.1 9 2.4 9c.9 0 1.6-.4 2.1-1L4 10h2l-.5-2c.5.6 1.2 1 2.1 1C8.9 9 10 8 10 6.6 10 4.5 7 3 5 0Z',
+  heart:
+    'M5 9.5C1 6.5 0 4.4 0 2.8 0 1.2 1.2 0 2.6 0 3.7 0 4.5.7 5 1.6 5.5.7 6.3 0 7.4 0 8.8 0 10 1.2 10 2.8c0 1.6-1 3.7-5 6.7Z',
+  club: 'M5 .4a2.3 2.3 0 1 1 0 4.6 2.3 2.3 0 1 1 0-4.6ZM2.4 3.8a2.3 2.3 0 1 1 0 4.6 2.3 2.3 0 1 1 0-4.6ZM7.6 3.8a2.3 2.3 0 1 1 0 4.6 2.3 2.3 0 1 1 0-4.6ZM4.4 6 4 10h2l-.4-4Z',
+  diamond: 'M5 0 9 5 5 10 1 5Z',
+};
 
 /** How the top left flourish is mirrored into each corner (in the 48 × 48 view box). */
 const MIRROR: Readonly<Record<Corner, string | undefined>> = {
@@ -23,7 +35,7 @@ const MIRROR: Readonly<Record<Corner, string | undefined>> = {
  * A corner flourish: a whiplash curve along the two edges, curled at both ends, in the manner
  * of the 1898 Grimaud deck, round a suit kept upright.
  */
-function Ornament({ corner, suit }: { corner: Corner; suit: string }) {
+function Ornament({ corner, suit }: { corner: Corner; suit: Suit }) {
   const right = corner === 'topRight' || corner === 'bottomRight';
   const bottom = corner === 'bottomLeft' || corner === 'bottomRight';
   return (
@@ -33,22 +45,20 @@ function Ornament({ corner, suit }: { corner: Corner; suit: string }) {
       aria-hidden="true"
       data-corner={corner}
     >
-      <g className={styles.lines} transform={MIRROR[corner]}>
-        <path d="M6 40 C6 20 20 6 40 6" />
-        <path d="M40 6 c4 0 5 4 2 5.5 c-2 1 -4 -0.5 -3 -2.5" />
-        <path d="M6 40 c0 4 4 5 5.5 2 c1 -2 -0.5 -4 -2.5 -3" />
-        <path d="M13 37 C13 24 24 13 37 13" className={styles.thin} />
-        <path d="M10 10 l3 3 M10 10 l-1 4 M10 10 l4 -1" className={styles.thin} />
+      <g transform={MIRROR[corner]}>
+        <g className={styles.lines}>
+          <path d="M4 36 C4 18 18 4 36 4" />
+          <path d="M36 4 c3.5 0 4.5 3.5 1.8 4.8 c-1.8 .9 -3.5 -.5 -2.6 -2.2" />
+          <path d="M4 36 c0 3.5 3.5 4.5 4.8 1.8 c.9 -1.8 -.5 -3.5 -2.2 -2.6" />
+          <path d="M11 33 C11 21 21 11 33 11" className={styles.thin} />
+        </g>
+        <path className={styles.leaf} d="M7 7 q6 1 7 7 q-6 -1 -7 -7z" />
       </g>
-      <text
+      <path
         className={styles.suit}
-        x={right ? 23 : 25}
-        y={bottom ? 22 : 26}
-        textAnchor="middle"
-        dominantBaseline="central"
-      >
-        {suit}
-      </text>
+        d={SUIT_PATHS[suit]}
+        transform={`translate(${right ? 14.5 : 23.5} ${bottom ? 14.5 : 23.5}) scale(1)`}
+      />
     </svg>
   );
 }

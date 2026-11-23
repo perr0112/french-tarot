@@ -8,14 +8,16 @@ export const tokens = {
     'table-edge': '#1C130E',
     /** A soft light on the table and the mat, and the wood's grain (DESIGN.md §2, exception). */
     'table-light': 'rgb(255 236 214 / 0.06)',
-    'table-grain': 'rgb(0 0 0 / 0.08)',
+    'table-grain': 'rgb(0 0 0 / 0.12)',
+    /** The wood's slow, wavy figure across the grain. */
+    'table-figure': 'rgb(0 0 0 / 0.04)',
     /** The small brown mat where the cards are laid: felt, edge, weave, stitching. */
     mat: '#5E3D2B',
     'mat-edge': '#4A2F21',
     'mat-weave': 'rgb(0 0 0 / 0.04)',
     'mat-stitch': 'rgb(244 226 200 / 0.35)',
     /** The mat's corner flourishes: a muted brass, never the accent. */
-    ornament: '#B08D57',
+    ornament: '#C9A46A',
     surface: '#FAFAF7',
     'surface-muted': '#F1F0EB',
     ink: '#1C1C1A',
@@ -49,6 +51,8 @@ export const tokens = {
     card: `${(CARD_RADIUS / CARD_W) * 100}% / ${((CARD_RADIUS / CARD_H) * 100).toFixed(2)}%`,
   },
   shadow: {
+    /** The mat lying on the table. */
+    mat: '0 6px 18px rgb(0 0 0 / 0.45)',
     card: '0 1px 2px rgb(0 0 0 / 0.18), 0 2px 6px rgb(0 0 0 / 0.12)',
     raised: '0 4px 12px rgb(0 0 0 / 0.22)',
     panel: '0 8px 24px rgb(0 0 0 / 0.16)',

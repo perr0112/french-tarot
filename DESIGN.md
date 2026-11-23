@@ -42,12 +42,13 @@ The values below are the reference; code must match them.
 | `table`              | `#2A1D16`                 | The wooden table (walnut)             |
 | `table-edge`         | `#1C130E`                 | Its darker edges (vignette)           |
 | `table-light`        | `rgb(255 236 214 / 0.06)` | Soft light on the table and the mat   |
-| `table-grain`        | `rgb(0 0 0 / 0.08)`       | The wood's grain                      |
+| `table-grain`        | `rgb(0 0 0 / 0.12)`       | The wood's grain (two gratings)       |
+| `table-figure`       | `rgb(0 0 0 / 0.04)`       | The wood's slow figure across it      |
 | `mat`                | `#5E3D2B`                 | The small brown mat under the cards   |
 | `mat-edge`           | `#4A2F21`                 | Its edge                              |
 | `mat-weave`          | `rgb(0 0 0 / 0.04)`       | Its fine weave (4 px)                 |
 | `mat-stitch`         | `rgb(244 226 200 / 0.35)` | Its stitched border                   |
-| `ornament`           | `#B08D57`                 | The mat's corner flourishes (brass)   |
+| `ornament`           | `#C9A46A`                 | The mat's corner flourishes (brass)   |
 | `surface`            | `#FAFAF7`                 | Panels, score sheet, menus            |
 | `surface-muted`      | `#F1F0EB`                 | Secondary surfaces                    |
 | `ink`                | `#1C1C1A`                 | Primary text on light surfaces        |
@@ -84,7 +85,7 @@ Contrast: all text ≥ 4.5:1 against its background (≥ 3:1 for text ≥ 24 px)
 - Spacing scale (px): `4, 8, 12, 16, 24, 32, 48, 64`. No other values.
 - Radius: `radius-sm 6`, `radius-md 10`, `radius-lg 16`, `radius-card 8% / 4.5%` (cards only: scales with the card, 8% / 4.5% of its 100:177 box, i.e. 8 units of the 100×177 drawing; use it only on card-shaped boxes).
 - Border widths: `border-thin 1px` (fields, card edge), `border-thick 2px` (turn indicator, frames, focus ring), `border-selected 3px` (selected card outline). `focus-offset 2px` (focus ring offset).
-- Elevation: `shadow-card` = `0 1px 2px rgb(0 0 0 / 0.18), 0 2px 6px rgb(0 0 0 / 0.12)`; `shadow-raised` (hovered/selected card) = `0 4px 12px rgb(0 0 0 / 0.22)`; `shadow-panel` = `0 8px 24px rgb(0 0 0 / 0.16)`. Nothing heavier.
+- Elevation: `shadow-card` = `0 1px 2px rgb(0 0 0 / 0.18), 0 2px 6px rgb(0 0 0 / 0.12)`; `shadow-raised` (hovered/selected card) = `0 4px 12px rgb(0 0 0 / 0.22)`; `shadow-panel` = `0 8px 24px rgb(0 0 0 / 0.16)`; `shadow-mat` = `0 6px 18px rgb(0 0 0 / 0.45)` (the mat lying on the table). Nothing heavier.
 
 ### 3.4 Layout sizes
 
@@ -195,5 +196,5 @@ Record design decisions here (date — decision — reason).
 - 2026-11-20 — Preselected card: dashed accent outline and `shadow-raised`, apart from the solid selection ring; its one-line notice under the decision keeps its height when empty, so nothing moves. Reason: user request (preselect a card ahead of one's turn).
 - 2026-11-20 — Bid panel: contract tiles with drawn marks and multipliers in fixed places; « Passer » apart, outlined, last. Reason: user request — « Passer » was clicked by reflex at the bottom, where « Garde contre » had wrapped.
 - 2026-11-20 — Scores coloured by sign everywhere: `positive` / `negative` text on light surfaces (score slip, score sheet totals and deal columns, « réussi » / « chuté »), and on the felt a chip on `surface` (deal scores under the seats, final podium totals); zero stays in ink. Reason: user request.
-- 2026-11-23 — The green felt gives way to a wooden table (walnut `#2A1D16`, CSS grain and vignette, on every screen: `--felt` in global.css) with a small brown mat (`mat #5E3D2B`) in the centre where the cards are laid: stitched edge, soft shadow, and a brass flourish round a suit at each corner (Mat). §2 allows these gradients for the table and the mat only. Reason: user request — a small brown mat like a real one, and an artistic touch at the board's corners.
+- 2026-11-23 — The green felt gives way to a wooden table (walnut `#2A1D16`, CSS grain and vignette, on every screen: `--felt` in global.css) with a small brown mat (`mat #5E3D2B`) in the centre where the cards are laid: stitched edge, soft shadow, and a brass flourish (`ornament #C9A46A`, 4.1:1 on the mat, never the accent) round a suit drawn in SVG at each corner, inside the stitching (Mat); no light on the mat, so its muted captions keep 5.0:1. §2 allows these gradients for the table and the mat only. Reason: user request — a small brown mat like a real one, and an artistic touch at the board's corners.
 - 2026-11-23 — Between deals, the clicked « Continuer » becomes a neutral « Prêt » in the same place (`aria-disabled`, not `disabled`: it keeps the focus and its contrast). Bots are « Jade N », their number kept while they sit.
