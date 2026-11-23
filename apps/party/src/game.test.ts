@@ -176,6 +176,28 @@ describe('leaving a session', () => {
   });
 });
 
+describe('playing again', () => {
+  it('starts the next session once every player at the table has accepted', () => {
+    const h = table(['Alice', 'Bob'], { deals: 1 });
+    h.send('c0', { type: 'start' });
+    runUntil(h, ['c0', 'c1'], () => h.view('c0').phase === 'finished');
+    expect(h.view('c0').replayReady).toEqual([]);
+    h.send('c1', { type: 'newSession' });
+    expect(h.view('c0')).toMatchObject({ phase: 'finished', replayReady: [1] });
+    h.send('c0', { type: 'newSession' });
+    expect(h.view('c0')).toMatchObject({ phase: 'playing', replayReady: null });
+  });
+
+  it('does not wait for a player who has gone', () => {
+    const h = table(['Alice', 'Bob'], { deals: 1 });
+    h.send('c0', { type: 'start' });
+    runUntil(h, ['c0', 'c1'], () => h.view('c0').phase === 'finished');
+    h.send('c0', { type: 'newSession' });
+    h.disconnect('c1');
+    expect(h.view('c0').phase).toBe('playing');
+  });
+});
+
 describe('leaving after a session', () => {
   it('frees the seat: the next session waits for it to be filled', () => {
     const h = table(['Alice', 'Bob'], { deals: 1 });

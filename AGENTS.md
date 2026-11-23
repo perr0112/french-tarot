@@ -266,7 +266,7 @@ Three levels, all strictly using the redacted player view and `getLegalActions`:
   - Bot level per seat: **Moyen**.
   - Chelem announcements enabled: **on**.
   - Delay between bot moves: **normal** (fast / normal / slow).
-- **Session**: N **played** deals (cancelled deals — everyone passed, petit sec — are shown on the score sheet but do not count) with a cumulative score sheet; a final ranking screen at the end; option to start a new session in the same room.
+- **Session**: N **played** deals (cancelled deals — everyone passed, petit sec — are shown on the score sheet but do not count) with a cumulative score sheet; a final ranking screen at the end; option to start a new session in the same room: every connected player at the table accepts (« Rejouer ») and it begins once all have, at once for a player alone with bots; the host may instead go back to the lobby.
 - **Reconnection**: a session token is stored in `localStorage` per room; reconnecting restores the seat.
 - **Disconnect → bot replacement**: when a human disconnects, a bot (room default level) plays their seat until they come back; the UI shows that seat as "remplacé par un bot".
 - **Leaving**: a player may leave the table for good (« Quitter la table »). In the lobby the seat is freed; during a session a bot (room default level) takes it at once. The player is forgotten (their reconnection token no longer works), and the next human becomes host if they were.

@@ -7,6 +7,7 @@ import { madeTone, scoreTone } from '../lib/score';
 import type { Send } from '../net/connection';
 import { fr } from '../strings/fr';
 import { ChienCards } from './Chien';
+import { ReadyButton } from './ReadyButton';
 import styles from './DealResult.module.css';
 
 /**
@@ -19,15 +20,6 @@ export function DealResult({ view, send }: { view: RoomView; send: Send }) {
   if (!session || !record) return null;
   const result = record.result;
   const me = view.you.seat;
-  const waiting = view.seats.flatMap((occupant, seat) =>
-    // The local player has their own button.
-    seat !== me &&
-    occupant.kind === 'human' &&
-    occupant.connected &&
-    !session.continued?.includes(seat)
-      ? [seatName(view, seat)]
-      : [],
-  );
   // Nobody played it: everyone may see what the chien held (AGENTS.md §3.3).
   const chien = record.cancelled?.reason === 'allPassed' ? (view.deal?.chien ?? null) : null;
   const signed = (value: number) => <span className={scoreTone(value)}>{formatScore(value)}</span>;
@@ -88,27 +80,12 @@ export function DealResult({ view, send }: { view: RoomView; send: Send }) {
         </ol>
       )}
       {session.continued && (
-        // The button keeps its place once clicked; who is still awaited goes on its own line.
-        <div className={styles.next}>
-          {me !== null &&
-            (session.continued.includes(me) ? (
-              // Not disabled: the focus stays on it and its text keeps its contrast.
-              <button type="button" className={ui.button} aria-disabled="true">
-                {fr.result.ready}
-              </button>
-            ) : (
-              <button
-                type="button"
-                className={`${ui.button} ${ui.primary}`}
-                onClick={() => send({ type: 'continue' })}
-              >
-                {fr.result.continue}
-              </button>
-            ))}
-          <span className={`${ui.label} ${styles.awaited}`}>
-            {waiting.length > 0 ? fr.result.waitingFor(waiting.join(', ')) : null}
-          </span>
-        </div>
+        <ReadyButton
+          view={view}
+          ready={session.continued}
+          label={fr.result.continue}
+          onReady={() => send({ type: 'continue' })}
+        />
       )}
     </section>
   );

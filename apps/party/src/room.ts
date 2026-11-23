@@ -83,7 +83,8 @@ export interface RoomState {
   readonly currentDeal: DealState | null;
   /** Memory of whichever bot plays each seat. */
   readonly memories: readonly BotMemory[];
-  /** Between two deals: seats whose players asked for the next deal. */
+  /** Between two deals: seats whose players asked for the next deal; once the session is over,
+   * those who accepted to play again. */
   readonly continued: readonly Seat[];
   /** When the seat to act may act at the earliest (later after a completed trick). */
   readonly turnSince: number;
@@ -208,12 +209,7 @@ function handleMessage(
     case 'start':
       return done(asHostIn(room, me, 'lobby') ?? start(room, env));
     case 'newSession':
-      return done(
-        asHostIn(room, me, 'finished') ??
-          (seatsOf(room).some((seat) => isFree(room, seat))
-            ? 'SEATS_NOT_FILLED'
-            : beginSession(room, room.session?.dealer ?? 0, env)),
-      );
+      return done(acceptReplay(room, me, env));
     case 'backToLobby':
       return done(
         asHostIn(room, me, 'finished') ?? {
@@ -319,6 +315,30 @@ function join(
   };
 }
 
+/**
+ * « Rejouer » (AGENTS.md §5): once the session is over, each player at the table accepts; the
+ * next session begins when every connected one has (at once for a player alone with bots).
+ */
+function acceptReplay(room: RoomState, me: Participant, env: RoomEnv): RoomState | ServerErrorCode {
+  if (room.phase !== 'finished') return 'WRONG_ROOM_PHASE';
+  if (me.seat === null) return 'NOT_SEATED';
+  if (seatsOf(room).some((seat) => isFree(room, seat))) return 'SEATS_NOT_FILLED';
+  const continued = room.continued.includes(me.seat)
+    ? room.continued
+    : [...room.continued, me.seat];
+  return replayIfAllAccepted({ ...room, continued }, env);
+}
+
+function replayIfAllAccepted(room: RoomState, env: RoomEnv): RoomState {
+  const ready =
+    room.phase === 'finished' &&
+    room.continued.length > 0 &&
+    nobodyAwaited(room) &&
+    !isPaused(room) &&
+    !seatsOf(room).some((seat) => isFree(room, seat));
+  return ready ? beginSession(room, room.session?.dealer ?? 0, env) : room;
+}
+
 function disconnect(room: RoomState, connection: string, now: number, env: RoomEnv): RoomState {
   const leaving = byConnection(room, connection);
   if (!leaving) return room;
@@ -328,7 +348,8 @@ function disconnect(room: RoomState, connection: string, now: number, env: RoomE
     return fillSeats(replace(room, leaving, gone));
   }
   const next = replace(room, leaving, { ...leaving, connection: null, disconnectedAt: now });
-  // The deal may only have been waiting for this player to continue.
+  // The next deal, or the next session, may only have been waiting for this player.
+  if (room.phase === 'finished') return replayIfAllAccepted(next, env);
   return room.session?.phase === 'waitingForDeal' ? dealIfAllContinued(next, env) : next;
 }
 
@@ -805,6 +826,7 @@ export function roomViewFor(room: RoomState, token: string, now: number): RoomVi
     },
     deal: me.seat !== null && room.currentDeal ? getPlayerView(room.currentDeal, me.seat) : null,
     canAbandonDeal: mayAbandonDeal(room, me),
+    replayReady: room.phase === 'finished' ? room.continued : null,
   };
 }
 

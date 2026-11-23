@@ -216,9 +216,8 @@ export const fr = {
     ranking: 'Classement',
     lastDeal: 'Détail de la dernière donne',
     rank: (n: number) => (n === 1 ? '1er' : `${n}e`),
-    newSession: 'Nouvelle partie',
+    replay: 'Rejouer',
     backToLobby: 'Retour au salon',
-    hostDecides: "L'hôte peut relancer une partie.",
   },
   errors: {
     INVALID_MESSAGE: 'Message incompris par le serveur.',

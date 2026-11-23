@@ -79,12 +79,6 @@
   justify-content: center;
 }
 
-.hint {
-  color: var(--color-ink-on-table-muted);
-  margin: 0;
-  text-align: center;
-}
-
 .lastDeal summary {
   cursor: pointer;
   color: var(--color-ink-on-table-muted);

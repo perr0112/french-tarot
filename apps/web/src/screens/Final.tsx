@@ -3,6 +3,7 @@ import ui from '../design/ui.module.css';
 import { CardFace } from '../components/Card';
 import { DealResult } from '../components/DealResult';
 import { LeaveButton } from '../components/LeaveButton';
+import { ReadyButton } from '../components/ReadyButton';
 import { ScoreChip } from '../components/ScoreChip';
 import { ScoreSheet } from '../components/ScoreSheet';
 import { seatName } from '../lib/names';
@@ -14,7 +15,7 @@ import styles from './Final.module.css';
 /**
  * The end of a session on the felt (AGENTS.md §5): each player receives a card by rank — the 21
  * to the winner, down to the Excuse for the last — then the score sheet, and the last deal
- * folded away. The host may start again.
+ * folded away. Everyone accepts to play again, or the host goes back to the lobby.
  */
 export function Final({
   view,
@@ -48,26 +49,22 @@ export function Final({
           </li>
         ))}
       </ol>
-      {view.you.isHost ? (
-        <div className={`${ui.row} ${styles.actions}`}>
-          <button
-            type="button"
-            className={`${ui.button} ${ui.primary}`}
-            onClick={() => send({ type: 'newSession' })}
-          >
-            {fr.final.newSession}
-          </button>
+      {/* Everyone at the table accepts to play again (AGENTS.md §5); the host may instead go
+          back to the lobby. */}
+      <div className={`${ui.row} ${styles.actions}`}>
+        <ReadyButton
+          view={view}
+          ready={view.replayReady ?? []}
+          label={fr.final.replay}
+          onReady={() => send({ type: 'newSession' })}
+        />
+        {view.you.isHost && (
           <button type="button" className={ui.button} onClick={() => send({ type: 'backToLobby' })}>
             {fr.final.backToLobby}
           </button>
-          {onLeave && <LeaveButton confirm={false} onLeave={onLeave} />}
-        </div>
-      ) : (
-        <div className={`${ui.row} ${styles.actions}`}>
-          <p className={styles.hint}>{fr.final.hostDecides}</p>
-          {onLeave && <LeaveButton confirm={false} onLeave={onLeave} />}
-        </div>
-      )}
+        )}
+        {onLeave && <LeaveButton confirm={false} onLeave={onLeave} />}
+      </div>
       <div className={ui.panel}>
         <ScoreSheet view={view} />
       </div>

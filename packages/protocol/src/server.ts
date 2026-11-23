@@ -65,6 +65,8 @@ export interface RoomView {
   readonly deal: PlayerView | null;
   /** This player may drop the deal in progress for a new one (« Redonner », AGENTS.md §5). */
   readonly canAbandonDeal: boolean;
+  /** Once the session is over: the seats whose players accepted to play again; else null. */
+  readonly replayReady: readonly Seat[] | null;
 }
 
 /** Messages the room sends to a client. */

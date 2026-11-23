@@ -20,7 +20,7 @@ describe('final ranking', () => {
     render(<Final view={view} send={vi.fn()} />);
     expect(screen.getByText('Tout le monde a passé.')).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Continuer' })).toBeNull();
-    expect(screen.getByRole('button', { name: 'Nouvelle partie' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Rejouer' })).toBeTruthy();
   });
 
   const ended = (totals: number[]) =>
@@ -44,6 +44,19 @@ describe('final ranking', () => {
     render(<Final view={ended([-60, 90, 30, -60])} send={vi.fn()} />);
     expect(screen.getByRole('heading', { name: 'Jade 1 remporte la partie' })).toBeTruthy();
     expect(podium()).toEqual((['T21', 'T20', 'EXC', 'EXC'] as const).map(cardName));
+  });
+
+  it('lets every player accept to play again, naming who is still awaited', () => {
+    const send = vi.fn();
+    // Bob (seat 2) sees the button too, not only the host.
+    const view = { ...ended([0, 0, 0, 0]), you: { nickname: 'Bob', seat: 2, isHost: false } };
+    const { rerender } = render(<Final view={{ ...view, replayReady: [] }} send={send} />);
+    screen.getByRole('button', { name: 'Rejouer' }).click();
+    expect(send).toHaveBeenCalledWith({ type: 'newSession' });
+    expect(screen.queryByRole('button', { name: 'Retour au salon' })).toBeNull();
+    rerender(<Final view={{ ...view, replayReady: [2] }} send={send} />);
+    expect(screen.getByRole('button', { name: 'Prêt' }).getAttribute('aria-disabled')).toBe('true');
+    expect(screen.getByText('En attente de : Alice')).toBeTruthy();
   });
 
   it('names every winner of a tie', () => {
