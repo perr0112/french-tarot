@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { SEASONS, type Season } from '../design/tokens';
+import { SEASONS, type Season } from '../themes/seasons';
 
 /** The theme a player chose: the season of the day, or one season always. */
 export type ThemePreference = 'auto' | Season;
@@ -32,9 +32,13 @@ const listeners = new Set<() => void>();
 
 export const themePreference = (): ThemePreference => preference;
 
+/** The season shown: the one the player picked, else the season of the day. */
+export const activeSeason = (now: Date = new Date()): Season =>
+  preference === 'auto' ? seasonOf(now) : preference;
+
 /** Puts the season's theme on the page (tokens.ts: `:root[data-season]`). */
 export function applyTheme(now: Date = new Date()): void {
-  document.documentElement.dataset.season = preference === 'auto' ? seasonOf(now) : preference;
+  document.documentElement.dataset.season = activeSeason(now);
 }
 
 /** This browser's choice (each player their own; the room never knows it). */
@@ -49,9 +53,49 @@ export function setThemePreference(next: ThemePreference): void {
   listeners.forEach((listener) => listener());
 }
 
+const subscribe = (listener: () => void) => {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+};
+
 export function useThemePreference(): ThemePreference {
-  return useSyncExternalStore((listener) => {
-    listeners.add(listener);
-    return () => listeners.delete(listener);
-  }, themePreference);
+  return useSyncExternalStore(subscribe, themePreference);
+}
+
+/** The season shown, following the player's choice as it changes. */
+export function useSeason(): Season {
+  return useSyncExternalStore(subscribe, () => activeSeason());
+}
+
+// ---------------------------------------------------------------- animations
+
+const ANIMATIONS_KEY = 'tarot.animations';
+
+function storedAnimations(): boolean {
+  try {
+    return localStorage.getItem(ANIMATIONS_KEY) !== 'off';
+  } catch {
+    return true;
+  }
+}
+
+let animations = storedAnimations();
+
+/** Whether the seasons' drifting decorations are on (the player's choice, on by default). */
+export const animationsOn = (): boolean => animations;
+
+export function setAnimations(on: boolean): void {
+  animations = on;
+  try {
+    localStorage.setItem(ANIMATIONS_KEY, on ? 'on' : 'off');
+  } catch {
+    // Private browsing: the choice lasts this visit only.
+  }
+  listeners.forEach((listener) => listener());
+}
+
+export function useAnimations(): boolean {
+  return useSyncExternalStore(subscribe, animationsOn);
 }

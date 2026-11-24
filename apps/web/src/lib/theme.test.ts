@@ -1,5 +1,13 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { applyTheme, seasonOf, setThemePreference, themePreference } from './theme';
+import {
+  activeSeason,
+  animationsOn,
+  applyTheme,
+  seasonOf,
+  setAnimations,
+  setThemePreference,
+  themePreference,
+} from './theme';
 
 describe('seasonOf', () => {
   it('follows the meteorological seasons', () => {
@@ -28,5 +36,27 @@ describe('the theme', () => {
     expect(document.documentElement.dataset.season).toBe('winter');
     expect(themePreference()).toBe('winter');
     expect(localStorage.getItem('tarot.theme')).toBe('winter');
+  });
+});
+
+describe('the season shown', () => {
+  afterEach(() => setThemePreference('auto'));
+
+  it('is the one picked, else the season of the day', () => {
+    setThemePreference('spring');
+    expect(activeSeason()).toBe('spring');
+    setThemePreference('auto');
+    expect(activeSeason(new Date(2026, 0, 10))).toBe('winter');
+  });
+});
+
+describe('the animations', () => {
+  afterEach(() => setAnimations(true));
+
+  it('are on unless the player turned them off, kept for next time', () => {
+    expect(animationsOn()).toBe(true);
+    setAnimations(false);
+    expect(animationsOn()).toBe(false);
+    expect(localStorage.getItem('tarot.animations')).toBe('off');
   });
 });

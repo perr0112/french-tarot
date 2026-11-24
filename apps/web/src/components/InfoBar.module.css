@@ -17,7 +17,7 @@
 }
 
 /* A question being asked takes the row's place: nothing else in the bar moves or wraps. */
-.actions:has([role='group']) > :not([role='group']) {
+.actions:has(> [role='group']) > :not([role='group']) {
   display: none;
 }
 

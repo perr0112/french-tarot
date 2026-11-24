@@ -1,10 +1,11 @@
 import { CARD_H, CARD_RADIUS, CARD_W } from '../cards/geometry';
+import { SEASON_THEMES, SEASONS } from '../themes/seasons';
 
 /** Design tokens (DESIGN.md §3). Components use them through the CSS custom properties below. */
 export const tokens = {
   color: {
     /** The green felt of the table and its darker edges (autumn's; each season has its own,
-     * `seasons` below). */
+     * themes/seasons.ts). */
     table: '#34472A',
     'table-edge': '#243219',
     /** A soft light on the felt, and its fine weave (DESIGN.md §2, the table's exception). */
@@ -89,44 +90,6 @@ export const tokens = {
   font: { ui: "'Inter Variable', system-ui, sans-serif" },
 } as const;
 
-export const SEASONS = ['spring', 'summer', 'autumn', 'winter'] as const;
-export type Season = (typeof SEASONS)[number];
-
-/**
- * The seasons' themes (DESIGN.md §3.1): the felt stays green, its shade changes, and so do the
- * mat and the flourishes' metal. Everything else (the accent, the cards, the panels) stays.
- */
-export const seasons: Readonly<Record<Season, Readonly<Record<string, string>>>> = {
-  spring: {
-    table: '#264D37',
-    'table-edge': '#1A3627',
-    mat: '#684A30',
-    'mat-edge': '#553C26',
-    ornament: '#DDBE84',
-  },
-  summer: {
-    table: '#1F4A35',
-    'table-edge': '#153527',
-    mat: '#7A3E2B',
-    'mat-edge': '#63301F',
-    ornament: '#D9B26A',
-  },
-  autumn: {
-    table: '#34472A',
-    'table-edge': '#243219',
-    mat: '#553624',
-    'mat-edge': '#432A1C',
-    ornament: '#C9A46A',
-  },
-  winter: {
-    table: '#1C3833',
-    'table-edge': '#12261F',
-    mat: '#3F4A55',
-    'mat-edge': '#313A43',
-    ornament: '#C7D0D8',
-  },
-};
-
 /**
  * Breakpoints (DESIGN.md §5). CSS variables cannot be used inside media queries,
  * so `compact` is the single breakpoint: write `@media (max-width: 600px)` in CSS
@@ -157,7 +120,7 @@ export function tokensCss(): string {
   add('font-ui', tokens.font.ui);
   const themes = SEASONS.map(
     (season) =>
-      `:root[data-season='${season}'] { ${Object.entries(seasons[season])
+      `:root[data-season='${season}'] { ${Object.entries(SEASON_THEMES[season].colors)
         .map(([k, v]) => `--color-${k}: ${v};`)
         .join(' ')} }`,
   );

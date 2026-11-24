@@ -5,7 +5,7 @@ import { seatName } from '../lib/names';
 import type { Send } from '../net/connection';
 import { fr } from '../strings/fr';
 import { LeaveButton } from '../components/LeaveButton';
-import { ThemeSelect } from '../components/ThemeSelect';
+import { ThemeMenu } from '../components/ThemeMenu';
 import styles from './Lobby.module.css';
 
 /** Seats and options before a session; only the host may change them (AGENTS.md §5). */
@@ -35,7 +35,7 @@ export function Lobby({
         </button>
         <div className={styles.headActions}>
           {/* Each player's own: not a room option. */}
-          <ThemeSelect />
+          <ThemeMenu />
           {onLeave && <LeaveButton confirm={false} onLeave={onLeave} />}
         </div>
       </header>

@@ -4,7 +4,7 @@ import { fr } from '../strings/fr';
 import ui from '../design/ui.module.css';
 import { ConfirmButton } from './ConfirmButton';
 import { LeaveButton } from './LeaveButton';
-import { ThemeSelect } from './ThemeSelect';
+import { ThemeMenu } from './ThemeMenu';
 import styles from './InfoBar.module.css';
 
 /**
@@ -57,7 +57,7 @@ export function InfoBar({
             {autoplay ? fr.table.autoplayActive : fr.table.autoplay}
           </button>
         )}
-        <ThemeSelect className={styles.theme} onTable />
+        <ThemeMenu className={styles.theme} />
         {onLeave && <LeaveButton confirm onLeave={onLeave} />}
       </div>
     </header>

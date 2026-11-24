@@ -11,6 +11,12 @@ body,
   margin: 0;
 }
 
+/* Above the season's drifting decorations (SeasonalAmbience), which lie on the felt. */
+#root {
+  position: relative;
+  z-index: 1;
+}
+
 body {
   background: var(--felt);
   background-attachment: fixed;
@@ -20,6 +26,60 @@ body {
   line-height: var(--text-md-line);
   font-weight: var(--weight-regular);
   -webkit-font-smoothing: antialiased;
+}
+
+/* The seasons' colours are typed, so a change of season fades from one to the next instead
+   of jumping (themes/seasons.ts); their values are set on :root by tokens.ts. */
+@property --color-table {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #34472a;
+}
+
+@property --color-table-edge {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #243219;
+}
+
+@property --color-table-light {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: rgb(255 205 150 / 0.08);
+}
+
+@property --color-mat {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #553624;
+}
+
+@property --color-mat-edge {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #432a1c;
+}
+
+@property --color-ornament {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #c9a46a;
+}
+
+:root {
+  transition:
+    --color-table var(--duration-slow) var(--ease-out),
+    --color-table-edge var(--duration-slow) var(--ease-out),
+    --color-table-light var(--duration-slow) var(--ease-out),
+    --color-mat var(--duration-slow) var(--ease-out),
+    --color-mat-edge var(--duration-slow) var(--ease-out),
+    --color-ornament var(--duration-slow) var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    transition: none;
+  }
 }
 
 button,
