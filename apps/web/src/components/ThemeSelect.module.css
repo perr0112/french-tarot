@@ -14,3 +14,14 @@
   padding-block: var(--space-1);
   font-size: inherit;
 }
+
+.onTable {
+  background: transparent;
+  color: var(--color-ink-on-table);
+  border-color: var(--color-mat-stitch);
+}
+
+/* The list itself opens on the system's light surface. */
+.onTable option {
+  color: var(--color-ink);
+}

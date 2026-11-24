@@ -35,37 +35,44 @@ The values below are the reference; code must match them.
 
 ### 3.1 Colour
 
-> **Table colour — validated:** a wooden table with a small brown mat under the cards (see §7; a green felt until 2026-11-23).
+> **Table colour — validated:** a green felt with a brown mat under the cards, in four seasonal shades (see §3.1, §7).
 
-| Token                | Value                     | Use                                   |
-| -------------------- | ------------------------- | ------------------------------------- |
-| `table`              | `#2A1D16`                 | The wooden table (walnut)             |
-| `table-edge`         | `#1C130E`                 | Its darker edges (vignette)           |
-| `table-light`        | `rgb(255 236 214 / 0.06)` | Soft light on the table and the mat   |
-| `table-grain`        | `rgb(0 0 0 / 0.12)`       | The wood's grain (two gratings)       |
-| `table-figure`       | `rgb(0 0 0 / 0.04)`       | The wood's slow figure across it      |
-| `mat`                | `#5E3D2B`                 | The small brown mat under the cards   |
-| `mat-edge`           | `#4A2F21`                 | Its edge                              |
-| `mat-weave`          | `rgb(0 0 0 / 0.04)`       | Its fine weave (4 px)                 |
-| `mat-stitch`         | `rgb(244 226 200 / 0.35)` | Its stitched border                   |
-| `ornament`           | `#C9A46A`                 | The mat's corner flourishes (brass)   |
-| `surface`            | `#FAFAF7`                 | Panels, score sheet, menus            |
-| `surface-muted`      | `#F1F0EB`                 | Secondary surfaces                    |
-| `ink`                | `#1C1C1A`                 | Primary text on light surfaces        |
-| `ink-muted`          | `#6B6A65`                 | Secondary text                        |
-| `ink-on-table`       | `#F4F2EA`                 | Text placed on the table              |
-| `ink-on-table-muted` | `#C8B8A8`                 | Secondary text on the table           |
-| `accent`             | `#E2B04A`                 | Your turn, selected — the only accent |
-| `suit-red`           | `#C23B32`                 | ♥ ♦                                   |
-| `suit-black`         | `#1C1C1A`                 | ♠ ♣                                   |
-| `card-face`          | `#FFFDF8`                 | Mini card background                  |
-| `card-paper`         | `#E4E1D5`                 | Scans' paper: cartouches, trump bands |
-| `card-edge`          | `rgb(0 0 0 / 0.12)`       | Card face outline (stroke over scans) |
-| `positive`           | `#2F7A49`                 | Positive score, contract made         |
-| `negative`           | `#B5473D`                 | Negative score, contract failed       |
+| Token                | Value                         | Use                                   |
+| -------------------- | ----------------------------- | ------------------------------------- |
+| `table`              | `#34472A` (autumn; by season) | The green felt                        |
+| `table-edge`         | `#243219` (by season)         | Its darker edges (vignette)           |
+| `table-light`        | `rgb(255 244 220 / 0.07)`     | Soft light on the felt                |
+| `table-weave`        | `rgb(0 0 0 / 0.05)`           | The felt's fine weave (4 px)          |
+| `mat`                | `#553624` (by season)         | The brown mat under the cards         |
+| `mat-edge`           | `#4A2F21`                     | Its edge                              |
+| `mat-weave`          | `rgb(0 0 0 / 0.04)`           | Its fine weave (4 px)                 |
+| `mat-stitch`         | `rgb(244 226 200 / 0.35)`     | Its stitched border                   |
+| `ornament`           | `#C9A46A` (by season)         | The mat's corner flourishes (metal)   |
+| `ink-on-mat-muted`   | `#E2D8CA`                     | Captions on the mat                   |
+| `surface`            | `#FAFAF7`                     | Panels, score sheet, menus            |
+| `surface-muted`      | `#F1F0EB`                     | Secondary surfaces                    |
+| `ink`                | `#1C1C1A`                     | Primary text on light surfaces        |
+| `ink-muted`          | `#6B6A65`                     | Secondary text                        |
+| `ink-on-table`       | `#F4F2EA`                     | Text placed on the table              |
+| `ink-on-table-muted` | `#C8C2B4`                     | Secondary text on the table           |
+| `accent`             | `#E2B04A`                     | Your turn, selected — the only accent |
+| `suit-red`           | `#C23B32`                     | ♥ ♦                                   |
+| `suit-black`         | `#1C1C1A`                     | ♠ ♣                                   |
+| `card-face`          | `#FFFDF8`                     | Mini card background                  |
+| `card-paper`         | `#E4E1D5`                     | Scans' paper: cartouches, trump bands |
+| `card-edge`          | `rgb(0 0 0 / 0.12)`           | Card face outline (stroke over scans) |
+| `positive`           | `#2F7A49`                     | Positive score, contract made         |
+| `negative`           | `#B5473D`                     | Negative score, contract failed       |
 
-Contrast: all text ≥ 4.5:1 against its background (≥ 3:1 for text ≥ 24 px). On the table: `ink-on-table` 14.6:1, `ink-on-table-muted` 8.5:1, `accent` 8.2:1; on the mat: 8.6:1, 5.0:1, 4.8:1.
-`positive` is 5.02:1 on `surface` and 4.60:1 on `surface-muted`; `negative` is 5.11:1 and 4.68:1.
+Contrast: all text ≥ 4.5:1 against its background (≥ 3:1 for text ≥ 24 px). Seasons (`seasons` in tokens.ts, on `:root[data-season]`), the felt always green:
+
+| Season                                                                                            | `table`   | `table-edge` | `mat`     | `mat-edge` | `ornament` | ink / muted / accent on felt | ink / muted on mat |
+| ------------------------------------------------------------------------------------------------- | --------- | ------------ | --------- | ---------- | ---------- | ---------------------------- | ------------------ |
+| Spring                                                                                            | `#264D37` | `#1A3627`    | `#684A30` | `#553C26`  | `#DDBE84`  | 8.5 / 5.4 / 4.8              | 7.2 / 5.7          |
+| Summer                                                                                            | `#1F4A35` | `#153527`    | `#7A3E2B` | `#63301F`  | `#D9B26A`  | 9.0 / 5.7 / 5.1              | 7.3 / 5.8          |
+| Autumn                                                                                            | `#34472A` | `#243219`    | `#5E3D2B` | `#4A2F21`  | `#C9A46A`  | 9.0 / 5.7 / 5.1              | 8.6 / 6.8          |
+| Winter                                                                                            | `#1C3833` | `#12261F`    | `#3F4A55` | `#313A43`  | `#C7D0D8`  | 11.3 / 7.1 / 6.3             | 8.1 / 6.4          |
+| `positive` is 5.02:1 on `surface` and 4.60:1 on `surface-muted`; `negative` is 5.11:1 and 4.68:1. |
 
 ### 3.2 Typography
 
@@ -200,3 +207,4 @@ Record design decisions here (date — decision — reason).
 - 2026-11-23 — Between deals, the clicked « Continuer » becomes a neutral « Prêt » in the same place (`aria-disabled`, not `disabled`: it keeps the focus and its contrast). Bots are « Jade N », their number kept while they sit.
 - 2026-11-24 — Reactions: « Réagir », a quiet button left of the local badge, opens six emoji on a `surface` row above it; a reaction pops (`duration-base`, none with reduced motion) in a `surface` bubble on the top right corner of the sender's badge for 3 s. Reason: user request — emoji reactions for a friendly table.
 - 2026-11-24 — Final screen: « Rejouer » for every player, turning into a neutral « Prêt » with who is awaited under it, the same ReadyButton as « Continuer » between deals; « Retour au salon » for the host; while a seat is free, a muted line says why nobody can play again. Reason: user request — everyone accepts before a new session.
+- 2026-11-24 — Green felt again (the walnut table goes), a wider brown mat (`width-mat` 880 px, fixed size), four seasonal themes (felt shade, mat, ornament metal, and a corner motif: flower, sun, oak leaf, snowflake), following the date unless the player picks one (« Thème », kept in the browser), and « Réagir » as a round button in the bottom left corner above the hand. Reason: user request.

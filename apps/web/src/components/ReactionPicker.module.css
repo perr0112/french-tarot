@@ -9,24 +9,36 @@
   width: var(--space-7);
   height: var(--space-7);
   padding: 0;
-  border: var(--border-thin) solid var(--color-mat-stitch);
+  border: none;
   border-radius: 50%;
   background: var(--color-surface);
-  box-shadow: var(--shadow-raised);
-  font-size: var(--text-lg-size);
-  line-height: 1;
+  color: var(--color-ink);
+  box-shadow: var(--shadow-card);
   cursor: pointer;
   transition: transform var(--duration-instant) var(--ease-out);
 }
 
-.toggle:active {
-  transform: scale(0.94);
+.face {
+  width: var(--space-5);
+  height: var(--space-5);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
 }
 
+.eye {
+  fill: currentColor;
+  stroke: none;
+}
+
+/* One press feedback for the button and the reactions. */
+.toggle:active,
 .row {
   position: absolute;
-  left: 0;
-  bottom: calc(100% + var(--space-2));
+  /* To the right of the button, at its height: over the empty felt, never over the badge. */
+  left: calc(100% + var(--space-2));
+  bottom: 0;
   z-index: 1;
   display: flex;
   gap: var(--space-1);
@@ -50,8 +62,4 @@
 
 .emoji:hover {
   background: var(--color-surface-muted);
-}
-
-.emoji:active {
-  transform: scale(0.92);
 }

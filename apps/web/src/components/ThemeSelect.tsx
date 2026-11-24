@@ -5,13 +5,20 @@ import { fr } from '../strings/fr';
 import styles from './ThemeSelect.module.css';
 
 /** The table's theme for this player: the season of the day, or one season (DESIGN.md §3.1). */
-export function ThemeSelect({ className }: { className?: string | undefined }) {
+export function ThemeSelect({
+  className,
+  onTable = false,
+}: {
+  className?: string | undefined;
+  /** Among the top bar's quiet links: no white field, the felt's ink. */
+  onTable?: boolean;
+}) {
   const preference = useThemePreference();
   return (
     <label className={`${styles.theme} ${className ?? ''}`}>
       <span className={styles.label}>{fr.theme.label}</span>
       <select
-        className={`${ui.field} ${styles.select}`}
+        className={`${ui.field} ${styles.select} ${onTable ? styles.onTable : ''}`}
         value={preference}
         onChange={(event) => {
           const value = event.target.value;

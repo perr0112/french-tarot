@@ -77,6 +77,8 @@
 
 .actions {
   justify-content: center;
+  /* « Rejouer » reserves a line under it (who is awaited): the buttons line up at the top. */
+  align-items: flex-start;
 }
 
 .lastDeal summary {
@@ -91,12 +93,20 @@
     padding: var(--space-5) var(--space-2);
   }
 
+  /* Room for the winner's raised card above a wrapped row's chips. */
   .podium {
-    gap: var(--space-4) var(--space-3);
+    gap: var(--space-7) var(--space-3);
   }
 }
 
 .seatFree {
   margin: 0;
   color: var(--color-ink-on-table-muted);
+}
+
+/* The score sheet scrolls sideways inside its panel on a phone, never cut off. */
+.sheet {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
 }

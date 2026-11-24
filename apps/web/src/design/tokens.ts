@@ -11,8 +11,8 @@ export const tokens = {
     'table-light': 'rgb(255 244 220 / 0.07)',
     'table-weave': 'rgb(0 0 0 / 0.05)',
     /** The brown mat where the cards are laid: felt, edge, weave, stitching (by season). */
-    mat: '#5E3D2B',
-    'mat-edge': '#4A2F21',
+    mat: '#553624',
+    'mat-edge': '#432A1C',
     'mat-weave': 'rgb(0 0 0 / 0.04)',
     'mat-stitch': 'rgb(244 226 200 / 0.35)',
     /** The mat's corner flourishes: a muted metal, never the accent (by season). */
@@ -114,8 +114,8 @@ export const seasons: Readonly<Record<Season, Readonly<Record<string, string>>>>
   autumn: {
     table: '#34472A',
     'table-edge': '#243219',
-    mat: '#5E3D2B',
-    'mat-edge': '#4A2F21',
+    mat: '#553624',
+    'mat-edge': '#432A1C',
     ornament: '#C9A46A',
   },
   winter: {

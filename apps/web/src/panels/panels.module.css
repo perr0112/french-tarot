@@ -100,6 +100,13 @@
   align-items: center;
 }
 
+/* The Kings to call: four in a row, two by two on a phone (as the contracts). */
+.kings {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  gap: var(--space-2);
+}
+
 /* The four contracts, rising from left to right (two by two on a phone). */
 .contracts {
   display: grid;
@@ -135,6 +142,10 @@
 @media (max-width: 600px) {
   .contracts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .kings {
+    grid-template-columns: repeat(2, auto);
   }
 
   /* Eight trumps on one line at 375 px. */

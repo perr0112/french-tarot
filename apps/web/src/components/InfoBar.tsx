@@ -57,7 +57,7 @@ export function InfoBar({
             {autoplay ? fr.table.autoplayActive : fr.table.autoplay}
           </button>
         )}
-        <ThemeSelect className={styles.theme} />
+        <ThemeSelect className={styles.theme} onTable />
         {onLeave && <LeaveButton confirm onLeave={onLeave} />}
       </div>
     </header>

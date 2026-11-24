@@ -33,9 +33,11 @@ export function Lobby({
         <button type="button" className={ui.button} onClick={copy}>
           {copied ? fr.lobby.copied : fr.lobby.copyLink}
         </button>
-        {/* Each player's own: not a room option. */}
-        <ThemeSelect />
-        {onLeave && <LeaveButton confirm={false} onLeave={onLeave} />}
+        <div className={styles.headActions}>
+          {/* Each player's own: not a room option. */}
+          <ThemeSelect />
+          {onLeave && <LeaveButton confirm={false} onLeave={onLeave} />}
+        </div>
       </header>
 
       <section className={ui.panel} aria-labelledby="seats">

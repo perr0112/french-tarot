@@ -1,6 +1,8 @@
 .table {
-  /* The reactions' corner is placed against it. */
+  /* The reactions' corner is placed against it, just above the hand (Hand.module.css: the
+     card and its padding, and the bottom row's own). */
   position: relative;
+  --hand-height: calc(var(--card-hand) * var(--card-ratio) + var(--space-4) + var(--space-2) * 2);
   /* Exactly the visible height, never more: when a panel grows, the felt's empty space below
      the trick gives way, and the hand stays in view. */
   height: 100vh;
@@ -43,6 +45,9 @@
   grid-area: right;
 }
 .bottom {
+  /* Above the mat: a decision panel is never hidden under it on a low screen. */
+  position: relative;
+  z-index: 1;
   display: grid;
   /* The local player's decision and badge in the middle; the scores in the right-hand corner,
      beside them; the hand across the whole width under all three. */
@@ -71,7 +76,7 @@
 .react {
   position: absolute;
   left: var(--space-4);
-  bottom: calc(var(--card-hand) * var(--card-ratio) + var(--space-4) + var(--space-2) * 3);
+  bottom: calc(var(--hand-height) + var(--space-2));
   z-index: 2;
 }
 
@@ -140,12 +145,14 @@
      the seats, so no trick card covers the left or right seat. */
   .felt {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-template-rows: auto auto 1fr;
     grid-template-areas:
       'topLeft top topRight'
       'left . right'
       'centre centre centre';
     padding-inline: var(--space-2);
+    /* The seats and the mat stay together, the felt's spare height shared above and below. */
+    grid-template-rows: auto auto auto;
+    align-content: center;
   }
 
   .centre {
