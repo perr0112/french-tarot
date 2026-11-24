@@ -14,13 +14,16 @@
   left: 0;
   width: 0;
   height: 0;
-  will-change: transform;
+  /* Room for the face to flip in depth (leaves, petals). */
+  perspective: 200px;
+  will-change: transform, opacity;
 }
 
 .body {
   display: block;
   width: 100%;
   height: 100%;
+  will-change: transform;
 }
 
 .body svg {

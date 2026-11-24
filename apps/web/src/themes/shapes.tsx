@@ -58,8 +58,8 @@ export function DriftShape({ shape, color }: { shape: Drift['shape']; color: str
     case 'petal':
       return (
         <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path fill={color} d="M12 2C7 7 6 14 12 22c6-8 5-15 0-20Z" />
-          <path fill="none" stroke="rgb(0 0 0 / 0.08)" strokeWidth="0.8" d="M12 4v16" />
+          <path fill={color} d="M12 3C6 7 5 15 12 21c7-6 6-14 0-18Z" />
+          <path fill="none" stroke="rgb(0 0 0 / 0.08)" strokeWidth="0.8" d="M12 5v14" />
         </svg>
       );
     case 'firefly':
@@ -77,7 +77,14 @@ export function DriftShape({ shape, color }: { shape: Drift['shape']; color: str
             fill={color}
             d="M12 2c2 2 4 1 5 3s-1 3 1 5-2 3 0 5-3 3-4 5c-1 2-1 2-2 2s-1 0-2-2c-1-2-6-3-4-5s-2-3 0-5-1-3 1-5 3-1 5-3Z"
           />
-          <path fill="none" stroke="rgb(0 0 0 / 0.2)" strokeWidth="0.9" d="M12 5v18" />
+          {/* The vein and, below the leaf, its stem. */}
+          <path
+            fill="none"
+            stroke="rgb(0 0 0 / 0.25)"
+            strokeWidth="0.9"
+            strokeLinecap="round"
+            d="M12 5v19"
+          />
         </svg>
       );
     case 'flake':

@@ -64,13 +64,13 @@ The values below are the reference; code must match them.
 | `positive`           | `#2F7A49`                     | Positive score, contract made         |
 | `negative`           | `#B5473D`                     | Negative score, contract failed       |
 
-Contrast: all text ≥ 4.5:1 against its background (≥ 3:1 for text ≥ 24 px). Seasons (`seasons` in tokens.ts, on `:root[data-season]`), the felt always green:
+Contrast: all text ≥ 4.5:1 against its background (≥ 3:1 for text ≥ 24 px). Seasons (each in one place: `themes/seasons.ts`, applied on `:root[data-season]`; their drawings in `themes/shapes.tsx`), the felt always green. A change of season fades the colours (`@property`, `duration-slow`):
 
 | Season                                                                                            | `table`   | `table-edge` | `mat`     | `mat-edge` | `ornament` | ink / muted / accent on felt | ink / muted on mat |
 | ------------------------------------------------------------------------------------------------- | --------- | ------------ | --------- | ---------- | ---------- | ---------------------------- | ------------------ |
 | Spring                                                                                            | `#264D37` | `#1A3627`    | `#684A30` | `#553C26`  | `#DDBE84`  | 8.5 / 5.4 / 4.8              | 7.2 / 5.7          |
 | Summer                                                                                            | `#1F4A35` | `#153527`    | `#7A3E2B` | `#63301F`  | `#D9B26A`  | 9.0 / 5.7 / 5.1              | 7.3 / 5.8          |
-| Autumn                                                                                            | `#34472A` | `#243219`    | `#5E3D2B` | `#4A2F21`  | `#C9A46A`  | 9.0 / 5.7 / 5.1              | 8.6 / 6.8          |
+| Autumn                                                                                            | `#34472A` | `#243219`    | `#553624` | `#432A1C`  | `#C9A46A`  | 9.0 / 5.7 / 5.1              | 9.6 / 7.5          |
 | Winter                                                                                            | `#1C3833` | `#12261F`    | `#3F4A55` | `#313A43`  | `#C7D0D8`  | 11.3 / 7.1 / 6.3             | 8.1 / 6.4          |
 | `positive` is 5.02:1 on `surface` and 4.60:1 on `surface-muted`; `negative` is 5.11:1 and 4.68:1. |
 
@@ -123,6 +123,8 @@ CSS variables: `--width-*`, `--card-*` (card values are widths; height = width �
 - **`.primary` (gold) is reserved for the single main action of a screen or panel** ("Valider l'écart", "Lancer la partie", "Continuer"). Choice lists — bids, king call, chelem announce/decline — use the neutral `.button`. **Bidding**: the four contracts always in the same places, rising left to right (2 × 2 at the compact breakpoint), each a tile with its drawn mark (a fan of one to four cards), its name and its multiplier; one already outbid stays, disabled. « Passer » is apart, alone on the last line, outlined and never filled, so it is never mistaken for a contract. Never more than one `.primary` visible per panel.
 
 ### 3.6 Motion
+
+- **Seasonal ambience** (`SeasonalAmbience`, `themes/seasons.ts`): decoration only, behind `#root`, never takes input, off under `prefers-reduced-motion` or the « Animations » switch. Its slow drifts (5–26 s, by season) stand outside the duration tokens, which are for the game's own motion; drifting things stay at 0.35–0.7 opacity so the text on the felt keeps the focus.
 
 | Token              | Value                            | Use                                 |
 | ------------------ | -------------------------------- | ----------------------------------- |
@@ -208,3 +210,4 @@ Record design decisions here (date — decision — reason).
 - 2026-11-24 — Reactions: « Réagir », a quiet button left of the local badge, opens six emoji on a `surface` row above it; a reaction pops (`duration-base`, none with reduced motion) in a `surface` bubble on the top right corner of the sender's badge for 3 s. Reason: user request — emoji reactions for a friendly table.
 - 2026-11-24 — Final screen: « Rejouer » for every player, turning into a neutral « Prêt » with who is awaited under it, the same ReadyButton as « Continuer » between deals; « Retour au salon » for the host; while a seat is free, a muted line says why nobody can play again. Reason: user request — everyone accepts before a new session.
 - 2026-11-24 — Green felt again (the walnut table goes), a wider brown mat (`width-mat` 880 px, fixed size), four seasonal themes (felt shade, mat, ornament metal, and a corner motif: flower, sun, oak leaf, snowflake), following the date unless the player picks one (« Thème », kept in the browser), and « Réagir » as a round button in the bottom left corner above the hand. Reason: user request.
+- 2026-11-24 — Seasonal ambience: each season drifts something over the felt, behind every screen and never over the cards or panels — petals (spring, 18), fireflies glowing in place (summer, 16), leaves (autumn, 14), snowflakes (winter, 24); half on a phone; off with `prefers-reduced-motion` or the player's « Animations » switch; paused while the page is hidden. Animated with GSAP, loaded only when shown (the one place GSAP is used; the game's own motion stays on the Web Animations API, §3.6). The theme is chosen in a « Thème » menu with a swatch per season. Reason: user request.
