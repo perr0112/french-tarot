@@ -293,6 +293,7 @@ Three levels, all strictly using the redacted player view and `getLegalActions`:
   - Previous trick can be reviewed.
   - While another player is to play in a trick one has not played in yet, a card may be preselected for that trick (in the page only, the server never knows it): played at once when the turn comes if the rules allow it, dropped with a word why if not, and kept waiting for a click when a poignée may be declared with it.
   - Score breakdown is explained after each deal (see §3.8).
+- **Seasonal themes**: the felt (always green), the mat and its corner motifs follow the season of the day, unless the player picks one (« Thème »), kept in their browser only.
 - **Reactions**: a seated player may send one of six emoji (😂 👏 😮 😅 🎉 😡), at most one every 2 s; it pops in a bubble at their seat for everyone, for 3 s, and is kept nowhere. Bots do not react.
 - **Declarations are proposed at the right moment**: when a poignée is possible, the UI offers to declare it and lets the player pick which trumps to show (Excuse handling per §3.6). Same for chelem announcement before the first card.
 - Clear indications of: dealer, current speaker/player, contract and taker, called king (5p, once revealed), shown poignées, chien (when revealed).

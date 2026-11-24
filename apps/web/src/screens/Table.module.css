@@ -1,4 +1,8 @@
 .table {
+  /* The reactions' corner is placed against it, just above the hand (Hand.module.css: the
+     card and its padding, and the bottom row's own). */
+  position: relative;
+  --hand-height: calc(var(--card-hand) * var(--card-ratio) + var(--space-4) + var(--space-2) * 2);
   /* Exactly the visible height, never more: when a panel grows, the felt's empty space below
      the trick gives way, and the hand stays in view. */
   height: 100vh;
@@ -11,7 +15,7 @@
 
 .felt {
   display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
+  grid-template-columns: 1fr minmax(0, 3fr) 1fr;
   /* The middle row keeps its height (see .centre) and the space left goes below it, so the
      centre never moves when a decision panel opens or closes. */
   grid-template-rows: auto auto 1fr;
@@ -41,13 +45,16 @@
   grid-area: right;
 }
 .bottom {
+  /* Above the mat: a decision panel is never hidden under it on a low screen. */
+  position: relative;
+  z-index: 1;
   display: grid;
   /* The local player's decision and badge in the middle; the scores in the right-hand corner,
      beside them; the hand across the whole width under all three. */
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   grid-template-areas:
     '. decision scores'
-    'react me scores'
+    '. me scores'
     'hand hand hand';
   justify-items: center;
   gap: var(--space-2);
@@ -64,11 +71,13 @@
   grid-area: me;
 }
 
-/* The reactions, by the local badge, on its left. */
+/* The reactions: a round button in the bottom left corner, just above the hand, as the score
+   slip sits on the right (DESIGN.md §5); it takes no room from the badge or the panels. */
 .react {
-  grid-area: react;
-  justify-self: end;
-  align-self: center;
+  position: absolute;
+  left: var(--space-4);
+  bottom: calc(var(--hand-height) + var(--space-2));
+  z-index: 2;
 }
 
 .scores {
@@ -90,8 +99,8 @@
   /* The mat: a small part of the table, just what the cards need. Its size never changes,
      whatever lies there (the chien, a trick of 3 to 5 cards and its caption, nothing): a full
      trick is two cards high and five wide (Trick), its caption one line under it. */
-  width: min(100%, var(--width-regular));
-  min-width: min(100%, calc(var(--card-trick) * 5 + var(--mat-padding) * 2));
+  width: min(100%, var(--width-mat));
+  min-width: min(100%, calc(var(--card-trick) * 5 + var(--space-7) * 2));
   height: calc(
     var(--card-trick) * var(--card-ratio) * 2 + var(--space-2) + var(--text-sm-line) +
       var(--mat-padding) * 2
@@ -136,12 +145,14 @@
      the seats, so no trick card covers the left or right seat. */
   .felt {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-template-rows: auto auto 1fr;
     grid-template-areas:
       'topLeft top topRight'
       'left . right'
       'centre centre centre';
     padding-inline: var(--space-2);
+    /* The seats and the mat stay together, the felt's spare height shared above and below. */
+    grid-template-rows: auto auto auto;
+    align-content: center;
   }
 
   .centre {
@@ -151,7 +162,7 @@
   .bottom {
     grid-template-areas:
       'decision decision decision'
-      'react me scores'
+      '. me scores'
       'hand hand hand';
   }
 

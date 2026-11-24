@@ -1,4 +1,5 @@
 import type { BidChoice, PoigneeLevel } from '@tarot/engine';
+import type { Season } from '../design/tokens';
 import type { BotSpeed, Reaction, SeatBotLevel, ServerErrorCode } from '@tarot/protocol';
 
 const poigneeShown = (level: string) => `Poignée ${level.toLowerCase()}`;
@@ -205,6 +206,16 @@ export const fr = {
     cancelled: 'annulée',
     made: 'réussi',
     failed: 'chuté',
+  },
+  theme: {
+    label: 'Thème',
+    auto: (season: string) => `Auto (${season.toLowerCase()})`,
+    seasons: {
+      spring: 'Printemps',
+      summer: 'Été',
+      autumn: 'Automne',
+      winter: 'Hiver',
+    } satisfies Record<Season, string>,
   },
   /** Agreeing to go on together: the next deal, a new session (ReadyButton). */
   agree: {

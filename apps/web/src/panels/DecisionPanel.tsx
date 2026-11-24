@@ -72,7 +72,7 @@ export function DecisionPanel({ view, send, ecart, poignee, onPoigneeChange }: D
       return (
         <section className={styles.panel} aria-label={fr.panels.callKing}>
           <p className={styles.title}>{fr.panels.callKing}</p>
-          <div className={ui.row}>
+          <div className={styles.kings}>
             {template.cards.map((card) => (
               <button
                 key={card}

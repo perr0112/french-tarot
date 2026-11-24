@@ -1,10 +1,10 @@
-/* The small brown mat on the wooden table, where the cards are laid (DESIGN.md §2, §3.1): a
-   suede-like felt with a soft light and a fine weave, a stitched edge, a shadow under it. */
+/* The brown mat on the green felt, where the cards are laid (DESIGN.md §2, §3.1): a suede-like
+   felt with a fine weave, a stitched edge, a shadow under it; its shade follows the season. */
 .mat {
   position: relative;
   /* Read by whoever sizes the mat (Table: its fixed height). */
-  --mat-padding: var(--space-5);
-  padding: var(--mat-padding);
+  --mat-padding: clamp(var(--space-3), 3vh, var(--space-6));
+  padding: var(--mat-padding) var(--space-7);
   border-radius: var(--radius-lg);
   /* No light on it: the muted captions keep their contrast everywhere on the mat. */
   background:
@@ -57,19 +57,38 @@
   opacity: 0.7;
 }
 
-.leaf,
-.suit {
+.suit,
+.motif {
   fill: var(--color-ornament);
 }
 
-.leaf {
+/* The season's motif: only the page's season shows (tokens.ts, :root[data-season]). */
+.motif {
+  display: none;
+}
+
+.heart {
   opacity: 0.6;
+}
+
+.rays {
+  fill: none;
+  stroke: var(--color-ornament);
+  stroke-width: 1.25;
+  stroke-linecap: round;
+}
+
+:global(:root[data-season='spring']) .spring,
+:global(:root[data-season='summer']) .summer,
+:global(:root[data-season='autumn']) .autumn,
+:global(:root[data-season='winter']) .winter {
+  display: inline;
 }
 
 /* Compact breakpoint (DESIGN.md §3.4): less room around the cards, smaller flourishes. */
 @media (max-width: 600px) {
   .mat {
-    --mat-padding: var(--space-4);
+    --mat-padding: var(--space-5);
     padding: var(--mat-padding) var(--space-3);
   }
 

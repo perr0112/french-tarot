@@ -14,6 +14,14 @@
   gap: var(--space-3);
 }
 
+/* The theme and the way out together, on the right. */
+.headActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-left: auto;
+}
+
 .title {
   font-size: var(--text-xl-size);
   line-height: var(--text-xl-line);

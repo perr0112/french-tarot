@@ -691,7 +691,7 @@ describe('autoplay and abandoning the deal', () => {
 describe('reactions', () => {
   const playing = () => roomView(dealWith([...trumps(1, 13), ...suit('S', 1, 5)]));
 
-  it('picks one of six reactions by one’s badge and sends it', () => {
+  it('picks one of six reactions from the table’s corner and sends it', () => {
     const send = vi.fn();
     render(<Table view={playing()} send={send} />);
     click('Réagir');
@@ -702,7 +702,7 @@ describe('reactions', () => {
     fireEvent.click(within(picker).getByRole('button', { name: 'Bravo' }));
     expect(send).toHaveBeenCalledWith({ type: 'react', emoji: '👏' });
     expect(screen.queryByRole('group', { name: 'Réactions' })).toBeNull();
-    expect(document.activeElement?.textContent).toBe('Réagir');
+    expect(document.activeElement?.getAttribute('aria-label')).toBe('Réagir');
   });
 
   it('closes with Escape or a click elsewhere', () => {
@@ -710,7 +710,7 @@ describe('reactions', () => {
     click('Réagir');
     fireEvent.keyDown(screen.getByRole('group', { name: 'Réactions' }), { key: 'Escape' });
     expect(screen.queryByRole('group', { name: 'Réactions' })).toBeNull();
-    expect(document.activeElement?.textContent).toBe('Réagir');
+    expect(document.activeElement?.getAttribute('aria-label')).toBe('Réagir');
     click('Réagir');
     fireEvent.pointerDown(document.body);
     expect(screen.queryByRole('group', { name: 'Réactions' })).toBeNull();

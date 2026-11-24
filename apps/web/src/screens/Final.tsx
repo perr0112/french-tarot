@@ -70,7 +70,7 @@ export function Final({
         )}
         {onLeave && <LeaveButton confirm={false} onLeave={onLeave} />}
       </div>
-      <div className={ui.panel}>
+      <div className={`${ui.panel} ${styles.sheet}`}>
         <ScoreSheet view={view} />
       </div>
       {/* The last deal ends the session: its breakdown stays at hand (AGENTS.md §6). */}
