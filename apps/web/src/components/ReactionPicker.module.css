@@ -1,15 +1,32 @@
-/* By the local badge: the toggle, and the six reactions opening below it, over the top of the
-   hand for a moment, never over the decision panel above. */
+/* In the table's bottom left corner: a round button, the six reactions opening above it. */
 .picker {
   position: relative;
+}
+
+.toggle {
   display: grid;
-  justify-items: end;
+  place-items: center;
+  width: var(--space-7);
+  height: var(--space-7);
+  padding: 0;
+  border: var(--border-thin) solid var(--color-mat-stitch);
+  border-radius: 50%;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-raised);
+  font-size: var(--text-lg-size);
+  line-height: 1;
+  cursor: pointer;
+  transition: transform var(--duration-instant) var(--ease-out);
+}
+
+.toggle:active {
+  transform: scale(0.94);
 }
 
 .row {
   position: absolute;
-  right: 0;
-  top: calc(100% + var(--space-1));
+  left: 0;
+  bottom: calc(100% + var(--space-2));
   z-index: 1;
   display: flex;
   gap: var(--space-1);
@@ -37,13 +54,4 @@
 
 .emoji:active {
   transform: scale(0.92);
-}
-
-/* Compact breakpoint (DESIGN.md §3.4): the toggle is near the left edge, so the row opens
-   rightwards from it, inside the screen. */
-@media (max-width: 600px) {
-  .row {
-    right: auto;
-    left: 0;
-  }
 }

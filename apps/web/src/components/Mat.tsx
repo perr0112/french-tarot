@@ -52,7 +52,26 @@ function Ornament({ corner, suit }: { corner: Corner; suit: Suit }) {
           <path d="M4 36 c0 3.5 3.5 4.5 4.8 1.8 c.9 -1.8 -.5 -3.5 -2.2 -2.6" />
           <path d="M11 33 C11 21 21 11 33 11" className={styles.thin} />
         </g>
-        <path className={styles.leaf} d="M7 7 q6 1 7 7 q-6 -1 -7 -7z" />
+        {/* The season's motif by the corner; only the page's season shows (Mat.module.css). */}
+        <g className={`${styles.motif} ${styles.spring}`}>
+          <circle cx="10" cy="7" r="1.6" />
+          <circle cx="13" cy="10" r="1.6" />
+          <circle cx="10" cy="13" r="1.6" />
+          <circle cx="7" cy="10" r="1.6" />
+          <circle cx="10" cy="10" r="1" className={styles.heart} />
+        </g>
+        <g className={`${styles.motif} ${styles.summer}`}>
+          <circle cx="10" cy="10" r="2.4" />
+          <path
+            className={styles.rays}
+            d="M10 5v1.6M10 13.4V15M5 10h1.6M13.4 10H15M6.5 6.5l1.1 1.1M12.4 12.4l1.1 1.1M6.5 13.5l1.1-1.1M12.4 7.6l1.1-1.1"
+          />
+        </g>
+        <path className={`${styles.motif} ${styles.autumn}`} d="M6 6 q7 1 8 8 q-7 -1 -8 -8z" />
+        <path
+          className={`${styles.motif} ${styles.winter} ${styles.rays}`}
+          d="M6 10h8M8 6.5l4 7M12 6.5l-4 7"
+        />
       </g>
       <path
         className={styles.suit}
@@ -64,8 +83,8 @@ function Ornament({ corner, suit }: { corner: Corner; suit: Suit }) {
 }
 
 /**
- * The small brown mat in the middle of the wooden table, where the cards are laid (DESIGN.md
- * §2, §3.1): a stitched edge and a flourish with a suit at each corner.
+ * The mat in the middle of the green felt, where the cards are laid (DESIGN.md §2, §3.1): a
+ * stitched edge and, at each corner, a flourish round a suit with the season's motif.
  */
 export function Mat({
   children,

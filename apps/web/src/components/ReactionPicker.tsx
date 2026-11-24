@@ -5,7 +5,7 @@ import { fr } from '../strings/fr';
 import styles from './ReactionPicker.module.css';
 
 /**
- * By one's badge: opens the six reactions, the first focused; one picked is sent (AGENTS.md
+ * In the table's corner: opens the six reactions, the first focused; one picked is sent (AGENTS.md
  * §6). Escape, a click elsewhere or a pick closes the row, the focus back on « Réagir ».
  */
 export function ReactionPicker({
@@ -40,11 +40,13 @@ export function ReactionPicker({
       <button
         ref={toggle}
         type="button"
-        className={`${ui.button} ${ui.quiet}`}
+        className={styles.toggle}
         aria-expanded={open}
+        aria-label={fr.reactions.open}
+        title={fr.reactions.open}
         onClick={() => setOpen(!open)}
       >
-        {fr.reactions.open}
+        <span aria-hidden="true">🙂</span>
       </button>
       {open && (
         <div

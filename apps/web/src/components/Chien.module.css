@@ -37,5 +37,5 @@
 .caption {
   font-size: var(--text-sm-size);
   line-height: var(--text-sm-line);
-  color: var(--color-ink-on-table-muted);
+  color: var(--color-ink-on-mat-muted);
 }

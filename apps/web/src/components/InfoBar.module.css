@@ -28,3 +28,10 @@
   box-shadow: inset 0 0 0 var(--border-thick) var(--color-accent);
   border-radius: var(--radius-md);
 }
+
+/* Compact breakpoint (DESIGN.md §3.4): the theme is chosen in the lobby; the bar keeps one row. */
+@media (max-width: 600px) {
+  .theme {
+    display: none;
+  }
+}
