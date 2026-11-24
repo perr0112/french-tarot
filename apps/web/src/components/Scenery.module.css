@@ -1,0 +1,52 @@
+/* Behind everything (#root sits above it, global.css): the sky, then the landscape. */
+.scenery {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.fallback,
+.sky,
+.land {
+  position: absolute;
+  inset: 0;
+}
+
+/* Under the shader, and alone where WebGL2 is missing. */
+.fallback {
+  background: linear-gradient(var(--sky-top), var(--sky-horizon) 75%);
+}
+
+.sky {
+  width: 100%;
+  height: 100%;
+}
+
+.hidden {
+  display: none;
+}
+
+.land svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* A new season's landscape fades in. */
+.land {
+  animation: arrive var(--duration-slow) var(--ease-out);
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .land {
+    animation: none;
+  }
+}

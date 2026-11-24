@@ -1,22 +1,11 @@
-import { useEffect, useRef, useSyncExternalStore } from 'react';
+import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { breakpoints } from '../design/tokens';
+import { useMedia } from '../lib/media';
 import { useAnimations, useSeason } from '../lib/theme';
 import { SEASON_THEMES, type Drift } from '../themes/seasons';
 import { DriftShape } from '../themes/shapes';
 import styles from './SeasonalAmbience.module.css';
-
-/** A media query's answer, following it as it changes (none outside a browser). */
-function useMedia(query: string): boolean {
-  return useSyncExternalStore(
-    (listener) => {
-      const list = window.matchMedia?.(query);
-      list?.addEventListener('change', listener);
-      return () => list?.removeEventListener('change', listener);
-    },
-    () => window.matchMedia?.(query).matches ?? false,
-  );
-}
 
 type Gsap = typeof import('gsap').gsap;
 type Context = ReturnType<Gsap['context']>;

@@ -15,11 +15,13 @@ body,
 #root {
   position: relative;
   z-index: 1;
+  /* Holds its screens' margins (the board's), so they never push the page into a scroll. */
+  display: flow-root;
 }
 
 body {
-  background: var(--felt);
-  background-attachment: fixed;
+  /* Behind the scenery (Scenery), seen only before it draws. */
+  background: var(--color-table-edge);
   color: var(--color-ink-on-table);
   font-family: var(--font-ui);
   font-size: var(--text-md-size);

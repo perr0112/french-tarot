@@ -1,6 +1,8 @@
 .lobby {
+  /* On the felt board, in front of the season's scenery. */
+  composes: board from '../design/ui.module.css';
   max-width: var(--width-wide);
-  margin: 0 auto;
+  margin: var(--space-6) auto;
   padding: var(--space-6) var(--space-4);
   display: grid;
   gap: var(--space-5);
@@ -86,4 +88,12 @@
   font-size: var(--text-sm-size);
   line-height: var(--text-sm-line);
   margin: 0;
+}
+
+/* On a phone, the board nearly edge to edge, the landscape a thin frame round it. */
+@media (max-width: 600px) {
+  .lobby {
+    margin: var(--space-2);
+    border-width: var(--space-1);
+  }
 }

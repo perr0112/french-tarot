@@ -1,6 +1,8 @@
 .message {
+  /* On the felt board, in front of the season's scenery. */
+  composes: board from '../design/ui.module.css';
   max-width: var(--width-narrow);
-  margin: 0 auto;
+  margin: var(--space-6) auto;
   padding: var(--space-8) var(--space-4);
   display: grid;
   gap: var(--space-4);
@@ -47,4 +49,12 @@
 
 .toast {
   bottom: var(--space-4);
+}
+
+/* On a phone, the board nearly edge to edge, the landscape a thin frame round it. */
+@media (max-width: 600px) {
+  .message {
+    margin: var(--space-2);
+    border-width: var(--space-1);
+  }
 }
