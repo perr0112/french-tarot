@@ -1,5 +1,5 @@
 import type { BidChoice, PoigneeLevel } from '@tarot/engine';
-import type { Season } from '../design/tokens';
+import type { Season } from '../themes/seasons';
 import type { BotSpeed, Reaction, SeatBotLevel, ServerErrorCode } from '@tarot/protocol';
 
 const poigneeShown = (level: string) => `Poignée ${level.toLowerCase()}`;
@@ -210,6 +210,7 @@ export const fr = {
   theme: {
     label: 'Thème',
     auto: (season: string) => `Auto (${season.toLowerCase()})`,
+    animations: 'Animations',
     seasons: {
       spring: 'Printemps',
       summer: 'Été',

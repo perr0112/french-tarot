@@ -57,32 +57,13 @@
   opacity: 0.7;
 }
 
-.suit,
-.motif {
+.suit {
   fill: var(--color-ornament);
 }
 
-/* The season's motif: only the page's season shows (tokens.ts, :root[data-season]). */
+/* The season's motif (themes/shapes.tsx), in the flourishes' metal. */
 .motif {
-  display: none;
-}
-
-.heart {
-  opacity: 0.6;
-}
-
-.rays {
-  fill: none;
-  stroke: var(--color-ornament);
-  stroke-width: 1.25;
-  stroke-linecap: round;
-}
-
-:global(:root[data-season='spring']) .spring,
-:global(:root[data-season='summer']) .summer,
-:global(:root[data-season='autumn']) .autumn,
-:global(:root[data-season='winter']) .winter {
-  display: inline;
+  color: var(--color-ornament);
 }
 
 /* Compact breakpoint (DESIGN.md §3.4): less room around the cards, smaller flourishes. */
