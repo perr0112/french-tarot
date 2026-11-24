@@ -17,7 +17,12 @@ const OUTLINE = {
 } as const;
 
 function Layer({ depth, children }: { depth: 'far' | 'mid' | 'near'; children: ReactNode }) {
-  return <g data-depth={depth}>{children}</g>;
+  // A little larger than the box, from its foot: drifting with the pointer never opens a gap.
+  return (
+    <g data-depth={depth}>
+      <g transform="translate(800 900) scale(1.04) translate(-800 -900)">{children}</g>
+    </g>
+  );
 }
 
 // ---------------------------------------------------------------- shared pieces
@@ -138,7 +143,7 @@ function Winter() {
         <Fir x={1150} y={640} s={0.95} />
         <Fir x={1520} y={630} s={0.8} />
         {/* The cabin: logs, a snowy roof, lit windows, smoke from the chimney. */}
-        <g transform="translate(250 700)">
+        <g transform="translate(170 700)">
           {[0, 1, 2, 3, 4].map((i) => (
             <circle
               key={i}
@@ -183,7 +188,7 @@ function Winter() {
       <Layer depth="near">
         <path d="M0 770 Q360 700 760 760 T1600 740 V900 H0 Z" fill="#EEF3FF" {...OUTLINE} />
         {/* The snowman: a scarf, a carrot, coal eyes that blink. */}
-        <g transform="translate(1320 790)">
+        <g transform="translate(1450 790)">
           <ellipse cx="0" cy="-10" rx="70" ry="14" fill="#D7DFF2" />
           <circle cx="0" cy="-60" r="62" fill="#FFFFFF" {...OUTLINE} />
           <circle cx="0" cy="-160" r="46" fill="#FFFFFF" {...OUTLINE} />
@@ -209,7 +214,7 @@ function Winter() {
           />
           <path d="M20 -196 L30 -150 L46 -152 L34 -196 Z" fill="#D64545" {...OUTLINE} />
           <path d="M-2 -236 L46 -228 L-2 -222 Z" fill="#F08A24" {...OUTLINE} />
-          <g data-anim="blink" style={{ transformOrigin: '0px -250px' }}>
+          <g data-anim="blink">
             <circle cx="-13" cy="-250" r="5" fill={INK} />
             <circle cx="13" cy="-250" r="5" fill={INK} />
           </g>
@@ -226,7 +231,7 @@ function Winter() {
           <rect x="-30" y="-292" width="60" height="22" rx="3" fill="#2E2E3F" {...OUTLINE} />
           <rect x="-44" y="-274" width="88" height="10" rx="4" fill="#2E2E3F" {...OUTLINE} />
         </g>
-        <Fir x={120} y={830} s={1.1} />
+        <Fir x={1250} y={830} s={1.1} />
       </Layer>
     </>
   );
@@ -308,7 +313,7 @@ function Summer() {
     <>
       <Layer depth="far">
         {/* The sun, high on the left, its rays turning slowly (the shader adds its glow). */}
-        <g transform="translate(256 150)">
+        <g transform="translate(160 138) scale(0.8)">
           <g data-anim="spin">
             {Array.from({ length: 12 }, (_, i) => (
               <path
@@ -415,7 +420,7 @@ function Spring() {
           {['#FF6B6B', '#FFA94D', '#FFE066', '#8CE99A', '#74C0FC', '#B197FC'].map((c, i) => (
             <path
               key={c}
-              d={`M${380 + i * 18} 640 A${520 - i * 18} ${420 - i * 18} 0 0 1 ${1420 - i * 18} 640`}
+              d={`M${40 + i * 18} 660 A${220 - i * 18} ${300 - i * 18} 0 0 1 ${480 - i * 18} 660`}
               stroke={c}
             />
           ))}
@@ -460,6 +465,13 @@ function Spring() {
             <circle cx="14" cy="-28" r="12" fill="#FFE066" {...OUTLINE} strokeWidth={2.5} />
             <path d="M24 -30 L36 -27 L24 -23 Z" fill="#F08A24" stroke={INK} strokeWidth="2" />
             <circle cx="17" cy="-31" r="2.5" fill={INK} />
+            <path
+              d="M-14 -8 Q-4 -16 6 -8"
+              fill="none"
+              stroke={INK}
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
           </g>
         ))}
       </Layer>
@@ -487,13 +499,24 @@ const SCENES: Readonly<Record<Season, () => ReactNode>> = {
   winter: Winter,
 };
 
+/**
+ * Which side of a landscape a narrow screen shows: the one with its heart (the cabin, the sun,
+ * the river and the trees, the pond).
+ */
+const FOCUS: Readonly<Record<Season, string>> = {
+  spring: 'xMidYMax slice',
+  summer: 'xMinYMax slice',
+  autumn: 'xMaxYMax slice',
+  winter: 'xMinYMax slice',
+};
+
 /** The season's landscape, filling the window from the bottom (the sky shows above it). */
-export function Landscape({ season }: { season: Season }) {
+export function Landscape({ season, compact = false }: { season: Season; compact?: boolean }) {
   const Scene = SCENES[season];
   return (
     <svg
       viewBox="0 0 1600 900"
-      preserveAspectRatio="xMidYMax slice"
+      preserveAspectRatio={compact ? FOCUS[season] : 'xMidYMax slice'}
       aria-hidden="true"
       data-scene={season}
     >

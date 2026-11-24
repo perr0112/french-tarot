@@ -120,6 +120,8 @@
   justify-items: center;
   gap: var(--space-1);
   padding: var(--space-2);
+  /* « Garde contre » on one line: the tiles stay the same height. */
+  white-space: nowrap;
 }
 
 .multiplier {

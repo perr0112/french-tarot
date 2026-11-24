@@ -24,6 +24,16 @@
   height: 100%;
 }
 
+/* Until its first frame, the gradient underneath shows (never a black sky). */
+.sky:not([data-painted]) {
+  opacity: 0;
+}
+
+/* Ink only on what is near: the far and middle grounds stay soft. */
+.land [data-depth='mid'] [stroke] {
+  stroke-width: 2px;
+}
+
 .hidden {
   display: none;
 }

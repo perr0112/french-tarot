@@ -2,7 +2,8 @@
   /* The felt board in front of the scenery, the landscape showing round it. */
   composes: board from '../design/ui.module.css';
   --board-gap: var(--space-5);
-  width: min(100% - var(--space-8) * 2, 1280px);
+  /* The landscape shows round it: its cabin, sun, snowman or rainbow by the sides. */
+  width: min(100% - var(--space-8) * 2, 1120px);
   margin: var(--board-gap) auto;
   /* The reactions' corner is placed against it, just above the hand (Hand.module.css: the
      card and its padding, and the bottom row's own). */
@@ -150,6 +151,7 @@
     --board-gap: var(--space-2);
     width: calc(100% - var(--board-gap) * 2);
     border-width: var(--space-1);
+    border-radius: var(--radius-lg);
   }
 
   /* The trick (and the deal result) need the full width: the centre takes its own row under

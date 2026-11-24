@@ -13,24 +13,20 @@ const PARALLAX = { far: 8, mid: 16, near: 28 } as const;
  * Everything is a GSAP tween inside the caller's context, so its revert ends them all.
  * Returns what to undo outside GSAP (the pointer listener).
  */
-export function animateScene(gsap: Gsap, svg: SVGSVGElement): () => void {
+export function animateScene(
+  gsap: Gsap,
+  svg: SVGSVGElement,
+  { light }: { light: boolean },
+): () => void {
   const r = gsap.utils.random;
 
   // Winter: smoke from the chimney, puff after puff.
   all(svg, 'smoke').forEach((puff, i) => {
-    gsap.fromTo(
-      puff,
-      { y: 0, x: 0, scale: 0.6, opacity: 0, transformOrigin: '50% 50%' },
-      {
-        keyframes: [
-          { opacity: 0.85, duration: 0.6 },
-          { y: -150, x: 40, scale: 1.8, opacity: 0, duration: 3.4 },
-        ],
-        ease: 'sine.out',
-        repeat: -1,
-        delay: i * 0.8,
-      },
-    );
+    gsap
+      .timeline({ repeat: -1, delay: i * 0.8 })
+      .set(puff, { y: 0, x: 0, scale: 0.6, opacity: 0, transformOrigin: '50% 50%' })
+      .to(puff, { opacity: 0.85, duration: 0.6, ease: 'sine.out' })
+      .to(puff, { y: -150, x: 40, scale: 1.8, opacity: 0, duration: 3.4, ease: 'sine.out' });
   });
   all(svg, 'glow').forEach((window) =>
     gsap.to(window, {
@@ -43,40 +39,43 @@ export function animateScene(gsap: Gsap, svg: SVGSVGElement): () => void {
   );
   all(svg, 'blink').forEach((eyes) =>
     gsap
-      .timeline({ repeat: -1, repeatDelay: r(2.5, 5), repeatRefresh: true })
+      .timeline({ repeat: -1, repeatDelay: r(2.5, 5) })
       .to(eyes, { scaleY: 0.1, duration: 0.08, transformOrigin: '50% 50%' })
       .to(eyes, { scaleY: 1, duration: 0.12 }),
   );
 
-  // Every season: canopies and flowers in the wind, each at its own pace.
-  all(svg, 'sway').forEach((canopy) =>
-    gsap.fromTo(
-      canopy,
-      { rotation: -2, transformOrigin: '50% 100%' },
-      {
-        rotation: 2,
-        duration: r(2.5, 4),
-        ease: 'sine.inOut',
-        yoyo: true,
-        repeat: -1,
-        delay: r(0, 2),
-      },
-    ),
-  );
-  all(svg, 'nod').forEach((head) =>
-    gsap.fromTo(
-      head,
-      { rotation: -8, transformOrigin: '50% 100%' },
-      {
-        rotation: 8,
-        duration: r(1.6, 2.6),
-        ease: 'sine.inOut',
-        yoyo: true,
-        repeat: -1,
-        delay: r(0, 1.5),
-      },
-    ),
-  );
+  // Every season: canopies and flowers in the wind, each at its own pace (not on a phone,
+  // where every moving outline costs a repaint of the whole scene).
+  if (!light)
+    all(svg, 'sway').forEach((canopy) =>
+      gsap.fromTo(
+        canopy,
+        { rotation: -2, transformOrigin: '50% 100%' },
+        {
+          rotation: 2,
+          duration: r(2.5, 4),
+          ease: 'sine.inOut',
+          yoyo: true,
+          repeat: -1,
+          delay: r(0, 2),
+        },
+      ),
+    );
+  if (!light)
+    all(svg, 'nod').forEach((head) =>
+      gsap.fromTo(
+        head,
+        { rotation: -8, transformOrigin: '50% 100%' },
+        {
+          rotation: 8,
+          duration: r(1.6, 2.6),
+          ease: 'sine.inOut',
+          yoyo: true,
+          repeat: -1,
+          delay: r(0, 1.5),
+        },
+      ),
+    );
 
   // Autumn: glints running down the river.
   all(svg, 'flow').forEach((glint, i) =>
@@ -104,22 +103,25 @@ export function animateScene(gsap: Gsap, svg: SVGSVGElement): () => void {
       x: () => x + r(-140, 140),
       y: () => y + r(-90, 60),
       rotation: () => r(-25, 25),
-      duration: () => r(2.2, 3.6),
+      transformOrigin: '50% 50%',
+      duration: r(2.2, 3.6),
       ease: 'sine.inOut',
       repeat: -1,
       repeatRefresh: true,
     });
   });
-  all(svg, 'wings').forEach((wings) =>
-    gsap.to(wings, {
-      scaleX: 0.25,
-      duration: r(0.12, 0.18),
-      ease: 'sine.inOut',
-      yoyo: true,
-      repeat: -1,
-      transformOrigin: '50% 50%',
-    }),
-  );
+  // A wing beat long enough to read at 30 frames a second.
+  if (!light)
+    all(svg, 'wings').forEach((wings) =>
+      gsap.to(wings, {
+        scaleX: 0.25,
+        duration: r(0.22, 0.3),
+        ease: 'sine.inOut',
+        yoyo: true,
+        repeat: -1,
+        transformOrigin: '50% 50%',
+      }),
+    );
 
   // Spring: the rainbow breathing, birds crossing the sky, ducks paddling.
   all(svg, 'rainbow').forEach((rainbow) =>
@@ -141,23 +143,21 @@ export function animateScene(gsap: Gsap, svg: SVGSVGElement): () => void {
       },
     );
   });
-  all(svg, 'flap').forEach((wing) =>
-    gsap.to(wing, {
-      scaleY: -0.6,
-      duration: 0.22,
-      ease: 'sine.inOut',
-      yoyo: true,
-      repeat: -1,
-      transformOrigin: '50% 50%',
-    }),
-  );
+  if (!light)
+    all(svg, 'flap').forEach((wing) =>
+      gsap.to(wing, {
+        scaleY: -0.6,
+        duration: 0.22,
+        ease: 'sine.inOut',
+        yoyo: true,
+        repeat: -1,
+        transformOrigin: '50% 50%',
+      }),
+    );
   all(svg, 'duck').forEach((duck) => {
     const x = Number(gsap.getProperty(duck, 'x'));
-    gsap.fromTo(
-      duck,
-      { x: x - 50 },
-      { x: x + 50, duration: r(7, 10), ease: 'sine.inOut', yoyo: true, repeat: -1 },
-    );
+    // From where it was drawn, paddling there and back.
+    gsap.to(duck, { x: x + 80, duration: r(7, 10), ease: 'sine.inOut', yoyo: true, repeat: -1 });
     gsap.to(duck, { y: '+=3', duration: 0.9, ease: 'sine.inOut', yoyo: true, repeat: -1 });
   });
 

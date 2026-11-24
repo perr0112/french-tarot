@@ -91,6 +91,8 @@ export const SEASON_THEMES: Readonly<Record<Season, SeasonTheme>> = {
       mat: '#553624',
       'mat-edge': '#432A1C',
       ornament: '#C9A46A',
+      // A darker rim, apart from the mat's brown.
+      rim: '#4A2E1F',
     },
     swatch: '#C8743A',
     drift: {

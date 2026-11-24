@@ -95,5 +95,6 @@
   .lobby {
     margin: var(--space-2);
     border-width: var(--space-1);
+    border-radius: var(--radius-lg);
   }
 }
