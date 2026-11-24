@@ -47,8 +47,8 @@ export const MAX_CODE_TRIES = 5;
 export const AUTO_NEXT_DEAL_MS = 6000;
 /** Level of the bot that plays for a disconnected player, or for one who left. */
 const REPLACEMENT_LEVEL: SeatBotLevel = 'medium';
-/** The bot playing for a player who turned autoplay on: random legal cards (AGENTS.md §5). */
-const AUTOPLAY_LEVEL: SeatBotLevel = 'easy';
+/** The bot playing for a player who turned autoplay on: the strongest (AGENTS.md §5). */
+const AUTOPLAY_LEVEL: SeatBotLevel = 'hard';
 
 export interface Participant {
   /** Secret that lets this participant reconnect; only ever sent to them. */
