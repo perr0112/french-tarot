@@ -121,3 +121,8 @@
 .throwTarget:hover {
   background: rgb(255 255 255 / 0.1);
 }
+
+/* « 16 cartes », « 0 pli »: never broken inside. */
+.count {
+  white-space: nowrap;
+}

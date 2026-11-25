@@ -71,7 +71,17 @@ export function SeatBadge({
           data-throw-anchor=""
           onClick={(event) => {
             const box = event.currentTarget.getBoundingClientRect();
-            setThrowing(throwing ? null : { x: box.left + box.width / 2, y: box.bottom });
+            const board = event.currentTarget.closest('[data-board]')?.getBoundingClientRect();
+            setThrowing(
+              throwing
+                ? null
+                : {
+                    x: box.left + box.width / 2,
+                    y: box.bottom,
+                    min: board?.left ?? 0,
+                    max: board?.right ?? window.innerWidth,
+                  },
+            );
           }}
         />
       )}
@@ -101,9 +111,18 @@ export function SeatBadge({
         <SeatName view={view} seat={seat} />
         {facts.you ? ` ${fr.lobby.you}` : ''}
       </span>
-      {facts.tags.length > 0 && <span className={styles.tags}>{facts.tags.join(' · ')}</span>}
+      {/* Always there, empty or not: the side seats' names stay level. */}
+      <span className={styles.tags}>{facts.tags.join(' · ')}</span>
       {facts.bid && <span className={styles.bid}>{facts.bid}</span>}
-      {counts.length > 0 && <span className={styles.meta}>{counts.join(' · ')}</span>}
+      {counts.length > 0 && (
+        <span className={styles.meta}>
+          {counts.map((count, i) => (
+            <span key={count} className={styles.count}>
+              {i > 0 ? ` · ${count}` : count}
+            </span>
+          ))}
+        </span>
+      )}
       {facts.status && <span className={styles.status}>{facts.status}</span>}
       {calledCard && (
         <CardStrip

@@ -8,7 +8,7 @@
   /* Horizontal distance between two cards: overlap more as the hand grows, never overflow. */
   --step: min(
     calc(var(--card-width) * 0.58),
-    calc((100vw - var(--space-6) - var(--card-width)) / max(var(--count) - 1, 1))
+    calc((100cqw - var(--space-6) - var(--card-width)) / max(var(--count) - 1, 1))
   );
 }
 

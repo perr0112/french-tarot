@@ -75,10 +75,11 @@
   --picker-width: calc(var(--space-7) * 6 + var(--space-1) * 7);
   position: fixed;
   top: calc(var(--y) + var(--space-1));
+  /* Inside the board (or the screen), never past its rim. */
   left: clamp(
-    var(--space-2),
+    var(--min) + var(--space-2),
     var(--x) - var(--picker-width) / 2,
-    100vw - var(--picker-width) - var(--space-2)
+    var(--max) - var(--picker-width) - var(--space-2)
   );
   z-index: 6;
   width: max-content;

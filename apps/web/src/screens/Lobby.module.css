@@ -98,3 +98,16 @@
     border-radius: var(--radius-lg);
   }
 }
+
+/* The room's settings line up on their right edge. */
+.lobby :is(select, input[type='number']) {
+  min-width: calc(var(--space-8) * 2);
+}
+
+/* Compact breakpoint (DESIGN.md §3.4): the title alone, then the link, the theme and the way
+   out on one row. */
+@media (max-width: 600px) {
+  .title {
+    flex-basis: 100%;
+  }
+}
