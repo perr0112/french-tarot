@@ -1,16 +1,21 @@
 .table {
+  /* The felt board in front of the scenery, the landscape showing round it. */
+  composes: board from '../design/ui.module.css';
+  --board-gap: var(--space-5);
+  /* The landscape shows round it: its cabin, sun, snowman or rainbow by the sides. */
+  width: min(100% - var(--space-8) * 2, 1120px);
+  margin: var(--board-gap) auto;
   /* The reactions' corner is placed against it, just above the hand (Hand.module.css: the
      card and its padding, and the bottom row's own). */
   position: relative;
   --hand-height: calc(var(--card-hand) * var(--card-ratio) + var(--space-4) + var(--space-2) * 2);
   /* Exactly the visible height, never more: when a panel grows, the felt's empty space below
      the trick gives way, and the hand stays in view. */
-  height: 100vh;
-  height: 100dvh;
+  height: calc(100vh - var(--board-gap) * 2);
+  height: calc(100dvh - var(--board-gap) * 2);
   overflow: hidden;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  /* The felt is the page's (global.css): the season's drifting decorations show over it. */
 }
 
 .felt {
@@ -134,13 +139,21 @@
 @media (max-width: 600px), (max-height: 600px) {
   .table {
     height: auto;
-    min-height: 100dvh;
+    min-height: calc(100dvh - var(--board-gap) * 2);
     overflow: visible;
   }
 }
 
 /* Compact breakpoint (DESIGN.md §3.4). */
 @media (max-width: 600px) {
+  /* On a phone the board takes nearly all: the landscape shows as a thin frame. */
+  .table {
+    --board-gap: var(--space-2);
+    width: calc(100% - var(--board-gap) * 2);
+    border-width: var(--space-1);
+    border-radius: var(--radius-lg);
+  }
+
   /* The trick (and the deal result) need the full width: the centre takes its own row under
      the seats, so no trick card covers the left or right seat. */
   .felt {

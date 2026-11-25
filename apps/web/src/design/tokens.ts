@@ -18,6 +18,9 @@ export const tokens = {
     'mat-stitch': 'rgb(244 226 200 / 0.35)',
     /** The mat's corner flourishes: a muted metal, never the accent (by season). */
     ornament: '#C9A46A',
+    /** The board's wooden rim, in front of the scenery, and its lit edge. */
+    rim: '#6B4430',
+    'rim-light': 'rgb(255 222 180 / 0.28)',
     /** Captions laid on the mat (the chien, the last trick). */
     'ink-on-mat-muted': '#E2D8CA',
     surface: '#FAFAF7',
@@ -50,9 +53,12 @@ export const tokens = {
     sm: '6px',
     md: '10px',
     lg: '16px',
+    board: '28px',
     card: `${(CARD_RADIUS / CARD_W) * 100}% / ${((CARD_RADIUS / CARD_H) * 100).toFixed(2)}%`,
   },
   shadow: {
+    /** The felt board standing out from the scenery. */
+    board: '0 24px 60px rgb(0 0 0 / 0.45)',
     /** The mat lying on the table. */
     mat: '0 6px 18px rgb(0 0 0 / 0.45)',
     card: '0 1px 2px rgb(0 0 0 / 0.18), 0 2px 6px rgb(0 0 0 / 0.12)',

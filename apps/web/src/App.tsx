@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { preloadScans } from './cards';
+import { Scenery } from './components/Scenery';
 import { SeasonalAmbience } from './components/SeasonalAmbience';
 import { useRoute } from './net/routing';
 import { Home } from './screens/Home';
@@ -23,7 +24,8 @@ export function App() {
   }
   return (
     <>
-      {/* The season's drifting decorations, behind every screen. */}
+      {/* The season's landscape, then what drifts over it, behind every screen. */}
+      <Scenery />
       <SeasonalAmbience />
       {route.name === 'room' ? <Room key={route.code} code={route.code} /> : <Home />}
     </>

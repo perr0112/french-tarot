@@ -1,22 +1,12 @@
-import { useEffect, useRef, useSyncExternalStore } from 'react';
+import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { breakpoints } from '../design/tokens';
+import { loadGsap } from '../lib/gsap';
+import { useMedia } from '../lib/media';
 import { useAnimations, useSeason } from '../lib/theme';
 import { SEASON_THEMES, type Drift } from '../themes/seasons';
 import { DriftShape } from '../themes/shapes';
 import styles from './SeasonalAmbience.module.css';
-
-/** A media query's answer, following it as it changes (none outside a browser). */
-function useMedia(query: string): boolean {
-  return useSyncExternalStore(
-    (listener) => {
-      const list = window.matchMedia?.(query);
-      list?.addEventListener('change', listener);
-      return () => list?.removeEventListener('change', listener);
-    },
-    () => window.matchMedia?.(query).matches ?? false,
-  );
-}
 
 type Gsap = typeof import('gsap').gsap;
 type Context = ReturnType<Gsap['context']>;
@@ -112,8 +102,8 @@ function fall(gsap: Gsap, context: Context, item: HTMLElement, drift: Drift, fir
 /**
  * What drifts over the felt in each season (DESIGN.md §3.6): petals, fireflies, leaves or
  * snowflakes, behind the page and never in the way. Off when the player turns it off or the
- * system asks for less motion; half as many on a phone; paused while the page is hidden. GSAP
- * is loaded only when they show.
+ * system asks for less motion; half as many on a phone. GSAP is loaded only when they show
+ * (lib/gsap.ts).
  */
 export function SeasonalAmbience() {
   const season = useSeason();
@@ -129,7 +119,7 @@ export function SeasonalAmbience() {
     if (count === 0 || !root) return;
     let stopped = false;
     let undo: (() => void) | null = null;
-    void import('gsap').then(({ gsap }) => {
+    void loadGsap().then((gsap) => {
       if (stopped) return;
       const items = root.querySelectorAll<HTMLElement>('[data-drift]');
       const context = gsap.context((self) => {
@@ -138,14 +128,9 @@ export function SeasonalAmbience() {
           else float(gsap, item, drift);
         });
       }, root);
-      // GSAP runs only these: its whole timeline rests while the page is hidden.
-      const visibility = () => gsap.globalTimeline.paused(document.hidden);
-      document.addEventListener('visibilitychange', visibility);
       undo = () => {
-        document.removeEventListener('visibilitychange', visibility);
         context.revert();
         gsap.killTweensOf(root.querySelectorAll('*'));
-        gsap.globalTimeline.paused(false);
       };
     });
     return () => {

@@ -23,9 +23,17 @@ export interface Drift {
   readonly spins: boolean;
 }
 
+/** The sky behind the scenery (themes/scenery/sky.ts), from its top to the horizon. */
+export interface Sky {
+  readonly top: string;
+  readonly horizon: string;
+}
+
 export interface SeasonTheme {
   /** CSS colour tokens the season overrides (`--color-…`). */
   readonly colors: Readonly<Record<string, string>>;
+  /** Spring's soft morning, summer's noon, autumn's sunset, winter's dusk. */
+  readonly sky: Sky;
   /** The colour shown for it in the theme menu. */
   readonly swatch: string;
   readonly drift: Drift;
@@ -33,6 +41,7 @@ export interface SeasonTheme {
 
 export const SEASON_THEMES: Readonly<Record<Season, SeasonTheme>> = {
   spring: {
+    sky: { top: '#8EC5EA', horizon: '#F8DDE6' },
     colors: {
       table: '#264D37',
       'table-edge': '#1A3627',
@@ -53,6 +62,7 @@ export const SEASON_THEMES: Readonly<Record<Season, SeasonTheme>> = {
     },
   },
   summer: {
+    sky: { top: '#3F9FE6', horizon: '#CDEBFF' },
     colors: {
       table: '#1F4A35',
       'table-edge': '#153527',
@@ -73,6 +83,7 @@ export const SEASON_THEMES: Readonly<Record<Season, SeasonTheme>> = {
     },
   },
   autumn: {
+    sky: { top: '#4E3F7E', horizon: '#F4A261' },
     colors: {
       table: '#34472A',
       'table-edge': '#243219',
@@ -80,6 +91,8 @@ export const SEASON_THEMES: Readonly<Record<Season, SeasonTheme>> = {
       mat: '#553624',
       'mat-edge': '#432A1C',
       ornament: '#C9A46A',
+      // A darker rim, apart from the mat's brown.
+      rim: '#4A2E1F',
     },
     swatch: '#C8743A',
     drift: {
@@ -93,6 +106,7 @@ export const SEASON_THEMES: Readonly<Record<Season, SeasonTheme>> = {
     },
   },
   winter: {
+    sky: { top: '#121A3C', horizon: '#5A4A8C' },
     colors: {
       table: '#1C3833',
       'table-edge': '#12261F',
