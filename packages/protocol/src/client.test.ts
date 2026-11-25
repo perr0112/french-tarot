@@ -83,3 +83,14 @@ describe('reactions', () => {
     expect(parseClientMessage({ type: 'react', emoji: '💩' }).ok).toBe(false);
   });
 });
+
+describe('throws and the hacker name', () => {
+  it('accepts the six things to throw only, and the hacker toggle', () => {
+    expect(parseClientMessage({ type: 'throw', target: 1, item: 'cake' }).ok).toBe(true);
+    expect(parseClientMessage({ type: 'throw', target: 1, item: 'brick' }).ok).toBe(false);
+    expect(parseClientMessage({ type: 'hacker' })).toEqual({
+      ok: true,
+      message: { type: 'hacker' },
+    });
+  });
+});

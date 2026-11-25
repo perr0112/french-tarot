@@ -52,6 +52,7 @@ describe('seatFacts', () => {
           connected: true,
           replacedByBot: false,
           autoplay: false,
+          hacker: false,
         },
         {
           kind: 'human',
@@ -59,9 +60,24 @@ describe('seatFacts', () => {
           connected: false,
           replacedByBot: false,
           autoplay: false,
+          hacker: false,
         },
-        { kind: 'human', nickname: 'Bob', connected: false, replacedByBot: true, autoplay: false },
-        { kind: 'human', nickname: 'Dan', connected: true, replacedByBot: false, autoplay: true },
+        {
+          kind: 'human',
+          nickname: 'Bob',
+          connected: false,
+          replacedByBot: true,
+          autoplay: false,
+          hacker: false,
+        },
+        {
+          kind: 'human',
+          nickname: 'Dan',
+          connected: true,
+          replacedByBot: false,
+          autoplay: true,
+          hacker: false,
+        },
       ],
     });
     expect(seatFacts(view, 1).status).toBe('déconnecté');

@@ -5,7 +5,7 @@ import type {
   SessionDealRecord,
   SessionErrorCode,
 } from '@tarot/engine';
-import type { Reaction, RoomOptions, SeatBotLevel } from './options';
+import type { Reaction, RoomOptions, SeatBotLevel, ThrowItem } from './options';
 
 export type RoomPhase = 'lobby' | 'playing' | 'finished';
 
@@ -36,6 +36,8 @@ export type SeatOccupant =
       readonly replacedByBot: boolean;
       /** The player let a bot play for them (« jeu auto »). */
       readonly autoplay: boolean;
+      /** The player's name scrambles like a hacker's (`tarot.hacker()` in the console). */
+      readonly hacker: boolean;
     }
   /** `number`: the bot's own number (« Jade 2 »), kept as long as it sits at this seat. */
   | { readonly kind: 'bot'; readonly level: SeatBotLevel; readonly number: number }
@@ -74,6 +76,8 @@ export type ServerMessage =
   | { readonly type: 'welcome'; readonly token: string }
   | { readonly type: 'state'; readonly view: RoomView }
   | { readonly type: 'error'; readonly code: ServerErrorCode }
+  /** To everyone at the table: a player threw something at another (kept nowhere). */
+  | { readonly type: 'throw'; readonly from: Seat; readonly to: Seat; readonly item: ThrowItem }
   /** To everyone at the table: a player reacted (shown at their seat, kept nowhere). */
   | { readonly type: 'reaction'; readonly seat: Seat; readonly emoji: Reaction }
   /** Only to the sender of a code: whether it armed the next deal. */

@@ -636,7 +636,14 @@ describe('autoplay and abandoning the deal', () => {
   const alone = (autoplay = false) =>
     roomView(dealWith([...trumps(1, 13), ...suit('S', 1, 5)]), 0, {
       seats: [
-        { kind: 'human', nickname: 'Alice', connected: true, replacedByBot: false, autoplay },
+        {
+          kind: 'human',
+          nickname: 'Alice',
+          connected: true,
+          replacedByBot: false,
+          autoplay,
+          hacker: false,
+        },
         { kind: 'bot', level: 'medium', number: 1 },
         { kind: 'bot', level: 'medium', number: 2 },
         { kind: 'bot', level: 'easy', number: 3 },
@@ -721,5 +728,40 @@ describe('reactions', () => {
     render(<Table view={playing()} send={vi.fn()} reactions={reactions} />);
     const bob = document.querySelector('[data-seat="2"]') as HTMLElement;
     expect(within(bob).getByRole('img', { name: 'Bob réagit : 🎉' })).toBeTruthy();
+  });
+});
+
+describe('throwing something at a player', () => {
+  const playing = () => roomView(dealWith([...trumps(1, 13), ...suit('S', 1, 5)]));
+
+  it('picks one of six things from another player’s badge and throws it', () => {
+    const send = vi.fn();
+    render(<Table view={playing()} send={send} />);
+    click('Lancer quelque chose sur Bob');
+    const picker = screen.getByRole('group', { name: 'Lancer sur Bob' });
+    expect(
+      within(picker)
+        .getAllByRole('button')
+        .map((b) => b.getAttribute('aria-label')),
+    ).toEqual(['Gâteau', 'Tomate', 'Ballon', 'Boule de neige', 'Cœur', 'Poisson']);
+    fireEvent.click(within(picker).getByRole('button', { name: 'Gâteau' }));
+    expect(send).toHaveBeenCalledWith({ type: 'throw', target: 2, item: 'cake' });
+    expect(screen.queryByRole('group', { name: 'Lancer sur Bob' })).toBeNull();
+  });
+
+  it('offers nothing to throw at oneself', () => {
+    render(<Table view={playing()} send={vi.fn()} />);
+    expect(screen.queryByRole('button', { name: 'Lancer quelque chose sur Alice' })).toBeNull();
+  });
+
+  it('shows what flies across the table', () => {
+    render(
+      <Table
+        view={playing()}
+        send={vi.fn()}
+        throws={[{ id: 1, from: 2, to: 0, item: 'balloon' }]}
+      />,
+    );
+    expect(document.querySelector('[data-throw="balloon"]')).toBeTruthy();
   });
 });

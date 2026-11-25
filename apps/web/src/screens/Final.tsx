@@ -6,6 +6,7 @@ import { LeaveButton } from '../components/LeaveButton';
 import { ReadyButton } from '../components/ReadyButton';
 import { ScoreChip } from '../components/ScoreChip';
 import { ScoreSheet } from '../components/ScoreSheet';
+import { SeatName } from '../components/SeatName';
 import { seatName } from '../lib/names';
 import { podiumCard, rankSeats } from '../lib/ranking';
 import type { Send } from '../net/connection';
@@ -44,7 +45,9 @@ export function Final({
               <CardFace card={podiumCard(rank, lastRank)} />
             </span>
             <span className={styles.rank}>{fr.final.rank(rank)}</span>
-            <span className={styles.name}>{seatName(view, seat)}</span>
+            <span className={styles.name}>
+              <SeatName view={view} seat={seat} />
+            </span>
             <ScoreChip value={total} />
           </li>
         ))}

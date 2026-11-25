@@ -3,6 +3,7 @@ import PartySocket from 'partysocket';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Seat } from '@tarot/engine';
 import { useReactions, type ShownReaction } from '../hooks/useReactions';
+import { useThrows, type Throw } from '../hooks/useThrows';
 import { fr } from '../strings/fr';
 import { storage } from './storage';
 
@@ -35,6 +36,8 @@ export interface RoomConnection {
   readonly leave: () => void;
   /** Reactions just sent at the table, by seat, while they are shown. */
   readonly reactions: ReadonlyMap<Seat, ShownReaction>;
+  /** Things just thrown at players, in the air or on their target. */
+  readonly throws: readonly Throw[];
 }
 
 /** One attempt to sit at the table; a new object retries, even with the same nickname. */
@@ -49,6 +52,8 @@ export function useRoomConnection(code: string, request: JoinRequest | null): Ro
   const [error, setError] = useState<ServerErrorCode | null>(null);
   const reactions = useReactions();
   const addReaction = reactions.add;
+  const throws = useThrows();
+  const addThrow = throws.add;
   const socketRef = useRef<PartySocket | null>(null);
   /**
    * The current connection's flag, set once its socket must not reconnect (refused, left,
@@ -77,6 +82,7 @@ export function useRoomConnection(code: string, request: JoinRequest | null): Ro
       if (message.type === 'welcome') storage.saveToken(code, message.token);
       else if (message.type === 'state') setView(message.view);
       else if (message.type === 'reaction') addReaction(message.seat, message.emoji);
+      else if (message.type === 'throw') addThrow(message.from, message.to, message.item);
       else if (message.type === 'code')
         console.info(fr.code[message.accepted ? 'accepted' : 'refused']);
       else if (message.code === 'NICKNAME_TAKEN') {
@@ -97,7 +103,7 @@ export function useRoomConnection(code: string, request: JoinRequest | null): Ro
       socket.close();
       socketRef.current = null;
     };
-  }, [code, request, addReaction]);
+  }, [code, request, addReaction, addThrow]);
 
   const send = useCallback<Send>((message) => {
     socketRef.current?.send(JSON.stringify(message));
@@ -111,12 +117,24 @@ export function useRoomConnection(code: string, request: JoinRequest | null): Ro
   }, [code]);
   // The host code is typed in the browser console: tarot("…") (AGENTS.md §5).
   useEffect(() => {
-    const host = window as Window & { tarot?: (code: string) => void };
-    host.tarot = (secret: string) => send({ type: 'code', code: String(secret) });
+    // And `tarot.hacker()`: one's own name scrambling like a hacker's, for everyone, on or off.
+    const host = window as Window & { tarot?: ((code: string) => void) & { hacker: () => void } };
+    host.tarot = Object.assign((secret: string) => send({ type: 'code', code: String(secret) }), {
+      hacker: () => send({ type: 'hacker' }),
+    });
     return () => {
       delete host.tarot;
     };
   }, [send]);
 
-  return { status, view, error, send, dismissError, leave, reactions: reactions.shown };
+  return {
+    status,
+    view,
+    error,
+    send,
+    dismissError,
+    leave,
+    reactions: reactions.shown,
+    throws: throws.active,
+  };
 }

@@ -21,6 +21,8 @@ export const tokens = {
     /** The board's wooden rim, in front of the scenery, and its lit edge. */
     rim: '#6B4430',
     'rim-light': 'rgb(255 222 180 / 0.28)',
+    /** A hacker's name (`tarot.hacker()`): a terminal's green. */
+    hacker: '#7CFFB2',
     /** Captions laid on the mat (the chien, the last trick). */
     'ink-on-mat-muted': '#E2D8CA',
     surface: '#FAFAF7',

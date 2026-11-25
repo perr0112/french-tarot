@@ -64,9 +64,11 @@ describe('autoplay, session by session', () => {
     [1, 2, 3].forEach((seat) => h.send('c0', { type: 'setBot', seat, level: 'medium' }));
     h.send('c0', { type: 'start' });
     h.send('c0', { type: 'autoplay', on: true });
+    h.send('c0', { type: 'hacker' });
     for (let step = 0; step < 300 && h.view('c0').phase !== 'finished'; step++) h.advance(5000);
     expect(h.view('c0').phase).toBe('finished');
-    expect(h.view('c0').seats[0]).toMatchObject({ autoplay: false });
+    // The hacker name goes with it: both are for one session.
+    expect(h.view('c0').seats[0]).toMatchObject({ autoplay: false, hacker: false });
   });
 });
 

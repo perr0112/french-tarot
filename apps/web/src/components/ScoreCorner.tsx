@@ -2,11 +2,11 @@ import type { RoomView } from '@tarot/protocol';
 import { useLayoutEffect, useRef, useState } from 'react';
 import ui from '../design/ui.module.css';
 import { formatScore } from '../lib/cards';
-import { seatName } from '../lib/names';
 import { rankSeats } from '../lib/ranking';
 import { scoreTone } from '../lib/score';
 import { fr } from '../strings/fr';
 import { ScoreSheet } from './ScoreSheet';
+import { SeatName } from './SeatName';
 import styles from './ScoreCorner.module.css';
 
 /**
@@ -64,7 +64,9 @@ export function ScoreCorner({
       <ol className={styles.totals} aria-label={fr.table.scores}>
         {ranking.map(({ seat, total }) => (
           <li key={seat} className={seat === view.you.seat ? styles.me : ''}>
-            <span className={styles.name}>{seatName(view, seat)}</span>
+            <span className={styles.name}>
+              <SeatName view={view} seat={seat} />
+            </span>
             <span className={`${styles.total} ${scoreTone(total)}`}>{formatScore(total)}</span>
           </li>
         ))}

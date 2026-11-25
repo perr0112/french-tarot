@@ -1,6 +1,6 @@
 import type { BidChoice, PoigneeLevel } from '@tarot/engine';
 import type { Season } from '../themes/seasons';
-import type { BotSpeed, Reaction, SeatBotLevel, ServerErrorCode } from '@tarot/protocol';
+import type { BotSpeed, Reaction, SeatBotLevel, ServerErrorCode, ThrowItem } from '@tarot/protocol';
 
 const poigneeShown = (level: string) => `Poignée ${level.toLowerCase()}`;
 const CALLED = 'Appel';
@@ -32,6 +32,18 @@ export const fr = {
     confirm: 'Quitter la table ? Un bot prendra votre place.',
     yes: 'Quitter',
     stay: 'Rester',
+  },
+  throws: {
+    open: (name: string) => `Lancer quelque chose sur ${name}`,
+    title: (name: string) => `Lancer sur ${name}`,
+    items: {
+      cake: 'Gâteau',
+      tomato: 'Tomate',
+      balloon: 'Ballon',
+      snowball: 'Boule de neige',
+      heart: 'Cœur',
+      fish: 'Poisson',
+    } satisfies Record<ThrowItem, string>,
   },
   reactions: {
     title: 'Réactions',

@@ -4,6 +4,7 @@ import { seatName } from '../lib/names';
 import { madeTone, scoreTone } from '../lib/score';
 import { fr } from '../strings/fr';
 import styles from './ScoreSheet.module.css';
+import { SeatName } from './SeatName';
 
 /** Every deal of the session and the running totals (AGENTS.md §5). */
 export function ScoreSheet({ view }: { view: RoomView }) {
@@ -20,7 +21,7 @@ export function ScoreSheet({ view }: { view: RoomView }) {
             <th scope="col">{fr.sheet.contract}</th>
             {seats.map((seat) => (
               <th key={seat} scope="col">
-                {seatName(view, seat)}
+                <SeatName view={view} seat={seat} />
               </th>
             ))}
           </tr>
