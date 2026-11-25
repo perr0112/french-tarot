@@ -20,7 +20,7 @@ Goal in one line: **clean, uncluttered, pleasant — the table and the cards are
 ## 2. Forbidden
 
 - Hard-coded colours, sizes, radii, shadows or durations in components — use tokens.
-- Gradients, glows, textures and heavy drop shadows (except the subtle card shadow token, and the table and its mat: soft light, wood grain, weave, vignette, stitching and the mat's corner flourishes, from the `table-*`, `mat-*` and `ornament` tokens only).
+- Gradients, glows, textures and heavy drop shadows (except the subtle card shadow token, and the table and its mat: soft light, wood grain, weave, vignette, stitching and the mat's corner flourishes, from the `table-*`, `mat-*` and `ornament` tokens only). Hand-drawn illustrations (the seasons' landscapes, motifs and drifts, the things to throw) carry their own palettes inline in their drawing files, and a hacker's name (`tarot.hacker()`) its terminal glow: decoration, never information.
 - More than **2 font weights** in one view; more than **1 font family** for UI (cards may use their own numeral face).
 - Animations longer than **300 ms** on the input path (playing a card, clicking a bid). Dealing may be longer but must be skippable.
 - Animating layout properties (`width`, `height`, `top`, `left`) — animate `transform` and `opacity`.

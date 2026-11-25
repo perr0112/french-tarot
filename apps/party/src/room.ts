@@ -665,10 +665,12 @@ function mayAbandonDeal(room: RoomState, me: Participant): boolean {
   );
 }
 
-/** Autoplay is for one session: off when it ends or a new one begins. */
+/** Autoplay and the hacker name are for one session: off when it ends or a new one begins. */
 const endAutoplay = (room: RoomState): RoomState => ({
   ...room,
-  participants: room.participants.map((p) => (p.autoplay ? { ...p, autoplay: false } : p)),
+  participants: room.participants.map((p) =>
+    p.autoplay || p.hacker ? { ...p, autoplay: false, hacker: false } : p,
+  ),
 });
 
 /**

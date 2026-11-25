@@ -21,9 +21,8 @@
   will-change: transform;
 }
 
-/* A balloon over its target, gone with a pop. */
+/* A balloon over its target (where GSAP left it), gone with a pop. */
 .popped {
-  translate: -50% -50%;
   animation: pop var(--duration-fast) var(--ease-out) forwards;
 }
 
@@ -39,6 +38,17 @@
   translate: -50% -50%;
 }
 
+/* Still (less motion, or animations off): the mark shows, then fades. */
+.layer[data-still] .mark {
+  animation: fade var(--duration-slow) var(--ease-out) 3s forwards;
+}
+
+@keyframes fade {
+  to {
+    opacity: 0;
+  }
+}
+
 .mark svg,
 .projectile svg,
 .heart svg {
@@ -51,7 +61,7 @@
   position: absolute;
   width: var(--space-2);
   height: var(--space-3);
-  border-radius: 2px;
+  border-radius: var(--border-thick);
 }
 
 .heart {
@@ -60,13 +70,18 @@
   translate: -50% -50%;
 }
 
-/* The six things to throw, under the target's badge. */
+/* The six things to throw, under the target's badge, always inside the screen. */
 .picker {
-  position: absolute;
-  top: calc(100% + var(--space-1));
-  left: 50%;
-  translate: -50% 0;
-  z-index: 3;
+  --picker-width: calc(var(--space-7) * 6 + var(--space-1) * 7);
+  position: fixed;
+  top: calc(var(--y) + var(--space-1));
+  left: clamp(
+    var(--space-2),
+    var(--x) - var(--picker-width) / 2,
+    100vw - var(--picker-width) - var(--space-2)
+  );
+  z-index: 6;
+  width: max-content;
   display: flex;
   gap: var(--space-1);
   padding: var(--space-1);
@@ -77,6 +92,7 @@
 }
 
 .choice {
+  flex: none;
   display: grid;
   place-items: center;
   width: var(--space-7);
@@ -106,5 +122,14 @@
   .popped {
     animation: none;
     opacity: 0;
+  }
+}
+
+/* Compact breakpoint (DESIGN.md §3.4): three by two. */
+@media (max-width: 600px) {
+  .picker {
+    --picker-width: calc(var(--space-7) * 3 + var(--space-1) * 4);
+    flex-wrap: wrap;
+    width: var(--picker-width);
   }
 }

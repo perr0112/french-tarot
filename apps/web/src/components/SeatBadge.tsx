@@ -11,7 +11,7 @@ import { fr } from '../strings/fr';
 import { CardStrip } from './CardStrip';
 import { ScoreChip } from './ScoreChip';
 import { SeatName } from './SeatName';
-import { ThrowPicker } from './Throws';
+import { ThrowPicker, type PickerAnchor } from './Throws';
 import styles from './SeatBadge.module.css';
 
 /**
@@ -41,10 +41,10 @@ export function SeatBadge({
   onThrow?: ((item: ThrowItem) => void) | undefined;
 }) {
   const facts = seatFacts(view, seat);
-  const [throwing, setThrowing] = useState(false);
+  const [throwing, setThrowing] = useState<PickerAnchor | null>(null);
   const target = useRef<HTMLButtonElement>(null);
   const closeThrow = () => {
-    setThrowing(false);
+    setThrowing(null);
     target.current?.focus();
   };
   const { poignee, ecartTrumps, calledCard } = facts;
@@ -66,13 +66,19 @@ export function SeatBadge({
           type="button"
           className={styles.throwTarget}
           aria-label={fr.throws.open(facts.name)}
-          aria-expanded={throwing}
-          onClick={() => setThrowing(!throwing)}
+          title={fr.throws.open(facts.name)}
+          aria-expanded={throwing !== null}
+          data-throw-anchor=""
+          onClick={(event) => {
+            const box = event.currentTarget.getBoundingClientRect();
+            setThrowing(throwing ? null : { x: box.left + box.width / 2, y: box.bottom });
+          }}
         />
       )}
       {onThrow && throwing && (
         <ThrowPicker
           name={facts.name}
+          anchor={throwing}
           onClose={closeThrow}
           onThrow={(item) => {
             closeThrow();

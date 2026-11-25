@@ -1,10 +1,11 @@
 import type { Seat } from '@tarot/engine';
 import { THROW_ITEMS, type ThrowItem } from '@tarot/protocol';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import type { Throw } from '../hooks/useThrows';
 import { loadGsap } from '../lib/gsap';
 import { useMedia } from '../lib/media';
+import { useAnimations } from '../lib/theme';
 import { fr } from '../strings/fr';
 import styles from './Throws.module.css';
 
@@ -104,10 +105,10 @@ function Mark({ item }: { item: ThrowItem }) {
             <path
               key={x}
               data-drip=""
-              d={`M${x} 34 Q${x + 2} 46 ${x} 52 Q${x - 3} 46 ${x - 2} 34 Z`}
+              d={`M${x - 4} 33 Q${x - 4} 46 ${x} 50 Q${x + 4} 46 ${x + 4} 33 Z`}
               fill="#FFF6F0"
-              {...LINE}
-              strokeWidth={2}
+              stroke="#F3DCCD"
+              strokeWidth={1.5}
             />
           ))}
           <circle cx="44" cy="14" r="5" fill="#E63946" {...LINE} />
@@ -171,6 +172,30 @@ const BURST_COLOURS: Readonly<Partial<Record<ThrowItem, readonly string[]>>> = {
   snowball: ['#FFFFFF', '#E6F0F8'],
   tomato: ['#E63946', '#C92A3A'],
 };
+
+/** A little heart or a snowflake out of a burst, in its colour, with the drawings' ink. */
+function BurstShape({ item, color }: { item: 'heart' | 'snowball'; color: string }) {
+  return item === 'heart' ? (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M12 21 C4 15 2 11 2 8 C2 5 4.5 3 7 3 C9 3 11 4.5 12 6 C13 4.5 15 3 17 3 C19.5 3 22 5 22 8 C22 11 20 15 12 21 Z"
+        fill={color}
+        {...LINE}
+        strokeWidth={1.5}
+      />
+    </svg>
+  ) : (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9"
+        fill="none"
+        stroke={color}
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
 
 const centreOf = (seat: Seat): { x: number; y: number } | null => {
   const badge = document.querySelector(`[data-seat="${seat}"]`);
@@ -258,13 +283,15 @@ function Flight({ thrown, still }: { thrown: Throw; still: boolean }) {
             { scale: 0.2, opacity: 1 },
             { scale: 1, duration: 0.35, ease: 'back.out(2.4)' },
           );
-          gsap.to(splat.querySelectorAll('[data-drip]'), {
-            scaleY: 1.6,
-            transformOrigin: '50% 0%',
-            duration: 2,
-            ease: 'sine.in',
-            stagger: 0.2,
-          });
+          const drips = splat.querySelectorAll('[data-drip]');
+          if (drips.length > 0)
+            gsap.to(drips, {
+              scaleY: 1.3,
+              transformOrigin: '50% 0%',
+              duration: 2,
+              ease: 'sine.in',
+              stagger: 0.2,
+            });
           if (thrown.item === 'fish') {
             gsap.fromTo(
               splat,
@@ -276,10 +303,36 @@ function Flight({ thrown, still }: { thrown: Throw; still: boolean }) {
         }
         const bits = burst.current?.children;
         if (bits) {
-          Array.from(bits).forEach((bit) => {
-            const angle = gsap.utils.random(0, Math.PI * 2);
-            const distance = gsap.utils.random(40, 110);
-            const hearts = thrown.item === 'heart';
+          Array.from(bits).forEach((bit, i) => {
+            if (thrown.item === 'heart') {
+              // A rain of little hearts over the badge, swaying down.
+              gsap.fromTo(
+                bit,
+                {
+                  x: gsap.utils.random(-60, 60),
+                  y: gsap.utils.random(-90, -50),
+                  opacity: 0,
+                  scale: gsap.utils.random(0.6, 1),
+                },
+                {
+                  keyframes: [
+                    { opacity: 1, duration: 0.2 },
+                    {
+                      y: gsap.utils.random(20, 50),
+                      x: `+=${gsap.utils.random(-20, 20)}`,
+                      opacity: 0,
+                      duration: gsap.utils.random(1.4, 2),
+                    },
+                  ],
+                  delay: i * 0.08,
+                  ease: 'sine.in',
+                },
+              );
+              return;
+            }
+            // Out from the impact, mostly sideways and down: never up over the top bar.
+            const angle = gsap.utils.random(-0.3, Math.PI + 0.3);
+            const distance = gsap.utils.random(40, 100);
             gsap.fromTo(
               bit,
               {
@@ -291,7 +344,7 @@ function Flight({ thrown, still }: { thrown: Throw; still: boolean }) {
               },
               {
                 x: Math.cos(angle) * distance,
-                y: hearts ? -gsap.utils.random(60, 140) : Math.sin(angle) * distance + 40,
+                y: Math.sin(angle) * distance * 0.6 + 30,
                 rotation: `+=${gsap.utils.random(-180, 180)}`,
                 opacity: 0,
                 duration: gsap.utils.random(1, 1.8),
@@ -311,13 +364,9 @@ function Flight({ thrown, still }: { thrown: Throw; still: boolean }) {
 
   const colours = BURST_COLOURS[thrown.item];
   return (
-    <div className={styles.throw} data-throw={thrown.item}>
+    <div data-throw={thrown.item}>
       {!landed || thrown.item === 'balloon' ? (
-        <div
-          ref={projectile}
-          className={`${styles.projectile} ${landed ? styles.popped : ''}`}
-          style={landed && target ? { left: target.x, top: target.y } : undefined}
-        >
+        <div ref={projectile} className={`${styles.projectile} ${landed ? styles.popped : ''}`}>
           <ThrowShape item={thrown.item} />
         </div>
       ) : null}
@@ -326,16 +375,15 @@ function Flight({ thrown, still }: { thrown: Throw; still: boolean }) {
           <div ref={mark} className={styles.mark} style={{ left: target.x, top: target.y }}>
             <Mark item={thrown.item} />
           </div>
-          {colours && (
+          {colours && !still && (
             <div ref={burst} className={styles.burst} style={{ left: target.x, top: target.y }}>
               {Array.from({ length: 14 }, (_, i) =>
-                thrown.item === 'heart' ? (
-                  <span
-                    key={i}
-                    className={styles.heart}
-                    style={{ color: colours[i % colours.length] }}
-                  >
-                    <ThrowShape item="heart" />
+                thrown.item === 'heart' || thrown.item === 'snowball' ? (
+                  <span key={i} className={styles.heart}>
+                    <BurstShape
+                      item={thrown.item}
+                      color={colours[i % colours.length] ?? '#FFFFFF'}
+                    />
                   </span>
                 ) : (
                   <span
@@ -355,10 +403,13 @@ function Flight({ thrown, still }: { thrown: Throw; still: boolean }) {
 
 /** Everything thrown across the table, over the seats and under nothing that takes input. */
 export function ThrowLayer({ throws }: { throws: readonly Throw[] }) {
-  const still = useMedia('(prefers-reduced-motion: reduce)');
+  // With less motion asked for, or the « Animations » switch off: the marks alone, no flight.
+  const reduced = useMedia('(prefers-reduced-motion: reduce)');
+  const animations = useAnimations();
+  const still = reduced || !animations;
   if (throws.length === 0) return null;
   return createPortal(
-    <div className={styles.layer} aria-hidden="true">
+    <div className={styles.layer} aria-hidden="true" data-still={still ? '' : undefined}>
       {throws.map((thrown) => (
         <Flight key={thrown.id} thrown={thrown} still={still} />
       ))}
@@ -367,23 +418,46 @@ export function ThrowLayer({ throws }: { throws: readonly Throw[] }) {
   );
 }
 
-/** The six things to throw at `name`, opened from their badge. */
+/** Where a picker opens: under its badge's centre (window coordinates). */
+export interface PickerAnchor {
+  readonly x: number;
+  readonly y: number;
+}
+
+/**
+ * The six things to throw at `name`, opened under their badge, kept inside the screen; Escape,
+ * a click elsewhere or a choice closes it.
+ */
 export function ThrowPicker({
   name,
+  anchor,
   onThrow,
   onClose,
 }: {
   name: string;
+  anchor: PickerAnchor;
   onThrow: (item: ThrowItem) => void;
   onClose: () => void;
 }) {
+  const root = useRef<HTMLDivElement>(null);
   const first = useRef<HTMLButtonElement>(null);
-  useEffect(() => first.current?.focus(), []);
-  return (
+  useEffect(() => {
+    first.current?.focus();
+    const outside = (event: PointerEvent) => {
+      const target = event.target as Element;
+      // Its own badge toggles it by itself.
+      if (!root.current?.contains(target) && !target.closest?.('[data-throw-anchor]')) onClose();
+    };
+    document.addEventListener('pointerdown', outside);
+    return () => document.removeEventListener('pointerdown', outside);
+  }, [onClose]);
+  return createPortal(
     <div
+      ref={root}
       className={styles.picker}
       role="group"
       aria-label={fr.throws.title(name)}
+      style={{ '--x': `${anchor.x}px`, '--y': `${anchor.y}px` } as CSSProperties}
       onKeyDown={(event) => {
         if (event.key === 'Escape') onClose();
       }}
@@ -401,6 +475,7 @@ export function ThrowPicker({
           <ThrowShape item={item} />
         </button>
       ))}
-    </div>
+    </div>,
+    document.body,
   );
 }

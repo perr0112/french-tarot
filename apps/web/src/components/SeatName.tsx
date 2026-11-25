@@ -8,7 +8,8 @@ import styles from './SeatName.module.css';
 /** How often a hacker's name changes its letters. */
 export const HACKER_TICK_MS = 60;
 
-const GLYPHS = '01#%&@$*+=<>/\\|アカサタナハマヤラワ';
+// ASCII only: one character's width each, so the name never changes size.
+const GLYPHS = '01#%&@$*+=<>/\\|{}[]?!';
 
 /** Ticks a letter stays scrambled before the next one settles, and the pause once it reads. */
 const SETTLE_TICKS = 2;
@@ -40,7 +41,12 @@ function HackerName({ name }: { name: string }) {
   }, [name, still]);
   return (
     // Read as the name itself, whatever the letters show.
-    <span className={styles.hacker} role="img" aria-label={name}>
+    <span
+      className={styles.hacker}
+      role="img"
+      aria-label={name}
+      style={{ width: `${[...name].length}ch` }}
+    >
       {still ? name : shown}
     </span>
   );
