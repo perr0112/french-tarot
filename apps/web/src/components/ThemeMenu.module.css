@@ -11,8 +11,9 @@
   border: none;
   background: transparent;
   color: var(--color-ink-on-table);
-  font-size: var(--text-sm-size);
-  line-height: var(--text-sm-line);
+  /* Its surroundings' size: the bar's small text, the lobby's body text. */
+  font-size: inherit;
+  line-height: inherit;
   text-decoration: underline;
   text-underline-offset: var(--space-1);
   cursor: pointer;

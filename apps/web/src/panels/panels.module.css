@@ -155,3 +155,17 @@
     width: var(--card-mini);
   }
 }
+
+/* A low screen (a laptop): tighter panels and contract tiles, so a decision covers less of
+   the mat. */
+@media (max-height: 900px) and (min-width: 601px) {
+  .panel {
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .contract {
+    gap: 0;
+    padding: var(--space-1) var(--space-2);
+  }
+}

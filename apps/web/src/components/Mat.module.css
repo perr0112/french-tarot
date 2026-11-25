@@ -17,6 +17,12 @@
   outline-offset: calc(var(--space-2) * -1);
 }
 
+/* Placed against the mat's own corners: out of any grid the mat's holder lays its children in
+   (Table stacks them in one cell), which would otherwise anchor them to that cell instead. */
+.mat > .ornament {
+  grid-area: auto;
+}
+
 .ornament {
   position: absolute;
   width: var(--space-7);

@@ -70,6 +70,9 @@
   grid-area: decision;
   display: grid;
   justify-items: center;
+  /* Above the score slip and its sheet: a choice is never hidden. */
+  position: relative;
+  z-index: 2;
 }
 
 .me {
@@ -95,6 +98,8 @@
 .hand {
   grid-area: hand;
   width: 100%;
+  /* The fan measures the board, not the window, so it never reaches the rim (Hand). */
+  container-type: inline-size;
 }
 
 .centre {

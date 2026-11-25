@@ -149,7 +149,7 @@ export function Table({
   const turnName = deal?.turn != null && deal.turn !== me ? seatName(view, deal.turn) : null;
 
   return (
-    <div className={styles.table}>
+    <div className={styles.table} data-board="">
       <ThrowLayer throws={throws} />
       <InfoBar
         view={view}
@@ -247,7 +247,12 @@ export function Table({
           />
         )}
         {/* By the local player's right hand: it takes no room from the seats, trick or hand. */}
-        <ScoreCorner view={view} className={styles.scores} />
+        <ScoreCorner
+          // A decision opening folds the sheet: the choice comes first.
+          key={template?.type ?? 'none'}
+          view={view}
+          className={styles.scores}
+        />
         {deal && deal.phase !== 'finished' && (
           <div className={styles.hand}>
             <Hand

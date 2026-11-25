@@ -77,7 +77,7 @@
   overflow-wrap: anywhere;
 }
 
-.actions {
+.final .actions {
   justify-content: center;
   /* « Rejouer » reserves a line under it (who is awaited): the buttons line up at the top. */
   align-items: flex-start;

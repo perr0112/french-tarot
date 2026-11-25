@@ -422,6 +422,9 @@ export function ThrowLayer({ throws }: { throws: readonly Throw[] }) {
 export interface PickerAnchor {
   readonly x: number;
   readonly y: number;
+  /** The board's left and right edges (the screen's without a board): the picker stays in. */
+  readonly min: number;
+  readonly max: number;
 }
 
 /**
@@ -457,7 +460,14 @@ export function ThrowPicker({
       className={styles.picker}
       role="group"
       aria-label={fr.throws.title(name)}
-      style={{ '--x': `${anchor.x}px`, '--y': `${anchor.y}px` } as CSSProperties}
+      style={
+        {
+          '--x': `${anchor.x}px`,
+          '--y': `${anchor.y}px`,
+          '--min': `${anchor.min}px`,
+          '--max': `${anchor.max}px`,
+        } as CSSProperties
+      }
       onKeyDown={(event) => {
         if (event.key === 'Escape') onClose();
       }}

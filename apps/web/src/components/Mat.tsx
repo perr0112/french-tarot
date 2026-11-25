@@ -35,12 +35,10 @@ const MIRROR: Readonly<Record<Corner, string | undefined>> = {
 };
 
 /**
- * A corner flourish: a whiplash curve along the two edges, curled at both ends, in the manner
- * of the 1898 Grimaud deck, round a suit kept upright.
+ * A corner ornament in the manner of the 1898 Grimaud deck: a medallion round a suit, whiplash
+ * flourishes along the mat's edges, the season's motif in the corner.
  */
 function Ornament({ corner, suit, season }: { corner: Corner; suit: Suit; season: Season }) {
-  const right = corner === 'topRight' || corner === 'bottomRight';
-  const bottom = corner === 'bottomLeft' || corner === 'bottomRight';
   return (
     <svg
       className={`${styles.ornament} ${styles[corner]}`}
@@ -48,23 +46,26 @@ function Ornament({ corner, suit, season }: { corner: Corner; suit: Suit; season
       aria-hidden="true"
       data-corner={corner}
     >
+      {/* A medallion in the middle of the box, the suit exactly at its centre: the same in
+          every corner, so all four line up. */}
+      <g className={styles.lines}>
+        <circle cx="24" cy="24" r="11" />
+        <circle cx="24" cy="24" r="8.5" className={styles.thin} />
+      </g>
+      <path className={styles.suit} d={SUIT_PATHS[suit]} transform="translate(19 19)" />
+      {/* Its flourishes run along the mat's two edges, curling at their ends; the season's motif
+          sits in the corner between them (mirrored for each corner). */}
       <g transform={MIRROR[corner]}>
         <g className={styles.lines}>
-          <path d="M4 36 C4 18 18 4 36 4" />
-          <path d="M36 4 c3.5 0 4.5 3.5 1.8 4.8 c-1.8 .9 -3.5 -.5 -2.6 -2.2" />
-          <path d="M4 36 c0 3.5 3.5 4.5 4.8 1.8 c.9 -1.8 -.5 -3.5 -2.2 -2.6" />
-          <path d="M11 33 C11 21 21 11 33 11" className={styles.thin} />
+          <path d="M16.5 31.5 C11 37 8 41 4.5 45.5" />
+          <path d="M4.5 45.5 c-2 -1 -2 -4 0.5 -4.5 c1.6 -0.3 2.4 1.4 1.2 2.2" />
+          <path d="M31.5 16.5 C37 11 41 8 45.5 4.5" />
+          <path d="M45.5 4.5 c-1 -2 -4 -2 -4.5 0.5 c-0.3 1.6 1.4 2.4 2.2 1.2" />
         </g>
-        {/* The season's motif by the corner (themes/shapes.tsx). */}
-        <g className={styles.motif} transform="translate(-6 -6) scale(1.6)">
+        <g className={styles.motif} transform="translate(1 1) scale(0.75)">
           <SeasonMotif season={season} />
         </g>
       </g>
-      <path
-        className={styles.suit}
-        d={SUIT_PATHS[suit]}
-        transform={`translate(${right ? 14.5 : 23.5} ${bottom ? 14.5 : 23.5}) scale(1)`}
-      />
     </svg>
   );
 }
