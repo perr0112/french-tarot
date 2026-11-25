@@ -19,7 +19,7 @@ export function Room({ code }: { code: string }) {
     const nickname = storage.nickname();
     return nickname === null ? null : { nickname };
   });
-  const { status, view, error, send, dismissError, leave, reactions } = useRoomConnection(
+  const { status, view, error, send, dismissError, leave, reactions, throws } = useRoomConnection(
     code,
     request,
   );
@@ -89,6 +89,7 @@ export function Room({ code }: { code: string }) {
         <Table
           view={view}
           reactions={reactions}
+          throws={throws}
           send={send}
           dealtBeforeJoining={dealtBeforeJoining ?? null}
           onLeave={onLeave}

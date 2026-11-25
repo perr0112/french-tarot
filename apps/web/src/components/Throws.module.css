@@ -1,0 +1,110 @@
+/* Over the whole page and its seats, never taking a click. */
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.projectile,
+.mark,
+.burst {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.projectile {
+  width: var(--space-7);
+  height: var(--space-7);
+  will-change: transform;
+}
+
+/* A balloon over its target, gone with a pop. */
+.popped {
+  translate: -50% -50%;
+  animation: pop var(--duration-fast) var(--ease-out) forwards;
+}
+
+@keyframes pop {
+  to {
+    scale: 2.2;
+    opacity: 0;
+  }
+}
+
+.mark {
+  width: calc(var(--space-8) * 1.4);
+  translate: -50% -50%;
+}
+
+.mark svg,
+.projectile svg,
+.heart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.bit {
+  position: absolute;
+  width: var(--space-2);
+  height: var(--space-3);
+  border-radius: 2px;
+}
+
+.heart {
+  position: absolute;
+  width: var(--space-4);
+  translate: -50% -50%;
+}
+
+/* The six things to throw, under the target's badge. */
+.picker {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  left: 50%;
+  translate: -50% 0;
+  z-index: 3;
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-panel);
+  --focus-ring-color: var(--color-ink);
+}
+
+.choice {
+  display: grid;
+  place-items: center;
+  width: var(--space-7);
+  height: var(--space-7);
+  padding: var(--space-1);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+  transition: transform var(--duration-instant) var(--ease-out);
+}
+
+.choice svg {
+  width: 100%;
+  height: 100%;
+}
+
+.choice:hover {
+  background: var(--color-surface-muted);
+}
+
+.choice:active {
+  transform: scale(0.92);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .popped {
+    animation: none;
+    opacity: 0;
+  }
+}

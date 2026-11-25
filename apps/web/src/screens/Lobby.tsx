@@ -5,6 +5,7 @@ import { seatName } from '../lib/names';
 import type { Send } from '../net/connection';
 import { fr } from '../strings/fr';
 import { LeaveButton } from '../components/LeaveButton';
+import { SeatName } from '../components/SeatName';
 import { ThemeMenu } from '../components/ThemeMenu';
 import styles from './Lobby.module.css';
 
@@ -51,7 +52,7 @@ export function Lobby({
               <span className={styles.occupant}>
                 {occupant.kind === 'human' && (
                   <>
-                    {occupant.nickname}
+                    <SeatName view={view} seat={seat} />
                     {seat === view.you.seat && ` ${fr.lobby.you}`}
                     {!occupant.connected && (
                       <span className={ui.label}> · {fr.lobby.disconnected}</span>

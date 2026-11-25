@@ -15,6 +15,8 @@ import { chienLeavesTo, chienOnTable } from '../lib/chien';
 import { useFreshPoignees } from '../hooks/useFreshPoignees';
 import { usePreselection } from '../hooks/usePreselection';
 import type { ShownReaction } from '../hooks/useReactions';
+import type { Throw } from '../hooks/useThrows';
+import { ThrowLayer } from '../components/Throws';
 import { ReactionPicker } from '../components/ReactionPicker';
 import { seatName } from '../lib/names';
 import { poigneeStatus } from '../lib/selection';
@@ -39,11 +41,14 @@ export function Table({
   dealtBeforeJoining = null,
   onLeave,
   reactions = new Map(),
+  throws = [],
 }: {
   view: RoomView;
   send: Send;
   /** The reactions shown at the seats (hooks/useReactions.ts). */
   reactions?: ReadonlyMap<Seat, ShownReaction>;
+  /** Things thrown across the table (hooks/useThrows.ts). */
+  throws?: readonly Throw[];
   /** The deal already dealt when this page joined the table: it is shown, not dealt in again. */
   dealtBeforeJoining?: number | null;
   /** Leaves the table for good (a bot takes the seat). */
@@ -145,6 +150,7 @@ export function Table({
 
   return (
     <div className={styles.table}>
+      <ThrowLayer throws={throws} />
       <InfoBar
         view={view}
         showingLastTrick={reviewLastTrick}
@@ -164,6 +170,11 @@ export function Table({
               poigneeShowing={poigneesShown.get(seat)}
               reaction={reactions.get(seat)}
               bubbleOnLeft={positions[seat] === 'right' || positions[seat] === 'topRight'}
+              onThrow={
+                view.you.seat === null
+                  ? undefined
+                  : (item) => send({ type: 'throw', target: seat, item })
+              }
             />
           ),
         )}

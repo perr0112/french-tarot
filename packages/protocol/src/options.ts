@@ -12,6 +12,13 @@ export type Reaction = (typeof REACTIONS)[number];
 
 /** A player may react once every this many milliseconds. */
 export const REACTION_INTERVAL_MS = 2000;
+
+/** What a player may throw at another (AGENTS.md §6): for fun, it changes nothing in the game. */
+export const THROW_ITEMS = ['cake', 'tomato', 'balloon', 'snowball', 'heart', 'fish'] as const;
+export type ThrowItem = (typeof THROW_ITEMS)[number];
+
+/** A player may throw something once every this many milliseconds. */
+export const THROW_INTERVAL_MS = 3000;
 export type BotSpeed = (typeof BOT_SPEEDS)[number];
 
 /** Room options set by the host before a session starts (AGENTS.md §5). */

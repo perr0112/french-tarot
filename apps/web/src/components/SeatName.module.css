@@ -1,0 +1,7 @@
+/* A terminal's green, glowing; a fixed-width face, so the badge never jitters. */
+.hacker {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  color: var(--color-hacker);
+  text-shadow: 0 0 var(--space-2) var(--color-hacker);
+  letter-spacing: 0.02em;
+}

@@ -25,8 +25,10 @@ import {
   type ServerMessage,
   CHIEN_PAUSE_MS,
   REACTION_INTERVAL_MS,
+  THROW_INTERVAL_MS,
   TRICK_PAUSE_MS,
   type Reaction,
+  type ThrowItem,
 } from '@tarot/protocol';
 
 export { CHIEN_PAUSE_MS, TRICK_PAUSE_MS };
@@ -62,6 +64,10 @@ export interface Participant {
   readonly codeTries?: number;
   /** A bot (AUTOPLAY_LEVEL) plays every decision of the seat; absent in old rooms. */
   readonly autoplay?: boolean;
+  /** Whether this player's name scrambles like a hacker's; absent in old rooms. */
+  readonly hacker?: boolean;
+  /** When this player last threw something (THROW_INTERVAL_MS between two): in memory only. */
+  readonly thrownAt?: number;
   /** When this player last reacted (REACTION_INTERVAL_MS between two): in memory only, never
    * saved (a room woken from storage lets everyone react at once). */
   readonly reactedAt?: number;
@@ -234,6 +240,10 @@ function handleMessage(
       return hostCode(room, me, connection, message.code, env);
     case 'react':
       return react(room, me, connection, message.emoji, env);
+    case 'throw':
+      return throwAt(room, me, connection, message.target, message.item, env);
+    case 'hacker':
+      return { room: replace(room, me, { ...me, hacker: me.hacker !== true }), replies: [] };
     case 'autoplay':
       if (me.seat === null) return done('NOT_SEATED');
       return done(setAutoplay(room, me, message.on, env));
@@ -614,6 +624,37 @@ function react(
   };
 }
 
+/**
+ * Something thrown at another seated player (AGENTS.md §6): sent at once to everyone connected,
+ * kept nowhere. One every THROW_INTERVAL_MS per player; one sent sooner is dropped, quietly.
+ */
+function throwAt(
+  room: RoomState,
+  me: Participant,
+  connection: string,
+  target: Seat,
+  item: ThrowItem,
+  env: RoomEnv,
+): Outcome {
+  if (me.seat === null) return refuse(room, connection, 'NOT_SEATED');
+  if (room.phase !== 'playing') return refuse(room, connection, 'WRONG_ROOM_PHASE');
+  if (target === me.seat || target >= room.options.players) {
+    return refuse(room, connection, 'SEAT_INVALID');
+  }
+  if (me.thrownAt !== undefined && env.now - me.thrownAt < THROW_INTERVAL_MS) {
+    return { room, replies: [], quiet: true, passing: true };
+  }
+  const from = me.seat;
+  return {
+    room: replace(room, me, { ...me, thrownAt: env.now }),
+    replies: room.participants.flatMap((p) =>
+      p.connection === null ? [] : [reply(p.connection, { type: 'throw', from, to: target, item })],
+    ),
+    quiet: true,
+    passing: true,
+  };
+}
+
 /** Whether `me` may abandon the deal: seated, alone with bots, a deal in progress. */
 function mayAbandonDeal(room: RoomState, me: Participant): boolean {
   return (
@@ -810,6 +851,7 @@ function occupantOf(room: RoomState, seat: Seat, now: number): SeatOccupant {
       human.autoplay !== true &&
       controllerOf(room, seat, now).kind === 'bot',
     autoplay: human.autoplay === true,
+    hacker: human.hacker === true,
   };
 }
 

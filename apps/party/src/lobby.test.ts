@@ -13,6 +13,7 @@ describe('joining a room', () => {
       connected: true,
       replacedByBot: false,
       autoplay: false,
+      hacker: false,
     });
   });
 

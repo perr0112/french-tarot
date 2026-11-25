@@ -105,3 +105,19 @@
     animation: none;
   }
 }
+
+/* Over the whole badge, invisible: a click opens what to throw at its player (Throws). */
+.throwTarget {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  padding: 0;
+  border: none;
+  border-radius: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.throwTarget:hover {
+  background: rgb(255 255 255 / 0.06);
+}

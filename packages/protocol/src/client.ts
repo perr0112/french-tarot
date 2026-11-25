@@ -7,6 +7,7 @@ import {
   MAX_CODE_LENGTH,
   MAX_NICKNAME_LENGTH,
   REACTIONS,
+  THROW_ITEMS,
   type RoomOptions,
 } from './options';
 
@@ -64,6 +65,10 @@ const clientMessage = z.union([
   z.object({ type: z.literal('autoplay'), on: z.boolean() }),
   /** A lone player among bots: the deal in progress is dropped for a new one. */
   z.object({ type: z.literal('abandonDeal') }),
+  /** Something thrown at another player, seen by everyone (seat: the target). */
+  z.object({ type: z.literal('throw'), target: z.int().min(0), item: z.enum(THROW_ITEMS) }),
+  /** One's own name scrambling like a hacker's, on or off (typed in the console). */
+  z.object({ type: z.literal('hacker') }),
   /** A reaction shown at one's seat for a moment, to everyone at the table. */
   z.object({ type: z.literal('react'), emoji: z.enum(REACTIONS) }),
   /** The host code (typed in the browser console): an exceptional hand next deal. */

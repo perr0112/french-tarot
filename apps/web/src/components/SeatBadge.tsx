@@ -1,5 +1,6 @@
 import type { Seat } from '@tarot/engine';
-import type { RoomView } from '@tarot/protocol';
+import type { RoomView, ThrowItem } from '@tarot/protocol';
+import { useRef, useState } from 'react';
 import ui from '../design/ui.module.css';
 import { cardName, formatScore } from '../lib/cards';
 import { seatName } from '../lib/names';
@@ -9,6 +10,8 @@ import { seatFacts } from '../lib/seatFacts';
 import { fr } from '../strings/fr';
 import { CardStrip } from './CardStrip';
 import { ScoreChip } from './ScoreChip';
+import { SeatName } from './SeatName';
+import { ThrowPicker } from './Throws';
 import styles from './SeatBadge.module.css';
 
 /**
@@ -23,6 +26,7 @@ export function SeatBadge({
   poigneeShowing = null,
   reaction = null,
   bubbleOnLeft = false,
+  onThrow,
 }: {
   view: RoomView;
   seat: Seat;
@@ -33,8 +37,16 @@ export function SeatBadge({
   reaction?: ShownReaction | null | undefined;
   /** The reaction bubble on the left corner: for seats on the right of the table, so it stays in. */
   bubbleOnLeft?: boolean;
+  /** Throws something at this seat's player (another one); its picker opens from the badge. */
+  onThrow?: ((item: ThrowItem) => void) | undefined;
 }) {
   const facts = seatFacts(view, seat);
+  const [throwing, setThrowing] = useState(false);
+  const target = useRef<HTMLButtonElement>(null);
+  const closeThrow = () => {
+    setThrowing(false);
+    target.current?.focus();
+  };
   const { poignee, ecartTrumps, calledCard } = facts;
   const counts = [
     facts.cards === null ? null : fr.table.cards(facts.cards),
@@ -47,6 +59,27 @@ export function SeatBadge({
       // Where this seat's cards come from and its tricks go (motion/animate.ts).
       data-seat={seat}
     >
+      {onThrow && (
+        // The whole badge: a click opens what to throw at this player.
+        <button
+          ref={target}
+          type="button"
+          className={styles.throwTarget}
+          aria-label={fr.throws.open(facts.name)}
+          aria-expanded={throwing}
+          onClick={() => setThrowing(!throwing)}
+        />
+      )}
+      {onThrow && throwing && (
+        <ThrowPicker
+          name={facts.name}
+          onClose={closeThrow}
+          onThrow={(item) => {
+            closeThrow();
+            onThrow(item);
+          }}
+        />
+      )}
       {reaction && (
         <span
           // A new reaction pops anew, even the same emoji twice.
@@ -59,7 +92,7 @@ export function SeatBadge({
         </span>
       )}
       <span className={styles.name}>
-        {facts.name}
+        <SeatName view={view} seat={seat} />
         {facts.you ? ` ${fr.lobby.you}` : ''}
       </span>
       {facts.tags.length > 0 && <span className={styles.tags}>{facts.tags.join(' · ')}</span>}
